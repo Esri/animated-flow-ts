@@ -3,6 +3,54 @@ import { defined } from "../util";
 import { mat4 } from "gl-matrix";
 import Extent from "@arcgis/core/geometry/Extent";
 
+function smooth(data: Float32Array, W: number, H: number): Float32Array {
+  const horizontal = new Float32Array(data.length);
+
+  const HALF_RADIUS = 20;
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      let total = 0;
+      let s0 = 0;
+      let s1 = 0;
+
+      for (let d = Math.max(-HALF_RADIUS, 0); d <= Math.min(HALF_RADIUS, W - 1); d++) {
+        const w = Math.exp(-0.1 * d);
+
+        total += w;
+        s0 += w * data[2 * (y * W + (x + d)) + 0]!;
+        s1 += w * data[2 * (y * W + (x + d)) + 1]!;
+      }
+
+      horizontal[2 * (y * W + x) + 0] = s0 / total;
+      horizontal[2 * (y * W + x) + 1] = s1 / total;
+    }
+  }
+
+  const final = new Float32Array(data.length);
+  
+  for (let x = 0; x < W; x++) {
+    for (let y = 0; y < H; y++) {
+      let total = 0;
+      let s0 = 0;
+      let s1 = 0;
+
+      for (let d = Math.max(-HALF_RADIUS, 0); d <= Math.min(HALF_RADIUS, H - 1); d++) {
+        const w = Math.exp(-0.1 * d);
+
+        total += w;
+        s0 += w * horizontal[2 * ((y + d) * W + x) + 0]!;
+        s1 += w * horizontal[2 * ((y + d) * W + x) + 1]!;
+      }
+
+      final[2 * (y * W + x) + 0] = s0 / total;
+      final[2 * (y * W + x) + 1] = s1 / total;
+    }
+  }
+
+  return final;
+}
+
 function symbolize(pixelBlock: any): ImageData {
   // const W = pixelBlock.width;
   // const H = pixelBlock.height;
@@ -50,7 +98,7 @@ function symbolize(pixelBlock: any): ImageData {
 
   const W = pixelBlock.width;
   const H = pixelBlock.height;
-  const data = new Float32Array(W * H * 3);
+  const rawData = new Float32Array(W * H * 2);
 
   // let minMag = 1000000;
   // let maxMag = -1000000;
@@ -64,7 +112,7 @@ function symbolize(pixelBlock: any): ImageData {
     //   this.imageData.data[4 * i + 2] = 0;
     //   this.imageData.data[4 * i + 3] = 255;
 
-    const mag = pixelBlock.pixels[0][i] / 1000;
+    const mag = pixelBlock.pixels[0][i] / 10;
     const dir = Math.PI * pixelBlock.pixels[1][i] / 180;
 
     const co = Math.cos(dir);
@@ -77,9 +125,8 @@ function symbolize(pixelBlock: any): ImageData {
     // maxMag = Math.max(maxMag, mag);
     // maxDir = Math.max(maxDir, dir);
 
-    data[3 * i + 0] = u;
-    data[3 * i + 1] = v;
-    data[3 * i + 2] = 1;
+    rawData[2 * i + 0] = u;
+    rawData[2 * i + 1] = v;
     
 
     // data[3 * i + 0] = Math.random() * 2 - 1;
@@ -87,6 +134,7 @@ function symbolize(pixelBlock: any): ImageData {
     // data[3 * i + 2] = 1;
   }
 
+  const data = smooth(rawData, W, H);
 
   // console.log(minMag, maxMag, minDir, maxDir);
 
@@ -104,12 +152,12 @@ function symbolize(pixelBlock: any): ImageData {
 
   const imageData = new ImageData(W, H);
   // for (let i = 0; i < W * H; i++) {
-  //   const vx = data[3 * i + 0]!;
-  //   const vy = data[3 * i + 1]!;
+  //   const vx = data[2 * i + 0]!;
+  //   const vy = data[2 * i + 1]!;
   //   imageData.data[4 * i + 0] = Math.round(127.5 + 127.5 * clamp(vx) * COLOR_SCALE);
   //   imageData.data[4 * i + 1] = Math.round(127.5 + 127.5 * clamp(vy) * COLOR_SCALE);
   //   imageData.data[4 * i + 2] = 255;
-  //   imageData.data[4 * i + 3] = 255;
+  //   imageData.data[4 * i + 3] = 100;
   // }
 
   const canvas = document.createElement("canvas");
@@ -128,13 +176,13 @@ function symbolize(pixelBlock: any): ImageData {
     if (Y < 0 || Y >= H) {
       return [0, 0];
     }
-    return [data[3 * (Y * W + X) + 0]!, data[3 * (Y * W + X) + 1]!];
+    return [data[2 * (Y * W + X) + 0]!, data[2 * (Y * W + X) + 1]!];
   }
 
   ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
   ctx.strokeStyle = "rgba(0, 0, 0, 0.6)";
 
-  const SEGMENT_LENGTH = 5;
+  const SEGMENT_LENGTH = 0.1;
 
   ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
 
@@ -147,7 +195,7 @@ function symbolize(pixelBlock: any): ImageData {
     let x = x0;
     let y = y0;
     
-    while (t < 1000 && c < 100000) {
+    while (t < 1000 && c < 1000) {
       const [vx, vy] = field(x, y);
       const v = Math.sqrt(vx * vx + vy * vy);
       if (v < 0.001) {
@@ -166,7 +214,7 @@ function symbolize(pixelBlock: any): ImageData {
     ctx.stroke();
   }
 
-  for (let i = 0; i < 30000; i++) {
+  for (let i = 0; i < 20000; i++) {
     trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H));
   }
 

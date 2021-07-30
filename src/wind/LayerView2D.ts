@@ -23,7 +23,8 @@ export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalR
     // });
 
     this._imageryTileLayer = new ImageryTileLayer({
-      url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer"
+      // url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer"
+      url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
     });
 
     // this._imageryLayer = new ImageryLayer({

@@ -19,8 +19,10 @@ const map = new EsriMap({
 const view = new MapView({
   container: "viewDiv",
   map: map,
+  // zoom: 4,
+  // center: [11, 44] // longitude, latitude
   zoom: 4,
-  center: [11, 44] // longitude, latitude
+  center: [-98, 39]
 });
 
 console.log(view);
