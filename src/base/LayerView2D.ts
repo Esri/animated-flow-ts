@@ -19,7 +19,9 @@ export default abstract class LayerView2D<SR extends SharedResources, LR extends
       this._sharedResources = { resources, attached: false };
     });
 
-    this._loadInitialVisualization();
+    setTimeout(() => {
+      this._loadInitialVisualization();
+    }, 2000);
   }
 
   private _loadInitialVisualization(): void {
