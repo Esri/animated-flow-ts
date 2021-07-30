@@ -41,7 +41,6 @@ export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalR
 
     await this._imageryTileLayer.load();
     const rasterData = await this._imageryTileLayer.fetchPixels(extent, width, height);
-    console.log(rasterData);
 
     return new LocalResources(extent, resolution, rasterData.pixelBlock);
   }
