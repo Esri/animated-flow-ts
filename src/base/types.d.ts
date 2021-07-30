@@ -1,6 +1,7 @@
 export type VisualizationRenderParams = {
+  screenSizeInPixels: [number, nubmer];
   screenOriginInPixels: [number, number];
   rotationInRadians: number;
-  viewResolution: number;
+  relativeScale: number;
   opacity: number;
 }

@@ -1,6 +1,6 @@
 import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
-import WindLayer from "./wind/WindLayer";
+import WindLayer from "./wind/Layer";
 
 const windLayer = new WindLayer();
 

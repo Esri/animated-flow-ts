@@ -1,12 +1,12 @@
-import Layer from "@arcgis/core/layers/Layer";
-import WindLayerView2D from "./WindLayerView2D";
+import BaseLayer from "@arcgis/core/layers/Layer";
+import LayerView2D from "./LayerView2D";
 import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
 
-@subclass("wind-es.wind.WindLayer")
-export default class WindLayer extends Layer {
+@subclass("wind-es.wind.Layer")
+export default class Layer extends BaseLayer {
   override createLayerView(view: any): any {
     if (view.type === "2d") {
-      return new WindLayerView2D({
+      return new LayerView2D({
         view: view,
         layer: this
       } as any);

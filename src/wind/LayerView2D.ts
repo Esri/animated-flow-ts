@@ -1,11 +1,11 @@
 import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import Extent from "@arcgis/core/geometry/Extent";
 import Visualization from "../base/Visualization";
-import VisualizationLayerView2D from "../base/VisualizationLayerView2D";
-import WindVisualization from "./WindVisualization";
+import BaseLayerView2D from "../base/LayerView2D";
+import WindVisualization from "./Visualization";
 
-@subclass("wind-es.wind.WindLayerView2D")
-export default class WindLayerView2D extends VisualizationLayerView2D {
+@subclass("wind-es.wind.LayerView2D")
+export default class LayerView2D extends BaseLayerView2D {
   loadVisualization(extent: Extent, resolution: number): Promise<Visualization> {
     return new Promise<Visualization>((resolve) => {
       setTimeout(() => {

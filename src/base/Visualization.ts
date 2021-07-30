@@ -2,15 +2,25 @@ import Extent from "@arcgis/core/geometry/Extent";
 import { VisualizationRenderParams } from "./types";
 
 export default abstract class Visualization {
+  private _size: [number, number];
+
   constructor(private _extent: Extent, private _resolution: number) {
+    this._size = [
+      (_extent.xmax - _extent.xmin) / _resolution,
+      (_extent.ymax - _extent.ymin) / _resolution
+    ];
   }
 
-  protected extent(): Extent {
+  get extent(): Extent {
     return this._extent;
   }
 
-  protected resolution(): number {
+  get resolution(): number {
     return this._resolution;
+  }
+  
+  get size(): [number, number] {
+    return this._size;
   }
 
   abstract attach(gl: WebGLRenderingContext): void;

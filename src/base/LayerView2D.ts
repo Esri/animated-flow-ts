@@ -4,8 +4,8 @@ import { VisualizationRenderParams } from "./types";
 import Visualization from "./Visualization";
 import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
 
-@subclass("wind-es.base.VisualizationLayerView2D")
-export default abstract class VisualizationLayerView2D extends BaseLayerViewGL2D {
+@subclass("wind-es.base.LayerView2D")
+export default abstract class LayerView2D extends BaseLayerViewGL2D {
   private visualizations: { visualization: Visualization, attached: boolean }[] = [];
 
   override attach(): void {
@@ -26,10 +26,11 @@ export default abstract class VisualizationLayerView2D extends BaseLayerViewGL2D
       }
 
       const visualizationRenderParams: VisualizationRenderParams = {
-        screenOriginInPixels: [0, 0],
+        screenSizeInPixels: renderParams.state.size,
+        screenOriginInPixels: [100, 60],
         rotationInRadians: Math.PI * renderParams.state.rotation / 180,
-        viewResolution: renderParams.state.resolution,
-        opacity: 1
+        relativeScale: 0.5 * renderParams.state.resolution / visualizationAndAttached.visualization.resolution,
+        opacity: 0.7
       };
 
       visualizationAndAttached.visualization.render(gl, visualizationRenderParams);
