@@ -61,7 +61,7 @@ export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalR
     gl.useProgram(solidProgram);
     gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
     gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
-    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Texture"]!, 0);
+    gl.uniform1i(sharedResources.programs!["texture"]?.uniforms["u_Texture"]!, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, localResources.texture);
