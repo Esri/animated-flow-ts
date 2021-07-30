@@ -1,6 +1,6 @@
 import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
-import WindLayer from "./WindLayer";
+import WindLayer from "./wind/WindLayer";
 
 const windLayer = new WindLayer();
 
@@ -15,3 +15,5 @@ const view = new MapView({
   zoom: 4,
   center: [15, 65] // longitude, latitude
 });
+
+console.log(view);

@@ -1,27 +1,21 @@
-import BaseLayerViewGL2D from "@arcgis/core/views/2d/layers/BaseLayerViewGL2D";
-import LocalScreenLoader from "./LocalScreenLoader";
+import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
+import Extent from "@arcgis/core/geometry/Extent";
+import Visualization from "../base/Visualization";
+import VisualizationLayerView2D from "../base/VisualizationLayerView2D";
+import WindVisualization from "./WindVisualization";
 
-const WindLayerView2D = BaseLayerViewGL2D.createSubclass({
-  attach() {
-    this.screens = [];
-    this.screenLoader = new LocalScreenLoader();
-    this.screenLoader.load(this.view.extent).then((screen) => {
-      this.screens.push(screen);
+@subclass("wind-es.wind.WindLayerView2D")
+export default class WindLayerView2D extends VisualizationLayerView2D {
+  loadVisualization(extent: Extent, resolution: number): Promise<Visualization> {
+    return new Promise<Visualization>((resolve) => {
+      setTimeout(() => {
+        const visualization = new WindVisualization(extent, resolution);
+        resolve(visualization)
+      }, 1000);
     });
-  },
-
-  render(renderParams) {
-    for (const screen of this.screens) {
-      screen.render(renderParams);
-    }
-  },
-
-  detach() {
-
   }
-});
+}
 
-export default WindLayerView2D;
 
 // import * as workers from "@arcgis/core/core/workers";
 
