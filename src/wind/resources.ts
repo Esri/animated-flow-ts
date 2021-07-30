@@ -184,7 +184,7 @@ function symbolize(pixelBlock: any): ImageData {
 
   const SEGMENT_LENGTH = 0.1;
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.strokeStyle = "rgba(60, 160, 220, 0.2)";
 
   function trace(field: (x: number, y: number) => [number, number], x0: number, y0: number) {
     ctx.beginPath();
