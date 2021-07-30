@@ -21,6 +21,7 @@ export class SharedResources extends BaseSharedResources {
       void main(void) {
         gl_Position = u_ClipFromScreen * u_ScreenFromLocal * a_Position;
         v_TexCoord = a_Position.xy;
+        v_TexCoord.y = 1.0 - v_TexCoord.y;
       }`;
       
     const fragmentSource = `
@@ -83,32 +84,33 @@ export class LocalResources extends BaseLocalResources {
   constructor(extent: Extent, resolution: number, rasterData: any) {
     super(extent, resolution);
 
-    const pixelBlock = rasterData.pixelData.pixelBlock;
+    // const pixelBlock = rasterData.pixelData.pixelBlock;
+    const pixelBlock = rasterData.pixelBlock;
 
     this.imageData = new ImageData(pixelBlock.width, pixelBlock.height);
 
-    for (let y = 0; y < pixelBlock.height; y++) {
-      for (let x = 0; x < pixelBlock.width; x++) {
-        this.imageData.data[4 * (y * pixelBlock.width + x) + 0] = pixelBlock.pixels[0][y * pixelBlock.width + x];
-        this.imageData.data[4 * (y * pixelBlock.width + x) + 1] = pixelBlock.pixels[1][y * pixelBlock.width + x];
-        this.imageData.data[4 * (y * pixelBlock.width + x) + 2] = pixelBlock.pixels[2][y * pixelBlock.width + x];
-        this.imageData.data[4 * (y * pixelBlock.width + x) + 3] = 255;
-      }
-    }
-
-    const canvas = document.createElement("canvas");
-    canvas.width = this.imageData.width;
-    canvas.height = this.imageData.height;
-    const ctx = canvas.getContext("2d")!;
-    ctx.putImageData(this.imageData, 0, 0);
-    document.body.appendChild(canvas);
-
-    // for (let i = 0; i < pixelBlock.pixels[0].length; i++) {
-    //   this.imageData.data[4 * i + 0] = pixelBlock.pixels[0][i];
-    //   this.imageData.data[4 * i + 1] = pixelBlock.pixels[1][i];
-    //   this.imageData.data[4 * i + 2] = pixelBlock.pixels[2][i];
-    //   this.imageData.data[4 * i + 3] = 255;
+    // for (let y = 0; y < pixelBlock.height; y++) {
+    //   for (let x = 0; x < pixelBlock.width; x++) {
+    //     this.imageData.data[4 * (y * pixelBlock.width + x) + 0] = pixelBlock.pixels[0][y * pixelBlock.width + x];
+    //     this.imageData.data[4 * (y * pixelBlock.width + x) + 1] = pixelBlock.pixels[1][y * pixelBlock.width + x];
+    //     this.imageData.data[4 * (y * pixelBlock.width + x) + 2] = pixelBlock.pixels[2][y * pixelBlock.width + x];
+    //     this.imageData.data[4 * (y * pixelBlock.width + x) + 3] = 255;
+    //   }
     // }
+
+    // const canvas = document.createElement("canvas");
+    // canvas.width = this.imageData.width;
+    // canvas.height = this.imageData.height;
+    // const ctx = canvas.getContext("2d")!;
+    // ctx.putImageData(this.imageData, 0, 0);
+    // document.body.appendChild(canvas);
+
+    for (let i = 0; i < pixelBlock.pixels[0].length; i++) {
+      this.imageData.data[4 * i + 0] = pixelBlock.pixels[0][i];
+      this.imageData.data[4 * i + 1] = pixelBlock.pixels[1][i];
+      this.imageData.data[4 * i + 2] = 0;//pixelBlock.pixels[2][i];
+      this.imageData.data[4 * i + 3] = 255;
+    }
 
     // for (let y = 0; y < pixelBlock.height; y++) {
     //   for (let x = 0; x < pixelBlock.width; x++) {

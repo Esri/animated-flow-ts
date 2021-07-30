@@ -15,8 +15,8 @@ export abstract class LocalResources extends Resources {
     super();
     
     this._size = [
-      (_extent.xmax - _extent.xmin) / _resolution,
-      (_extent.ymax - _extent.ymin) / _resolution
+      Math.round((_extent.xmax - _extent.xmin) / _resolution),
+      Math.round((_extent.ymax - _extent.ymin) / _resolution)
     ];
   }
 

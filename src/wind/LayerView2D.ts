@@ -5,21 +5,30 @@ import BaseLayerView2D from "../base/LayerView2D";
 import { VisualizationRenderParams } from "../base/types";
 import { defined } from "../util";
 import { SharedResources, LocalResources } from "./resources";
-import ImageryLayer from "@arcgis/core/layers/ImageryLayer";
+import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 
 @subclass("wind-es.wind.LayerView2D")
 export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources> {
-  private _imageryLayer: ImageryLayer;
+  private _imageryTileLayer: ImageryTileLayer;
 
   constructor(params: any) {
     super(params);
 
+    // https://landsat2.arcgis.com/arcgis/rest/services/Landsat8_Views/ImageServer
     // https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer
     // https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer
 
-    this._imageryLayer = new ImageryLayer({
-      url: "https://landsat2.arcgis.com/arcgis/rest/services/Landsat8_Views/ImageServer"
+    // this._imageryLayer = new ImageryLayer({
+    //   
+    // });
+
+    this._imageryTileLayer = new ImageryTileLayer({
+      url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer"
     });
+
+    // this._imageryLayer = new ImageryLayer({
+    //   url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
+    // });
   }
   
   override loadSharedResources(): Promise<SharedResources> {
@@ -27,10 +36,12 @@ export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalR
   }
 
   override async loadLocalResources(extent: Extent, resolution: number): Promise<LocalResources> {
-    const width = (extent.xmax - extent.xmin) / resolution;
-    const height = (extent.ymax - extent.ymin) / resolution;
+    const width = Math.round((extent.xmax - extent.xmin) / resolution);
+    const height = Math.round((extent.ymax - extent.ymin) / resolution);
 
-    const rasterData = await this._imageryLayer.fetchImage(extent, width, height);
+    await this._imageryTileLayer.load();
+    const rasterData = await this._imageryTileLayer.fetchPixels(extent, width, height);
+    console.log(rasterData);
 
     return new LocalResources(extent, resolution, rasterData);
   }
@@ -43,8 +54,8 @@ export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalR
     gl.enableVertexAttribArray(0);
   
     mat4.identity(localResources.u_ScreenFromLocal);
-    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [-0.9, -0.9, 0]);
-    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [1.8, 1.8, 1]);
+    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [-1, -1, 0]);
+    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [2, 2, 1]);
   
     const solidProgram = sharedResources.programs!["texture"]?.program!;
     gl.useProgram(solidProgram);
