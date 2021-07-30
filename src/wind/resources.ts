@@ -4,71 +4,113 @@ import { mat4 } from "gl-matrix";
 import Extent from "@arcgis/core/geometry/Extent";
 
 function symbolize(pixelBlock: any): ImageData {
+  // const W = pixelBlock.width;
+  // const H = pixelBlock.height;
+  // const POWER = 0.1;
+  // const DECAY = 0.0025;
+  // const HALF_RADIUS = 100;
+  // const data = new Float32Array(W * H * 3);
+  
+  // for (let i = 0; i < 1000; i++) {
+  //   const x = Math.round(Math.random() * W);
+  //   const y = Math.round(Math.random() * H);
+  //   const vx = POWER * (Math.random() * 2 - 1);
+  //   const vy = POWER * (Math.random() * 2 - 1);
+    
+  //   for (let xi = x - HALF_RADIUS; xi <= x + HALF_RADIUS; xi++) {
+  //     if (xi < 0 || xi >= W) {
+  //       continue;
+  //     }
+
+  //     for (let yi = y - HALF_RADIUS; yi <= y + HALF_RADIUS; yi++) {
+  //       if (yi < 0 || yi >= H) {
+  //         continue;
+  //       }
+
+  //       const weight = Math.exp(-DECAY * ((x - xi) * (x - xi) + (y - yi) * (y - yi)));
+        
+  //       data[3 * (yi * W + xi) + 0] += vx * weight;
+  //       data[3 * (yi * W + xi) + 1] += vy * weight;
+  //       data[3 * (yi * W + xi) + 2] += weight;
+  //     }
+  //   }
+  // }
+
+  // for (let i = 0; i < W * H; i++) {
+  //   if (data[3 * i + 2]! > 0.01) {
+  //     data[3 * i + 0] /= data[3 * i + 2]!;
+  //     data[3 * i + 1] /= data[3 * i + 2]!;
+  //     data[3 * i + 2] = 1;
+  //   } else {
+  //     data[3 * i + 0] = 0;
+  //     data[3 * i + 1] = 0;
+  //     data[3 * i + 2] = 0;
+  //   }
+  // }
+
   const W = pixelBlock.width;
   const H = pixelBlock.height;
-  const POWER = 0.1;
-  const DECAY = 0.0025;
-  const HALF_RADIUS = 100;
   const data = new Float32Array(W * H * 3);
+
+  // let minMag = 1000000;
+  // let maxMag = -1000000;
+  // let minDir = 1000000;
+  // let maxDir = -1000000;
   
-  for (let i = 0; i < 1000; i++) {
-    const x = Math.round(Math.random() * W);
-    const y = Math.round(Math.random() * H);
-    const vx = POWER * (Math.random() * 2 - 1);
-    const vy = POWER * (Math.random() * 2 - 1);
-    
-    for (let xi = x - HALF_RADIUS; xi <= x + HALF_RADIUS; xi++) {
-      if (xi < 0 || xi >= W) {
-        continue;
-      }
-
-      for (let yi = y - HALF_RADIUS; yi <= y + HALF_RADIUS; yi++) {
-        if (yi < 0 || yi >= H) {
-          continue;
-        }
-
-        const weight = Math.exp(-DECAY * ((x - xi) * (x - xi) + (y - yi) * (y - yi)));
-        
-        data[3 * (yi * W + xi) + 0] += vx * weight;
-        data[3 * (yi * W + xi) + 1] += vy * weight;
-        data[3 * (yi * W + xi) + 2] += weight;
-      }
-    }
-  }
-
   for (let i = 0; i < W * H; i++) {
-    if (data[3 * i + 2]! > 0.01) {
-      data[3 * i + 0] /= data[3 * i + 2]!;
-      data[3 * i + 1] /= data[3 * i + 2]!;
-      data[3 * i + 2] = 1;
-    } else {
-      data[3 * i + 0] = 0;
-      data[3 * i + 1] = 0;
-      data[3 * i + 2] = 0;
-    }
+
+    //   this.imageData.data[4 * i + 0] = pixelBlock.pixels[0][i];
+    //   this.imageData.data[4 * i + 1] = pixelBlock.pixels[1][i];
+    //   this.imageData.data[4 * i + 2] = 0;
+    //   this.imageData.data[4 * i + 3] = 255;
+
+    const mag = pixelBlock.pixels[0][i] / 1000;
+    const dir = Math.PI * pixelBlock.pixels[1][i] / 180;
+
+    const co = Math.cos(dir);
+    const si = Math.sin(dir);
+    const u = co * mag + si * mag;
+    const v = -si * mag + co * mag;
+
+    // minMag = Math.min(minMag, mag);
+    // minDir = Math.min(minDir, dir);
+    // maxMag = Math.max(maxMag, mag);
+    // maxDir = Math.max(maxDir, dir);
+
+    data[3 * i + 0] = u;
+    data[3 * i + 1] = v;
+    data[3 * i + 2] = 1;
+    
+
+    // data[3 * i + 0] = Math.random() * 2 - 1;
+    // data[3 * i + 1] = Math.random() * 2 - 1;
+    // data[3 * i + 2] = 1;
   }
 
-  const COLOR_SCALE = 1;
 
-  function clamp(x: number): number {
-    if (x < -1) {
-      return -1;
-    }
-    if (x > 1) {
-      return 1;
-    }
-    return x;
-  }
+  // console.log(minMag, maxMag, minDir, maxDir);
+
+  // const COLOR_SCALE = 1;
+
+  // function clamp(x: number): number {
+  //   if (x < -1) {
+  //     return -1;
+  //   }
+  //   if (x > 1) {
+  //     return 1;
+  //   }
+  //   return x;
+  // }
 
   const imageData = new ImageData(W, H);
-  for (let i = 0; i < W * H; i++) {
-    const vx = data[3 * i + 0]!;
-    const vy = data[3 * i + 1]!;
-    imageData.data[4 * i + 0] = Math.round(127.5 + 127.5 * clamp(vx) * COLOR_SCALE);
-    imageData.data[4 * i + 1] = Math.round(127.5 + 127.5 * clamp(vy) * COLOR_SCALE);
-    imageData.data[4 * i + 2] = 255;
-    imageData.data[4 * i + 3] = 255;
-  }
+  // for (let i = 0; i < W * H; i++) {
+  //   const vx = data[3 * i + 0]!;
+  //   const vy = data[3 * i + 1]!;
+  //   imageData.data[4 * i + 0] = Math.round(127.5 + 127.5 * clamp(vx) * COLOR_SCALE);
+  //   imageData.data[4 * i + 1] = Math.round(127.5 + 127.5 * clamp(vy) * COLOR_SCALE);
+  //   imageData.data[4 * i + 2] = 255;
+  //   imageData.data[4 * i + 3] = 255;
+  // }
 
   const canvas = document.createElement("canvas");
   canvas.width = W;
@@ -161,6 +203,7 @@ export class SharedResources extends BaseSharedResources {
       
       void main(void) {
         gl_FragColor = texture2D(u_Texture, v_TexCoord);
+        gl_FragColor.rgb *= gl_FragColor.a;
       }`;
       
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);

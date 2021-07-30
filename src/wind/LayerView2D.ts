@@ -65,6 +65,9 @@ export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalR
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, localResources.texture);
 
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
