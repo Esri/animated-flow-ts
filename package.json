@@ -16,7 +16,7 @@
     "webpack-dev-server": "^3.11.2"
   },
   "dependencies": {
-    "@arcgis/core": "^4.20.2",
+    "@arcgis/core": "^4.21.0-next.20210730",
     "gl-matrix": "^3.3.0"
   }
 }

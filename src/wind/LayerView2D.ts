@@ -43,7 +43,7 @@ export default class LayerView2D extends BaseLayerView2D<SharedResources, LocalR
     const rasterData = await this._imageryTileLayer.fetchPixels(extent, width, height);
     console.log(rasterData);
 
-    return new LocalResources(extent, resolution, rasterData);
+    return new LocalResources(extent, resolution, rasterData.pixelBlock);
   }
 
   override renderVisualization(gl: WebGLRenderingContext, _renderParams: VisualizationRenderParams, sharedResources: SharedResources, localResources: LocalResources): void {
