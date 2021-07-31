@@ -20,11 +20,11 @@ export default abstract class LayerView2D<SR extends SharedResources, LR extends
     });
 
     setTimeout(() => {
-      this._loadInitialVisualization();
+      this._loadVisualization();
     }, 2000);
   }
 
-  private _loadInitialVisualization(): void {
+  private _loadVisualization(): void {
     const abortController = new AbortController();
     const entry: ResourcesEntry<LR> = { abortController };
     this._localResources.push(entry);
@@ -58,11 +58,11 @@ export default abstract class LayerView2D<SR extends SharedResources, LR extends
       }
 
       const visualizationRenderParams: VisualizationRenderParams = {
-        screenSizeInPixels: renderParams.state.size,
-        screenOriginInPixels: [100, 60],
-        rotationInRadians: Math.PI * renderParams.state.rotation / 180,
-        relativeScale: 0.5 * renderParams.state.resolution / localResources.resources.resolution,
-        opacity: 0.7
+        size: renderParams.state.size,
+        translation: [100, 60],
+        rotation: Math.PI * renderParams.state.rotation / 180,
+        scale: 0.5 * localResources.resources.resolution / renderParams.state.resolution,
+        opacity: 1
       };
       
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);

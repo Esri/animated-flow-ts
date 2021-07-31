@@ -229,7 +229,8 @@ export class SharedResources extends BaseSharedResources {
 
   override attach(gl: WebGLRenderingContext): void {
     const vertexSource = `
-      attribute vec4 a_Position;
+      attribute vec2 a_Position;
+      attribute vec2 a_TexCoord;
       
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_ClipFromScreen;
@@ -237,21 +238,25 @@ export class SharedResources extends BaseSharedResources {
       varying vec2 v_TexCoord;
       
       void main(void) {
-        gl_Position = u_ClipFromScreen * u_ScreenFromLocal * a_Position;
-        v_TexCoord = a_Position.xy;
-        v_TexCoord.y = 1.0 - v_TexCoord.y;
+        gl_Position = u_ClipFromScreen * u_ScreenFromLocal * vec4(a_Position / 8.0, 0.0, 1.0);
+        v_TexCoord = a_TexCoord;
       }`;
       
     const fragmentSource = `
       precision mediump float;
 
       uniform sampler2D u_Texture;
+      uniform float u_Opacity;
       
       varying vec2 v_TexCoord;
       
       void main(void) {
         gl_FragColor = texture2D(u_Texture, v_TexCoord);
+        gl_FragColor.a *= u_Opacity;
         gl_FragColor.rgb *= gl_FragColor.a;
+        // gl_FragColor = vec4(v_TexCoord, 0.0, 1.0);
+        // gl_FragColor.a = 0.6;
+        // gl_FragColor.rgb *= gl_FragColor.a;
       }`;
       
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -282,7 +287,8 @@ export class SharedResources extends BaseSharedResources {
         uniforms: {
           u_ScreenFromLocal: gl.getUniformLocation(program, "u_ScreenFromLocal")!,
           u_ClipFromScreen: gl.getUniformLocation(program, "u_ClipFromScreen")!,
-          u_Texture: gl.getUniformLocation(program, "u_Texture")!
+          u_Texture: gl.getUniformLocation(program, "u_Texture")!,
+          u_Opacity: gl.getUniformLocation(program, "u_Opacity")!
         }
       }
     };
@@ -319,7 +325,12 @@ export class LocalResources extends BaseLocalResources {
     const vertexBuffer = gl.createBuffer();
     defined(vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Int16Array([
+      0, 0, 0, 32767,
+      894 * 8, 0, 32767, 32767,
+      0, 926 * 8, 0, 0,
+      894 * 8, 926 * 8, 32767, 0
+    ]), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     const texture = gl.createTexture();
