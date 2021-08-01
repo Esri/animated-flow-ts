@@ -4,7 +4,7 @@ module.exports = {
   mode: "development",
   entry: {
     main: "./src/main.ts",
-    worker: "./src/worker.ts"
+    "wind-worker": "./src/wind-worker.ts"
   },
   module: {
     rules: [

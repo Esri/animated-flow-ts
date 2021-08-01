@@ -1,4 +1,10 @@
 /**
+ * @module util
+ * 
+ * This module contains utilities of general interest.
+ */
+
+/**
  * Raise a runtime exception if the value is `null` or `undefined`.
  *
  * @param value The value to be asserted.

@@ -353,29 +353,21 @@ export class Layer extends BaseLayer {
 export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources> {
   private _imageryTileLayer: ImageryTileLayer;
 
+  override animate = true;
+
   constructor(params: any) {
     super(params);
-
-    // https://landsat2.arcgis.com/arcgis/rest/services/Landsat8_Views/ImageServer
-    // https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer
-    // https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer
-
-    // this._imageryLayer = new ImageryLayer({
-    //   
-    // });
-
+    
     this._imageryTileLayer = new ImageryTileLayer({
-      // url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer"
       url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
     });
 
-    // this._imageryLayer = new ImageryLayer({
-    //   url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
-    // });
+    const worker = new Worker("/wind-worker.js");
+    console.log(worker);
   }
   
-  override loadSharedResources(): Promise<SharedResources> {
-    return Promise.resolve(new SharedResources());
+  override async loadSharedResources(): Promise<SharedResources> {
+    return new SharedResources();
   }
 
   override async loadLocalResources(extent: Extent, resolution: number): Promise<LocalResources> {

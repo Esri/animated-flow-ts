@@ -1,6 +1,6 @@
 import Extent from "@arcgis/core/geometry/Extent";
 import BaseLayerViewGL2D from "@arcgis/core/views/2d/layers/BaseLayerViewGL2D";
-import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
+import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
 
 export type VisualizationRenderParams = {
   size: [number, number];
@@ -50,6 +50,11 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
   private _sharedResources: ResourcesEntry<SR> | null = null;
   private _localResources: ResourcesEntry<LR>[] = [];
 
+  @property({
+    type: Boolean
+  })
+  animate = false;
+
   override attach(): void {
     const abortController = new AbortController();
     const entry: ResourcesEntry<SR> = { abortController };
@@ -58,9 +63,7 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       this._sharedResources = { resources, attached: false };
     });
 
-    setTimeout(() => {
-      this._loadVisualization();
-    }, 4000);
+    this._loadVisualization();
   }
 
   private _loadVisualization(): void {
@@ -112,8 +115,9 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);
     }
 
-    // TODO! Remove this!
-    this.requestRender();
+    if (this.animate) {
+      this.requestRender();
+    }
   }
 
   override detach(): void {
