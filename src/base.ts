@@ -111,6 +111,9 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);
     }
+
+    // TODO! Remove this!
+    this.requestRender();
   }
 
   override detach(): void {

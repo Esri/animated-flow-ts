@@ -17,7 +17,11 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
       let s0 = 0;
       let s1 = 0;
 
-      for (let d = Math.max(-halfRadius, 0); d <= Math.min(halfRadius, width - 1); d++) {
+      for (let d = -halfRadius; d <= halfRadius; d++) {
+        if (x + d < 0 || x + d >= width) {
+          continue;
+        }
+
         const weight = Math.exp(-d * d / (sigma * sigma));
 
         totalWeight += weight;
@@ -25,8 +29,8 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
         s1 += weight * data[2 * (y * width + (x + d)) + 1]!;
       }
 
-      horizontal[2 * (y * width + x) + 0] = s0 / totalWeight;
-      horizontal[2 * (y * width + x) + 1] = s1 / totalWeight;
+      horizontal[2 * (y * width + x) + 0] = totalWeight < 0.001 ? 0 : (s0 / totalWeight);
+      horizontal[2 * (y * width + x) + 1] = totalWeight < 0.001 ? 0 : (s1 / totalWeight);
     }
   }
 
@@ -38,7 +42,11 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
       let s0 = 0;
       let s1 = 0;
 
-      for (let d = Math.max(-halfRadius, 0); d <= Math.min(halfRadius, height - 1); d++) {
+      for (let d = -halfRadius; d <= halfRadius; d++) {
+        if (y + d < 0 || y + d >= height) {
+          continue;
+        }
+
         const weight = Math.exp(-d * d / (sigma * sigma));
 
         totalWeight += weight;
@@ -46,8 +54,8 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
         s1 += weight * horizontal[2 * ((y + d) * width + x) + 1]!;
       }
 
-      final[2 * (y * width + x) + 0] = s0 / totalWeight;
-      final[2 * (y * width + x) + 1] = s1 / totalWeight;
+      final[2 * (y * width + x) + 0] = totalWeight < 0.001 ? 0 : (s0 / totalWeight);
+      final[2 * (y * width + x) + 1] = totalWeight < 0.001 ? 0 : (s1 / totalWeight);
     }
   }
 
@@ -158,30 +166,46 @@ export class SharedResources extends BaseSharedResources {
       attribute vec2 a_Position;
       attribute vec2 a_Extrude;
       attribute float a_Side;
+      attribute float a_Time;
+      attribute float a_Distance;
       
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_Rotation;
       uniform mat4 u_ClipFromScreen;
 
       varying float v_Side;
+      varying float v_Time;
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
         screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0);
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
+        v_Time = a_Time;
       }`;
       
     const fragmentSource = `
       precision mediump float;
 
       uniform float u_Opacity;
+      uniform float u_Time;
       
       varying float v_Side;
-      
+      varying float v_Time;
+
       void main(void) {
         gl_FragColor = vec4(60.0 / 255.0, 160.0 / 255.0, 220.0 / 255.0, 1.0);
+
         gl_FragColor.a *= u_Opacity * (1.0 - length(v_Side));
+        
+        float t = 10.0 * (u_Time - 10.0);
+
+        if (t < v_Time) {
+          gl_FragColor.a *= 0.0;
+        } else {
+          gl_FragColor.a *= exp(-0.01 * (t - v_Time));
+        }
+
         gl_FragColor.rgb *= gl_FragColor.a;
       }`;
       
@@ -201,6 +225,8 @@ export class SharedResources extends BaseSharedResources {
     gl.bindAttribLocation(program, 0, "a_Position");
     gl.bindAttribLocation(program, 1, "a_Extrude");
     gl.bindAttribLocation(program, 2, "a_Side");
+    gl.bindAttribLocation(program, 3, "a_Time");
+    gl.bindAttribLocation(program, 4, "a_Distance");
     gl.linkProgram(program);
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
@@ -216,7 +242,8 @@ export class SharedResources extends BaseSharedResources {
           u_ScreenFromLocal: gl.getUniformLocation(program, "u_ScreenFromLocal")!,
           u_Rotation: gl.getUniformLocation(program, "u_Rotation")!,
           u_ClipFromScreen: gl.getUniformLocation(program, "u_ClipFromScreen")!,
-          u_Opacity: gl.getUniformLocation(program, "u_Opacity")!
+          u_Opacity: gl.getUniformLocation(program, "u_Opacity")!,
+          u_Time: gl.getUniformLocation(program, "u_Time")!
         }
       }
     };
@@ -251,18 +278,18 @@ export class LocalResources extends BaseLocalResources {
 
     for (const line of this.flowLines) {
       for (let i = 1; i < line.length; i++) {
-        const { position: [x0, y0] } = line[i - 1]!;
-        const { position: [x1, y1] } = line[i]!;
+        const { position: [x0, y0], time: t0, distance: d0 } = line[i - 1]!;
+        const { position: [x1, y1], time: t1, distance: d1 } = line[i]!;
 
         const l = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
         const ex = -(y1 - y0) / l;
         const ey = (x1 - x0) / l;
 
         vertexData.push(
-          x0, y0, ex * 32767, ey * 32767, -1,
-          x0, y0, -ex * 32767, -ey * 32767, +1,
-          x1, y1, ex * 32767, ey * 32767, -1,
-          x1, y1, -ex * 32767, -ey * 32767, +1
+          x0, y0, ex * 32767, ey * 32767, -1, t0, d0,
+          x0, y0, -ex * 32767, -ey * 32767, +1, t0, d0,
+          x1, y1, ex * 32767, ey * 32767, -1, t1, d1,
+          x1, y1, -ex * 32767, -ey * 32767, +1, t1, d1,
         );
 
         indexData.push(
@@ -364,13 +391,17 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
   override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SharedResources, localResources: LocalResources): void {
     defined(localResources.vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
-    gl.vertexAttribPointer(0, 2, gl.SHORT, false, 10, 0);
-    gl.vertexAttribPointer(1, 2, gl.SHORT, true, 10, 4);
-    gl.vertexAttribPointer(2, 1, gl.SHORT, false, 10, 8);
+    gl.vertexAttribPointer(0, 2, gl.SHORT, false, 14, 0);
+    gl.vertexAttribPointer(1, 2, gl.SHORT, true, 14, 4);
+    gl.vertexAttribPointer(2, 1, gl.SHORT, false, 14, 8);
+    gl.vertexAttribPointer(3, 1, gl.SHORT, false, 14, 10);
+    gl.vertexAttribPointer(4, 1, gl.SHORT, false, 14, 12);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.enableVertexAttribArray(0);
     gl.enableVertexAttribArray(1);
     gl.enableVertexAttribArray(2);
+    gl.enableVertexAttribArray(3);
+    gl.enableVertexAttribArray(4);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, localResources.indexBuffer);
 
@@ -395,6 +426,7 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
     gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_Rotation"]!, false, localResources.u_Rotation);
     gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Opacity"]!, renderParams.opacity);
+    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
