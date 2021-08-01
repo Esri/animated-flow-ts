@@ -5,155 +5,7 @@ import { LayerView2D as BaseLayerView2D, VisualizationRenderParams, LocalResourc
 import { defined } from "./util";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 import BaseLayer from "@arcgis/core/layers/Layer";
-
-function smooth(data: Float32Array, width: number, height: number, sigma: number): Float32Array {
-  const horizontal = new Float32Array(data.length);
-
-  const halfRadius = Math.round(3 * sigma);
-
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let totalWeight = 0;
-      let s0 = 0;
-      let s1 = 0;
-
-      for (let d = -halfRadius; d <= halfRadius; d++) {
-        if (x + d < 0 || x + d >= width) {
-          continue;
-        }
-
-        const weight = Math.exp(-d * d / (sigma * sigma));
-
-        totalWeight += weight;
-        s0 += weight * data[2 * (y * width + (x + d)) + 0]!;
-        s1 += weight * data[2 * (y * width + (x + d)) + 1]!;
-      }
-
-      horizontal[2 * (y * width + x) + 0] = totalWeight < 0.001 ? 0 : (s0 / totalWeight);
-      horizontal[2 * (y * width + x) + 1] = totalWeight < 0.001 ? 0 : (s1 / totalWeight);
-    }
-  }
-
-  const final = new Float32Array(data.length);
-  
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
-      let totalWeight = 0;
-      let s0 = 0;
-      let s1 = 0;
-
-      for (let d = -halfRadius; d <= halfRadius; d++) {
-        if (y + d < 0 || y + d >= height) {
-          continue;
-        }
-
-        const weight = Math.exp(-d * d / (sigma * sigma));
-
-        totalWeight += weight;
-        s0 += weight * horizontal[2 * ((y + d) * width + x) + 0]!;
-        s1 += weight * horizontal[2 * ((y + d) * width + x) + 1]!;
-      }
-
-      final[2 * (y * width + x) + 0] = totalWeight < 0.001 ? 0 : (s0 / totalWeight);
-      final[2 * (y * width + x) + 1] = totalWeight < 0.001 ? 0 : (s1 / totalWeight);
-    }
-  }
-
-  return final;
-}
-
-function getFlowLines(pixelBlock: any): { position: [number, number]; distance: number; time: number; }[][] {
-  const W = pixelBlock.width;
-  const H = pixelBlock.height;
-  const rawData = new Float32Array(W * H * 2);
-
-  for (let i = 0; i < W * H; i++) {
-    const mag = pixelBlock.pixels[0][i] / 10;
-    const dir = Math.PI * pixelBlock.pixels[1][i] / 180;
-
-    const co = Math.cos(dir);
-    const si = Math.sin(dir);
-    const u = co * mag + si * mag;
-    const v = -si * mag + co * mag;
-    
-    rawData[2 * i + 0] = u;
-    rawData[2 * i + 1] = v;
-  }
-
-  const data = smooth(rawData, W, H, 10);
-
-  /////////////////////////////////////////////////////
-
-  function f(x: number, y: number): [number, number] {
-    const X = Math.round(x);
-    const Y = Math.round(y);
-    if (X < 0 || X >= W) {
-      return [0, 0];
-    }
-    if (Y < 0 || Y >= H) {
-      return [0, 0];
-    }
-    return [data[2 * (Y * W + X) + 0]!, data[2 * (Y * W + X) + 1]!];
-  }
-  
-  /////////////////////////////////////////////////////
-
-  const lines: { position: [number, number]; distance: number; time: number; }[][] = [];
-
-  // const SEGMENT_LENGTH = 0.1;
-  const SEGMENT_LENGTH = 10;
-
-  function trace(field: (x: number, y: number) => [number, number], x0: number, y0: number) {
-    const line: { position: [number, number]; distance: number; time: number; }[] = [];
-
-    let t = 0;
-    let d = 0;
-    let c = 0;
-    
-    let x = x0;
-    let y = y0;
-
-    line.push({
-      position: [x, y],
-      distance: d,
-      time: t
-    });
-    
-    while (t < 1000 && c < 1000) {
-      const [vx, vy] = field(x, y);
-      const v = Math.sqrt(vx * vx + vy * vy);
-      if (v < 0.001) {
-        return;
-      }
-      const dx = vx / v;
-      const dy = vy / v;
-      x += dx * SEGMENT_LENGTH;
-      y += dy * SEGMENT_LENGTH;
-      const dt = SEGMENT_LENGTH / v;
-      t += dt;
-      d += SEGMENT_LENGTH;
-      c++;
-
-      line.push({
-        position: [x, y],
-        distance: d,
-        time: t
-      });
-    }
-
-    lines.push(line);
-  }
-
-  // for (let i = 0; i < 10; i++) {
-  //   trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H));
-  // }
-
-  for (let i = 0; i < 5000; i++) {
-    trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H));
-  }
-  
-  return lines;
-}
+import { createWindMesh } from "./wind-processing";
 
 export class SharedResources extends BaseSharedResources {
   programs: HashMap<{
@@ -255,75 +107,43 @@ export class SharedResources extends BaseSharedResources {
 }
 
 export class LocalResources extends BaseLocalResources {
+  vertexData: Float32Array | null;
+  indexData: Uint32Array | null;
   vertexBuffer: WebGLBuffer | null = null;
   indexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
   u_Rotation = mat4.create();
   u_ClipFromScreen = mat4.create();
-  private flowLines: { position: [number, number]; distance: number; time: number; }[][] | null;
   indexCount = 0;
 
-  constructor(extent: Extent, resolution: number, pixelBlock: any) {
+  constructor(extent: Extent, resolution: number, vertexData: Float32Array, indexData: Uint32Array) {
     super(extent, resolution);
 
-    this.flowLines = getFlowLines(pixelBlock);
+    this.vertexData = vertexData;
+    this.indexData = indexData;
+    this.indexCount = indexData.length;
   }
 
   override attach(gl: WebGLRenderingContext): void {
-    let vertexCount = 0;
-    const vertexData: number[] = [];
-    const indexData: number[] = [];
-
-    defined(this.flowLines);
-
-    for (const line of this.flowLines) {
-      for (let i = 1; i < line.length; i++) {
-        const { position: [x0, y0], time: t0, distance: d0 } = line[i - 1]!;
-        const { position: [x1, y1], time: t1, distance: d1 } = line[i]!;
-
-        const l = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
-        const ex = -(y1 - y0) / l;
-        const ey = (x1 - x0) / l;
-
-        vertexData.push(
-          x0, y0, ex * 32767, ey * 32767, -1, t0, d0,
-          x0, y0, -ex * 32767, -ey * 32767, +1, t0, d0,
-          x1, y1, ex * 32767, ey * 32767, -1, t1, d1,
-          x1, y1, -ex * 32767, -ey * 32767, +1, t1, d1,
-        );
-
-        indexData.push(
-          vertexCount + 0,
-          vertexCount + 1,
-          vertexCount + 2,
-          vertexCount + 1,
-          vertexCount + 3,
-          vertexCount + 2
-        );
-
-        vertexCount += 4;
-      }
-    }
-
-    this.indexCount = indexData.length;
+    defined(this.vertexData);
+    defined(this.indexData);
 
     const vertexBuffer = gl.createBuffer();
     defined(vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Int16Array(vertexData), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, this.vertexData, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     const indexBuffer = gl.createBuffer();
     defined(indexBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), gl.STATIC_DRAW);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indexData, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
-    this.flowLines = null;
+    this.vertexData = null;
+    this.indexData = null;
     this.vertexBuffer = vertexBuffer;
     this.indexBuffer = indexBuffer;
-
-    console.log("DONE!");
   }
 
   override detach(gl: WebGLRenderingContext): void {
@@ -331,7 +151,6 @@ export class LocalResources extends BaseLocalResources {
     gl.deleteBuffer(this.indexBuffer);
   }
 }
-
 
 @subclass("wind-es.wind.Layer")
 export class Layer extends BaseLayer {
@@ -377,17 +196,19 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
     await this._imageryTileLayer.load();
     const rasterData = await this._imageryTileLayer.fetchPixels(extent, width, height);
 
-    return new LocalResources(extent, resolution, rasterData.pixelBlock);
+    const { vertexData, indexData } = createWindMesh(rasterData.pixelBlock);
+
+    return new LocalResources(extent, resolution, vertexData, indexData);
   }
 
   override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SharedResources, localResources: LocalResources): void {
     defined(localResources.vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
-    gl.vertexAttribPointer(0, 2, gl.SHORT, false, 14, 0);
-    gl.vertexAttribPointer(1, 2, gl.SHORT, true, 14, 4);
-    gl.vertexAttribPointer(2, 1, gl.SHORT, false, 14, 8);
-    gl.vertexAttribPointer(3, 1, gl.SHORT, false, 14, 10);
-    gl.vertexAttribPointer(4, 1, gl.SHORT, false, 14, 12);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 28, 0);
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 28, 8);
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 28, 16);
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 28, 20);
+    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 28, 24);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.enableVertexAttribArray(0);
     gl.enableVertexAttribArray(1);
@@ -423,6 +244,6 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-    gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
   }
 }
