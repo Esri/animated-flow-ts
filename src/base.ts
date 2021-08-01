@@ -1,13 +1,52 @@
 import Extent from "@arcgis/core/geometry/Extent";
 import BaseLayerViewGL2D from "@arcgis/core/views/2d/layers/BaseLayerViewGL2D";
 import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
-import { LocalResources, SharedResources } from "./resources";
-import { VisualizationRenderParams } from "./types";
+
+export type VisualizationRenderParams = {
+  size: [number, number];
+  translation: [number, number];
+  rotation: number;
+  scale: number;
+  opacity: number;
+}
+
+export abstract class Resources {
+  abstract attach(gl: WebGLRenderingContext): void;
+  abstract detach(gl: WebGLRenderingContext): void;
+}
+
+export abstract class SharedResources extends Resources {
+}
+
+export abstract class LocalResources extends Resources {
+  private _size: [number, number];
+
+  constructor(private _extent: Extent, private _resolution: number) {
+    super();
+    
+    this._size = [
+      Math.round((_extent.xmax - _extent.xmin) / _resolution),
+      Math.round((_extent.ymax - _extent.ymin) / _resolution)
+    ];
+  }
+
+  get extent(): Extent {
+    return this._extent;
+  }
+
+  get resolution(): number {
+    return this._resolution;
+  }
+  
+  get size(): [number, number] {
+    return this._size;
+  }
+}
 
 type ResourcesEntry<R> = { resources: R; attached: boolean; } | { abortController: AbortController };
 
 @subclass("wind-es.base.LayerView2D")
-export default abstract class LayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
+export abstract class LayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
   private _sharedResources: ResourcesEntry<SR> | null = null;
   private _localResources: ResourcesEntry<LR>[] = [];
 

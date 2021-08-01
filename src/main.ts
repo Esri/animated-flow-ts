@@ -2,7 +2,7 @@ import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
 
-import WindLayer from "./wind/Layer";
+import { Layer as WindLayer } from "./wind";
 
 const vectorTileLayer = new VectorTileLayer({
   // url: "https://www.arcgis.com/sharing/rest/content/items/13100ed96b7a4e18b9a7c024c56910aa/resources/styles/root.json"

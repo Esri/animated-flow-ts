@@ -1,50 +1,54 @@
-import { LocalResources as BaseLocalResources, SharedResources as BaseSharedResources } from "../base/resources";
-import { defined } from "../util";
-import { mat4 } from "gl-matrix";
+import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import Extent from "@arcgis/core/geometry/Extent";
+import { mat4 } from "gl-matrix";
+import { LayerView2D as BaseLayerView2D, VisualizationRenderParams, LocalResources as BaseLocalResources, SharedResources as BaseSharedResources } from "./base";
+import { defined } from "./util";
+import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
+import BaseLayer from "@arcgis/core/layers/Layer";
 
-function smooth(data: Float32Array, W: number, H: number): Float32Array {
+function smooth(data: Float32Array, width: number, height: number, sigma: number): Float32Array {
   const horizontal = new Float32Array(data.length);
 
-  const HALF_RADIUS = 20;
+  const halfRadius = Math.round(3 * sigma);
+  console.log("halfRadius", halfRadius);
 
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      let total = 0;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let totalWeight = 0;
       let s0 = 0;
       let s1 = 0;
 
-      for (let d = Math.max(-HALF_RADIUS, 0); d <= Math.min(HALF_RADIUS, W - 1); d++) {
-        const w = Math.exp(-0.1 * d);
+      for (let d = Math.max(-halfRadius, 0); d <= Math.min(halfRadius, width - 1); d++) {
+        const weight = Math.exp(-d * d / (sigma * sigma));
 
-        total += w;
-        s0 += w * data[2 * (y * W + (x + d)) + 0]!;
-        s1 += w * data[2 * (y * W + (x + d)) + 1]!;
+        totalWeight += weight;
+        s0 += weight * data[2 * (y * width + (x + d)) + 0]!;
+        s1 += weight * data[2 * (y * width + (x + d)) + 1]!;
       }
 
-      horizontal[2 * (y * W + x) + 0] = s0 / total;
-      horizontal[2 * (y * W + x) + 1] = s1 / total;
+      horizontal[2 * (y * width + x) + 0] = s0 / totalWeight;
+      horizontal[2 * (y * width + x) + 1] = s1 / totalWeight;
     }
   }
 
   const final = new Float32Array(data.length);
   
-  for (let x = 0; x < W; x++) {
-    for (let y = 0; y < H; y++) {
-      let total = 0;
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      let totalWeight = 0;
       let s0 = 0;
       let s1 = 0;
 
-      for (let d = Math.max(-HALF_RADIUS, 0); d <= Math.min(HALF_RADIUS, H - 1); d++) {
-        const w = Math.exp(-0.1 * d);
+      for (let d = Math.max(-halfRadius, 0); d <= Math.min(halfRadius, height - 1); d++) {
+        const weight = Math.exp(-d * d / (sigma * sigma));
 
-        total += w;
-        s0 += w * horizontal[2 * ((y + d) * W + x) + 0]!;
-        s1 += w * horizontal[2 * ((y + d) * W + x) + 1]!;
+        totalWeight += weight;
+        s0 += weight * horizontal[2 * ((y + d) * width + x) + 0]!;
+        s1 += weight * horizontal[2 * ((y + d) * width + x) + 1]!;
       }
 
-      final[2 * (y * W + x) + 0] = s0 / total;
-      final[2 * (y * W + x) + 1] = s1 / total;
+      final[2 * (y * width + x) + 0] = s0 / totalWeight;
+      final[2 * (y * width + x) + 1] = s1 / totalWeight;
     }
   }
 
@@ -134,7 +138,7 @@ function symbolize(pixelBlock: any): ImageData {
     // data[3 * i + 2] = 1;
   }
 
-  const data = smooth(rawData, W, H);
+  const data = smooth(rawData, W, H, 10);
 
   // console.log(minMag, maxMag, minDir, maxDir);
 
@@ -351,5 +355,97 @@ export class LocalResources extends BaseLocalResources {
   override detach(gl: WebGLRenderingContext): void {
     gl.deleteBuffer(this.vertexBuffer);
     gl.deleteTexture(this.texture);
+  }
+}
+
+
+@subclass("wind-es.wind.Layer")
+export class Layer extends BaseLayer {
+  spatialReference = {
+    wkid: 4326
+  };
+
+  override createLayerView(view: any): any {
+    if (view.type === "2d") {
+      return new LayerView2D({
+        view: view,
+        layer: this
+      } as any);
+    }
+  }
+}
+
+@subclass("wind-es.wind.LayerView2D")
+export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources> {
+  private _imageryTileLayer: ImageryTileLayer;
+
+  constructor(params: any) {
+    super(params);
+
+    // https://landsat2.arcgis.com/arcgis/rest/services/Landsat8_Views/ImageServer
+    // https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer
+    // https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer
+
+    // this._imageryLayer = new ImageryLayer({
+    //   
+    // });
+
+    this._imageryTileLayer = new ImageryTileLayer({
+      // url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/World_Wind/ImageServer"
+      url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
+    });
+
+    // this._imageryLayer = new ImageryLayer({
+    //   url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
+    // });
+  }
+  
+  override loadSharedResources(): Promise<SharedResources> {
+    return Promise.resolve(new SharedResources());
+  }
+
+  override async loadLocalResources(extent: Extent, resolution: number): Promise<LocalResources> {
+    const width = Math.round((extent.xmax - extent.xmin) / resolution);
+    const height = Math.round((extent.ymax - extent.ymin) / resolution);
+
+    await this._imageryTileLayer.load();
+    const rasterData = await this._imageryTileLayer.fetchPixels(extent, width, height);
+
+    return new LocalResources(extent, resolution, rasterData.pixelBlock);
+  }
+
+  override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SharedResources, localResources: LocalResources): void {
+    defined(localResources.vertexBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
+    gl.vertexAttribPointer(0, 2, gl.SHORT, false, 8, 0);
+    gl.vertexAttribPointer(1, 2, gl.SHORT, true, 8, 4);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.enableVertexAttribArray(0);
+    gl.enableVertexAttribArray(1);
+
+    mat4.identity(localResources.u_ClipFromScreen);
+    mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
+    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [2 / renderParams.size[0], -2 / renderParams.size[1], 1]);
+  
+    mat4.identity(localResources.u_ScreenFromLocal);
+    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.translation[0], renderParams.translation[1], 1]);
+    mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
+    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.scale, renderParams.scale, 1]);
+    // mat4.translate();
+
+    const solidProgram = sharedResources.programs!["texture"]?.program!;
+    gl.useProgram(solidProgram);
+    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
+    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
+    gl.uniform1i(sharedResources.programs!["texture"]?.uniforms["u_Texture"]!, 0);
+    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Opacity"]!, renderParams.opacity);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, localResources.texture);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
