@@ -21,7 +21,7 @@ export default abstract class LayerView2D<SR extends SharedResources, LR extends
 
     setTimeout(() => {
       this._loadVisualization();
-    }, 2000);
+    }, 4000);
   }
 
   private _loadVisualization(): void {
@@ -57,11 +57,16 @@ export default abstract class LayerView2D<SR extends SharedResources, LR extends
         localResources.attached = true;
       }
 
+      const xMap = localResources.resources.extent.xmin;
+      const yMap = localResources.resources.extent.ymax;
+      const translation: [number, number] = [0, 0];
+      renderParams.state.toScreen(translation, xMap, yMap);
+
       const visualizationRenderParams: VisualizationRenderParams = {
         size: renderParams.state.size,
-        translation: [100, 60],
+        translation,
         rotation: Math.PI * renderParams.state.rotation / 180,
-        scale: 0.5 * localResources.resources.resolution / renderParams.state.resolution,
+        scale: localResources.resources.resolution / renderParams.state.resolution,
         opacity: 1
       };
       

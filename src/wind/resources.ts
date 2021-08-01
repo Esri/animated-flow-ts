@@ -327,15 +327,16 @@ export class LocalResources extends BaseLocalResources {
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Int16Array([
       0, 0, 0, 32767,
-      894 * 8, 0, 32767, 32767,
-      0, 926 * 8, 0, 0,
-      894 * 8, 926 * 8, 32767, 0
+      this.size[0] * 8, 0, 32767, 32767,
+      0, this.size[1] * 8, 0, 0,
+      this.size[0] * 8, this.size[1] * 8, 32767, 0
     ]), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     defined(this.imageData);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.imageData);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);

@@ -23,7 +23,7 @@ const view = new MapView({
   map: map,
   // zoom: 4,
   // center: [11, 44] // longitude, latitude
-  zoom: 5,
+  zoom: 3,
   center: [-98, 39]
 });
 
