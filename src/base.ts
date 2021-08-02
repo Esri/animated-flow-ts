@@ -109,7 +109,7 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
         translation,
         rotation: Math.PI * renderParams.state.rotation / 180,
         scale: localResources.resources.resolution / renderParams.state.resolution,
-        opacity: 1
+        opacity: 0.5
       };
       
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);

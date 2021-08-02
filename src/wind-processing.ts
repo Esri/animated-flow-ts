@@ -62,7 +62,7 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
   return final;
 }
 
-function createFieldFromPixelBlock(pixelBlock: PixelBlock): Field {
+function createFieldFromPixelBlock(pixelBlock: PixelBlock, smoothing: number): Field {
   const W = pixelBlock.width;
   const H = pixelBlock.height;
   const rawData = new Float32Array(W * H * 2);
@@ -80,7 +80,7 @@ function createFieldFromPixelBlock(pixelBlock: PixelBlock): Field {
     rawData[2 * i + 1] = v;
   }
 
-  const data = smooth(rawData, W, H, 10);
+  const data = smooth(rawData, W, H, smoothing);
 
   const f = (x: number, y: number): [number, number] => {
     const X = Math.round(x);
@@ -116,7 +116,7 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): { posit
     time: t
   });
   
-  while (t < 1000 && c < 1000) {
+  while (c < 100) {
     const [vx, vy] = f(x, y);
     const v = Math.sqrt(vx * vx + vy * vy);
     if (v < 0.001) {
@@ -141,11 +141,11 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): { posit
   return line;
 }
 
-function getFlowLines(f: Field, W: number, H: number): { position: [number, number]; distance: number; time: number; }[][] {
+function getFlowLines(f: Field, W: number, H: number, segmentLength: number): { position: [number, number]; distance: number; time: number; }[][] {
   const lines: { position: [number, number]; distance: number; time: number; }[][] = [];
 
-  for (let i = 0; i < 5000; i++) {
-    const line = trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H), 10);
+  for (let i = 0; i < 10000; i++) {
+    const line = trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H), segmentLength);
     lines.push(line);
   }
   
@@ -157,8 +157,8 @@ export function createWindMesh(pixelBlock: PixelBlock): { vertexData: Float32Arr
   const vertexData: number[] = [];
   const indexData: number[] = [];
 
-  const f = createFieldFromPixelBlock(pixelBlock);
-  const flowLines = getFlowLines(f, pixelBlock.width, pixelBlock.height);
+  const f = createFieldFromPixelBlock(pixelBlock, 10);
+  const flowLines = getFlowLines(f, pixelBlock.width, pixelBlock.height, 10);
 
   for (const line of flowLines) {
     for (let i = 1; i < line.length; i++) {
