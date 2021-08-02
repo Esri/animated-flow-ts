@@ -144,7 +144,7 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): { posit
 function getFlowLines(f: Field, W: number, H: number, segmentLength: number): { position: [number, number]; distance: number; time: number; }[][] {
   const lines: { position: [number, number]; distance: number; time: number; }[][] = [];
 
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 0; i < 6000; i++) {
     const line = trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H), segmentLength);
     lines.push(line);
   }

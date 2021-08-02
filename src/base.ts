@@ -1,6 +1,7 @@
 import Extent from "@arcgis/core/geometry/Extent";
 import BaseLayerViewGL2D from "@arcgis/core/views/2d/layers/BaseLayerViewGL2D";
 import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
+import { defined } from "./util";
 
 export type VisualizationRenderParams = {
   size: [number, number];
@@ -63,7 +64,11 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       this._sharedResources = { resources, attached: false };
     });
 
-    this._loadVisualization();
+    this.view.watch("stationary", (stationary) => {
+      if (stationary) {
+        this._loadVisualization();
+      }
+    });
   }
 
   private _loadVisualization(): void {
@@ -88,6 +93,9 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       this._sharedResources.attached = true;
     }
 
+
+
+
     for (const localResources of this._localResources) {
       if ("abortController" in localResources) {
         this.requestRender();
@@ -97,6 +105,15 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       if (!localResources.attached) {
         localResources.resources.attach(gl);
         localResources.attached = true;
+      }
+    }
+
+    for (let i = this._localResources.length - 1; i >=0; i--) {
+      const localResources = this._localResources[i];
+      defined(localResources);
+
+      if ("abortController" in localResources) {
+        continue;
       }
 
       const xMap = localResources.resources.extent.xmin;
@@ -113,7 +130,41 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       };
       
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);
+      break;
     }
+
+
+
+    // for (const localResources of this._localResources) {
+    //   if ("abortController" in localResources) {
+    //     this.requestRender();
+    //     continue;
+    //   }
+
+    //   if (!localResources.attached) {
+    //     localResources.resources.attach(gl);
+    //     localResources.attached = true;
+    //   }
+
+    //   const xMap = localResources.resources.extent.xmin;
+    //   const yMap = localResources.resources.extent.ymax;
+    //   const translation: [number, number] = [0, 0];
+    //   renderParams.state.toScreen(translation, xMap, yMap);
+
+    //   const visualizationRenderParams: VisualizationRenderParams = {
+    //     size: renderParams.state.size,
+    //     translation,
+    //     rotation: Math.PI * renderParams.state.rotation / 180,
+    //     scale: localResources.resources.resolution / renderParams.state.resolution,
+    //     opacity: 1
+    //   };
+      
+    //   this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);
+    // }
+
+
+
+
 
     if (this.animate) {
       this.requestRender();

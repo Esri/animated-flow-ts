@@ -181,8 +181,8 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
       url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
     });
 
-    const worker = new Worker("/wind-worker.js");
-    console.log(worker);
+    // const worker = new Worker("/wind-worker.js");
+    // console.log(worker);
   }
   
   override async loadSharedResources(): Promise<SharedResources> {
