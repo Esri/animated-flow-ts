@@ -1,17 +1,84 @@
+/**
+ * @module wind-es/base
+ */
+
 import Extent from "@arcgis/core/geometry/Extent";
 import BaseLayerViewGL2D from "@arcgis/core/views/2d/layers/BaseLayerViewGL2D";
 import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import { defined } from "./util";
 
+/**
+ * A visualization is a graphic representation of an extent.
+ *
+ * When constructed and rendered correctly it naturally aligns
+ * with the underlying basemap.
+ * 
+ * When a visualization is rendered, a `VisualizationRenderParams`
+ * object is passed to the `wind-es.base.LayerView2D.renderVisualization()`
+ * that defines its position, orientation and scale.
+ */
 export type VisualizationRenderParams = {
+  /**
+   * Size of the drawing surface.
+   * 
+   * This coincides with the size of the MapView when the device pixel ratio
+   * is 1. For retina displays it is going to be larger than 1.
+   */
   size: [number, number];
+
+  /**
+   * The position on the drawing surface of the upper-left corner of the extent.
+   */
   translation: [number, number];
+  
+  /**
+   * The rotation of the visualization in radians.
+   *
+   * This is the same as the rotation of the `MapView`
+   * but expressed in radians.
+   */
   rotation: number;
+
+  /**
+   * The relative scale at which the visualization mush be rendered.
+   *
+   * A scale of 1 means that the visualization is rendering at its
+   * "natural" size; for instance, it was loaded when the zoom level
+   * was Z, and then the use started panning and rotating, but not
+   * zooming in and out. One such visualization is still rendering
+   * at scale 1. A scale > 1 means that the user is zooming in, and
+   * a scale < 1 means that the user is zooming out.
+   */
   scale: number;
+
+  /**
+   * The opacity at which the visualization mush be rendered.
+   *
+   * This will be used to fade out old visualizations and they get
+   * replaced with fresher visualizations with more recent data.
+   */
   opacity: number;
 }
 
+/**
+ * Resources are things needed to render a visualization.
+ * 
+ * These are typically WebGL resources.
+ * 
+ * Resource objects are possibly created asynchronously
+ * in a detached state; then they synchronously attached;
+ * finally, when they are not needed anymore, they are
+ * detached; a resource object that has been detached
+ * cannot be reattached.
+ */
 export abstract class Resources {
+  /**
+   * Create the internal WebGL and non-WebGL objects.
+   * 
+   * Internally
+   *
+   * @param gl The WebGL context.
+   */
   abstract attach(gl: WebGLRenderingContext): void;
   abstract detach(gl: WebGLRenderingContext): void;
 }
@@ -80,7 +147,15 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
     });
   }
 
+  cnt = 0;
+
   override render(renderParams: any): void {
+    ++this.cnt;
+
+    if (this.cnt % 60 === 0) {
+      console.log(renderParams.state.size, renderParams.state.scale, renderParams.state.resolution, renderParams.state.extent.width, renderParams.state.extent.height);
+    }
+
     if (!this._sharedResources || "abortController" in this._sharedResources) {
       this.requestRender();
       return;
@@ -138,39 +213,6 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, toRender);
     }
-
-
-
-    // for (const localResources of this._localResources) {
-    //   if ("abortController" in localResources) {
-    //     this.requestRender();
-    //     continue;
-    //   }
-
-    //   if (!localResources.attached) {
-    //     localResources.resources.attach(gl);
-    //     localResources.attached = true;
-    //   }
-
-    //   const xMap = localResources.resources.extent.xmin;
-    //   const yMap = localResources.resources.extent.ymax;
-    //   const translation: [number, number] = [0, 0];
-    //   renderParams.state.toScreen(translation, xMap, yMap);
-
-    //   const visualizationRenderParams: VisualizationRenderParams = {
-    //     size: renderParams.state.size,
-    //     translation,
-    //     rotation: Math.PI * renderParams.state.rotation / 180,
-    //     scale: localResources.resources.resolution / renderParams.state.resolution,
-    //     opacity: 1
-    //   };
-      
-    //   this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);
-    // }
-
-
-
-
 
     if (this.animate) {
       this.requestRender();
