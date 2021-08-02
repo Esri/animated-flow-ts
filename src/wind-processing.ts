@@ -144,7 +144,7 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): { posit
 function getFlowLines(f: Field, W: number, H: number, segmentLength: number): { position: [number, number]; distance: number; time: number; }[][] {
   const lines: { position: [number, number]; distance: number; time: number; }[][] = [];
 
-  for (let i = 0; i < 6000; i++) {
+  for (let i = 0; i < 5000; i++) {
     const line = trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H), segmentLength);
     lines.push(line);
   }
@@ -157,23 +157,28 @@ export function createWindMesh(pixelBlock: PixelBlock): { vertexData: Float32Arr
   const vertexData: number[] = [];
   const indexData: number[] = [];
 
-  const f = createFieldFromPixelBlock(pixelBlock, 10);
-  const flowLines = getFlowLines(f, pixelBlock.width, pixelBlock.height, 5);
+  const f = createFieldFromPixelBlock(pixelBlock, 5);
+  const flowLines = getFlowLines(f, pixelBlock.width, pixelBlock.height, 3);
 
   for (const line of flowLines) {
+    const random = Math.random();
+    const lastVertex = line[line.length - 1]!;
+    const totalTime = lastVertex.time;
+
     for (let i = 1; i < line.length; i++) {
-      const { position: [x0, y0], time: t0, distance: d0 } = line[i - 1]!;
-      const { position: [x1, y1], time: t1, distance: d1 } = line[i]!;
+      const { position: [x0, y0], time: t0 } = line[i - 1]!;
+      const { position: [x1, y1], time: t1 } = line[i]!;
+      const speed = 100 /* TODO! Speed factor! */ / (t1 - t0);
 
       const l = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
       const ex = -(y1 - y0) / l;
       const ey = (x1 - x0) / l;
 
       vertexData.push(
-        x0, y0, ex, ey, -1, t0, d0,
-        x0, y0, -ex, -ey, +1, t0, d0,
-        x1, y1, ex, ey, -1, t1, d1,
-        x1, y1, -ex, -ey, +1, t1, d1,
+        x0, y0, ex, ey, -1, t0, totalTime, speed, random,
+        x0, y0, -ex, -ey, +1, t0, totalTime, speed, random,
+        x1, y1, ex, ey, -1, t1, totalTime, speed, random,
+        x1, y1, -ex, -ey, +1, t1, totalTime, speed, random
       );
 
       indexData.push(

@@ -19,7 +19,9 @@ export class SharedResources extends BaseSharedResources {
       attribute vec2 a_Extrude;
       attribute float a_Side;
       attribute float a_Time;
-      attribute float a_Distance;
+      attribute float a_TotalTime;
+      attribute float a_Speed;
+      attribute float a_Random;
       
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_Rotation;
@@ -27,6 +29,9 @@ export class SharedResources extends BaseSharedResources {
 
       varying float v_Side;
       varying float v_Time;
+      varying float v_TotalTime;
+      varying float v_Speed;
+      varying float v_Random;
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
@@ -34,6 +39,9 @@ export class SharedResources extends BaseSharedResources {
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
+        v_TotalTime = a_TotalTime;
+        v_Speed = a_Speed;
+        v_Random = a_Random;
       }`;
       
     const fragmentSource = `
@@ -44,18 +52,21 @@ export class SharedResources extends BaseSharedResources {
       
       varying float v_Side;
       varying float v_Time;
+      varying float v_TotalTime;
+      varying float v_Speed;
+      varying float v_Random;
 
       void main(void) {
         gl_FragColor = vec4(60.0 / 255.0, 160.0 / 255.0, 220.0 / 255.0, 1.0);
 
         gl_FragColor.a *= u_Opacity * (1.0 - length(v_Side));
         
-        float t = 10.0 * (u_Time - 10.0);
+        float t = mod(50.0 * u_Time + v_Random * 2.0 * v_TotalTime, 2.0 * v_TotalTime);
 
         if (t < v_Time) {
           gl_FragColor.a *= 0.0;
         } else {
-          gl_FragColor.a *= exp(-0.01 * (t - v_Time));
+          gl_FragColor.a *= exp(-0.01 * (t - v_Time)) * (1.0 - exp(-v_Speed));
         }
 
         gl_FragColor.rgb *= gl_FragColor.a;
@@ -78,7 +89,9 @@ export class SharedResources extends BaseSharedResources {
     gl.bindAttribLocation(program, 1, "a_Extrude");
     gl.bindAttribLocation(program, 2, "a_Side");
     gl.bindAttribLocation(program, 3, "a_Time");
-    gl.bindAttribLocation(program, 4, "a_Distance");
+    gl.bindAttribLocation(program, 4, "a_TotalTime");
+    gl.bindAttribLocation(program, 5, "a_Speed");
+    gl.bindAttribLocation(program, 6, "a_Random");
     gl.linkProgram(program);
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
@@ -204,17 +217,21 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
   override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SharedResources, localResources: LocalResources): void {
     defined(localResources.vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 28, 0);
-    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 28, 8);
-    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 28, 16);
-    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 28, 20);
-    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 28, 24);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 36, 0);
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 36, 8);
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 36, 16);
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 36, 20);
+    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 36, 24);
+    gl.vertexAttribPointer(5, 1, gl.FLOAT, false, 36, 28);
+    gl.vertexAttribPointer(6, 1, gl.FLOAT, false, 36, 32);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.enableVertexAttribArray(0);
     gl.enableVertexAttribArray(1);
     gl.enableVertexAttribArray(2);
     gl.enableVertexAttribArray(3);
     gl.enableVertexAttribArray(4);
+    gl.enableVertexAttribArray(5);
+    gl.enableVertexAttribArray(6);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, localResources.indexBuffer);
 
