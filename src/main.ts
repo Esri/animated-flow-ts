@@ -16,13 +16,12 @@ const vectorTileLayer = new VectorTileLayer({
 });
 
 const windLayer = new WindLayer({
-  effect: "bloom(1.5, 0.5px, 0.1)"
+  effect: "bloom(1.1, 0.3px, 0.1)"
 } as any);
 
 const map = new EsriMap({
   layers: [vectorTileLayer, windLayer]
 });
-
 
 new MapView({
   container: "viewDiv",

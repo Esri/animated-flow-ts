@@ -158,7 +158,7 @@ export function createWindMesh(pixelBlock: PixelBlock): { vertexData: Float32Arr
   const indexData: number[] = [];
 
   const f = createFieldFromPixelBlock(pixelBlock, 10);
-  const flowLines = getFlowLines(f, pixelBlock.width, pixelBlock.height, 10);
+  const flowLines = getFlowLines(f, pixelBlock.width, pixelBlock.height, 5);
 
   for (const line of flowLines) {
     for (let i = 1; i < line.length; i++) {
