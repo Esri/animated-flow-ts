@@ -93,31 +93,38 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
       this._sharedResources.attached = true;
     }
 
+    let toRender: LR | null = null;
 
+    for (let i = this._localResources.length - 1; i >= 0; i--) {
+      const localResources = this._localResources[i];
+      defined(localResources);
+    
+      if (toRender) {
+        if ("abortController" in localResources) {
+          localResources.abortController.abort();
+        } else if (localResources.attached) {
+          localResources.resources.detach(gl);
+          localResources.attached = false;
+          this._localResources.splice(i, 1);
+        }
+      } else {
+        if ("abortController" in localResources) {
+          this.requestRender();
+        } else {
+          if (!localResources.attached) {
+            localResources.resources.attach(gl);
+            localResources.attached = true;
+          }
 
-
-    for (const localResources of this._localResources) {
-      if ("abortController" in localResources) {
-        this.requestRender();
-        continue;
-      }
-
-      if (!localResources.attached) {
-        localResources.resources.attach(gl);
-        localResources.attached = true;
+          toRender = localResources.resources;
+        }
       }
     }
 
-    for (let i = this._localResources.length - 1; i >=0; i--) {
-      const localResources = this._localResources[i];
-      defined(localResources);
 
-      if ("abortController" in localResources) {
-        continue;
-      }
-
-      const xMap = localResources.resources.extent.xmin;
-      const yMap = localResources.resources.extent.ymax;
+    if (toRender) {
+      const xMap = toRender.extent.xmin;
+      const yMap = toRender.extent.ymax;
       const translation: [number, number] = [0, 0];
       renderParams.state.toScreen(translation, xMap, yMap);
 
@@ -125,12 +132,11 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
         size: renderParams.state.size,
         translation,
         rotation: Math.PI * renderParams.state.rotation / 180,
-        scale: localResources.resources.resolution / renderParams.state.resolution,
+        scale: toRender.resolution / renderParams.state.resolution,
         opacity: 1
       };
       
-      this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, localResources.resources);
-      break;
+      this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, toRender);
     }
 
 
