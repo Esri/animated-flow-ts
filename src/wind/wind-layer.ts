@@ -165,7 +165,7 @@ class WindLocalResources extends LocalResources {
   }
 }
 
-@subclass("wind-es.wind.LayerView2D")
+@subclass("wind-es.wind.WindLayerView2D")
 class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, WindLocalResources> {
   private imageryTileLayer: ImageryTileLayer;
   override animate = true;
@@ -254,7 +254,7 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
   }
 }
 
-@subclass("wind-es.wind.Layer")
+@subclass("wind-es.wind.WindLayer")
 export class WindLayer extends BaseLayer {
   override createLayerView(view: any): any {
     if (view.type === "2d") {
