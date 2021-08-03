@@ -2,9 +2,10 @@ const path = require("path");
 
 module.exports = {
   mode: "development",
+  devtool: false,
   entry: {
-    main: "./src/main.ts",
-    "wind-worker": "./src/wind-worker.ts"
+    main: "./src/main.ts"//,
+    // "wind-worker": "./src/wind-worker.ts"
   },
   module: {
     rules: [

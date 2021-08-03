@@ -1,5 +1,13 @@
-// self.addEventListener("message", (evt) => {
-//   if (evt.me)
-// });
+console.log("Hello! I am an Esri worker!");
 
-console.log("CIAO! I am a worker!");
+declare function define(dependencies: string[], callback: (...dependencies: any[]) => any): void;
+
+define([], () => {
+  console.log("MIAO!");
+  
+  return {
+    f: () => {
+      console.log("CIAO!");
+    }
+  };
+});

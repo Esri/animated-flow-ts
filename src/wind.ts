@@ -6,6 +6,7 @@ import { defined } from "./util";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 import BaseLayer from "@arcgis/core/layers/Layer";
 import { createWindMesh } from "./wind-processing";
+import * as workers from "@arcgis/core/core/workers";
 
 export class SharedResources extends BaseSharedResources {
   programs: HashMap<{
@@ -193,9 +194,10 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
     this._imageryTileLayer = new ImageryTileLayer({
       url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
     });
-
-    // const worker = new Worker("/wind-worker.js");
-    // console.log(worker);
+    
+    workers.open(new URL("./wind-worker.js", document.baseURI).href).then((connection) => {
+      console.log(connection);
+    });
   }
   
   override async loadSharedResources(): Promise<SharedResources> {
