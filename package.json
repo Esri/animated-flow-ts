@@ -5,8 +5,7 @@
   "private": true,
   "scripts": {
     "start": "webpack serve",
-    "build": "webpack",
-    "build-workers": "tsc src/wind-worker.ts && mv src/wind-worker.js ."
+    "build": "webpack"
   },
   "author": "",
   "license": "ISC",

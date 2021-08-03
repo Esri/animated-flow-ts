@@ -10,10 +10,10 @@ import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
 import { Layer as WindLayer } from "./wind";
-import config from "@arcgis/core/config";
+// import config from "@arcgis/core/config";
 
-config.workers.workerPath = "node_modules/@arcgis/core/core/workers/RemoteClient.js";
-config.workers.loaderUrl = "https://cdn.jsdelivr.net/npm/systemjs@6.10.0/dist/s.min.js";
+// config.workers.workerPath = "node_modules/@arcgis/core/core/workers/RemoteClient.js";
+// config.workers.loaderUrl = "https://cdn.jsdelivr.net/npm/systemjs@6.10.0/dist/s.min.js";
 
 const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"

@@ -5,8 +5,8 @@ import { LayerView2D as BaseLayerView2D, VisualizationRenderParams, LocalResourc
 import { defined } from "./util";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 import BaseLayer from "@arcgis/core/layers/Layer";
-import { createWindMesh } from "./wind-processing";
-import * as workers from "@arcgis/core/core/workers";
+import { createWindMesh, createWindMeshWorker } from "./wind-processing";
+// import * as workers from "@arcgis/core/core/workers";
 
 export class SharedResources extends BaseSharedResources {
   programs: HashMap<{
@@ -182,11 +182,15 @@ export class Layer extends BaseLayer {
   }
 }
 
+const useWorker = true;
+
 @subclass("wind-es.wind.LayerView2D")
 export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources> {
   private _imageryTileLayer: ImageryTileLayer;
 
   override animate = true;
+
+  private worker: Worker | null;
 
   constructor(params: any) {
     super(params);
@@ -195,9 +199,11 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
       url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
     });
     
-    workers.open(new URL("./wind-worker.js", document.baseURI).href).then((connection) => {
-      console.log(connection);
-    });
+    // workers.open(new URL("./wind-worker.js", document.baseURI).href).then((connection) => {
+    //   console.log("Workers connection", connection);
+    // });
+
+    this.worker = useWorker ? new Worker("./wind-worker.js") : null;
   }
   
   override async loadSharedResources(): Promise<SharedResources> {
@@ -211,9 +217,13 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
     await this._imageryTileLayer.load();
     const rasterData = await this._imageryTileLayer.fetchPixels(extent, width, height);
 
-    const { vertexData, indexData } = createWindMesh(rasterData.pixelBlock);
-
-    return new LocalResources(extent, resolution, vertexData, indexData);
+    if (this.worker) {
+      const { vertexData, indexData } = await createWindMeshWorker(this.worker, rasterData.pixelBlock);
+      return new LocalResources(extent, resolution, vertexData, indexData);
+    } else {
+      const { vertexData, indexData } = createWindMesh(rasterData.pixelBlock);
+      return new LocalResources(extent, resolution, vertexData, indexData);
+    }
   }
 
   override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SharedResources, localResources: LocalResources): void {

@@ -152,6 +152,28 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): { 
   return lines;
 }
 
+export function createWindMeshWorker(worker: Worker, pixelBlock: PixelBlock): Promise<{ vertexData: Float32Array; indexData: Uint32Array; }> {
+  return new Promise((resolve) => {
+    const listener = (evt: MessageEvent): void => {
+      if (evt.data.method === "createWindMesh") {
+        resolve({
+          vertexData: new Float32Array(evt.data.vertexData),
+          indexData: new Uint32Array(evt.data.indexData)
+        });
+  
+        worker.removeEventListener("message", listener);
+      }
+    };
+    
+    worker.addEventListener("message", listener);
+
+    worker.postMessage({
+      method: "createWindMesh",
+      pixelBlock: { pixels: pixelBlock.pixels, width: pixelBlock.width, height: pixelBlock.height }
+    });
+  });
+}
+
 export function createWindMesh(pixelBlock: PixelBlock): { vertexData: Float32Array; indexData: Uint32Array; } {
   let vertexCount = 0;
   const vertexData: number[] = [];
