@@ -4,6 +4,17 @@ export type PixelBlock = {
   pixels: number[][]
 };
 
+export type Mesh = {
+  vertexData: Float32Array;
+  indexData: Uint32Array;
+}
+
+export type Vertex = {
+  position: [number, number];
+  distance: number;
+  time: number;
+}
+
 export type Field = (x: number, y: number) => [number, number];
 
 function smooth(data: Float32Array, width: number, height: number, sigma: number): Float32Array {
@@ -100,8 +111,8 @@ function createFieldFromPixelBlock(pixelBlock: PixelBlock, smoothing: number): F
   return f;
 }
 
-function trace(f: Field, x0: number, y0: number, segmentLength: number): { position: [number, number]; distance: number; time: number; }[] {
-  const line: { position: [number, number]; distance: number; time: number; }[] = [];
+function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[] {
+  const line: Vertex[] = [];
 
   let t = 0;
   let d = 0;
@@ -141,8 +152,8 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): { posit
   return line;
 }
 
-function getFlowLines(f: Field, W: number, H: number, segmentLength: number): { position: [number, number]; distance: number; time: number; }[][] {
-  const lines: { position: [number, number]; distance: number; time: number; }[][] = [];
+function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Vertex[][] {
+  const lines: Vertex[][] = [];
 
   for (let i = 0; i < 5000; i++) {
     const line = trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H), segmentLength);
@@ -152,29 +163,7 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): { 
   return lines;
 }
 
-export function createWindMeshWorker(worker: Worker, pixelBlock: PixelBlock): Promise<{ vertexData: Float32Array; indexData: Uint32Array; }> {
-  return new Promise((resolve) => {
-    const listener = (evt: MessageEvent): void => {
-      if (evt.data.method === "createWindMesh") {
-        resolve({
-          vertexData: new Float32Array(evt.data.vertexData),
-          indexData: new Uint32Array(evt.data.indexData)
-        });
-  
-        worker.removeEventListener("message", listener);
-      }
-    };
-    
-    worker.addEventListener("message", listener);
-
-    worker.postMessage({
-      method: "createWindMesh",
-      pixelBlock: { pixels: pixelBlock.pixels, width: pixelBlock.width, height: pixelBlock.height }
-    });
-  });
-}
-
-export function createWindMesh(pixelBlock: PixelBlock): { vertexData: Float32Array; indexData: Uint32Array; } {
+export function createWindMesh(pixelBlock: PixelBlock): Mesh {
   let vertexCount = 0;
   const vertexData: number[] = [];
   const indexData: number[] = [];

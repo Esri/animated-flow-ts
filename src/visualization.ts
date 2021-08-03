@@ -1,5 +1,12 @@
 /**
- * @module wind-es/base
+ * @module wind-es/visualization
+ *
+ * This module introduces abstract classes and functionality that are shared
+ * by concrete layer and layer view types. So far the only concrete visualization
+ * implemented is the wind visualization contained in the `wind` directory.
+ * 
+ * The custom rendering system is designed around the concept of "visualizations".
+ * Visualizations are renderable...
  */
 
 import Extent from "@arcgis/core/geometry/Extent";
@@ -75,7 +82,7 @@ export abstract class Resources {
   /**
    * Create the internal WebGL and non-WebGL objects.
    * 
-   * Internally
+   * Internally...
    *
    * @param gl The WebGL context.
    */
@@ -114,7 +121,7 @@ export abstract class LocalResources extends Resources {
 type ResourcesEntry<R> = { resources: R; attached: boolean; } | { abortController: AbortController };
 
 @subclass("wind-es.base.LayerView2D")
-export abstract class LayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
+export abstract class VisualizationLayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
   private _sharedResources: ResourcesEntry<SR> | null = null;
   private _localResources: ResourcesEntry<LR>[] = [];
 
@@ -241,9 +248,14 @@ export abstract class LayerView2D<SR extends SharedResources, LR extends LocalRe
 
       this._sharedResources = null;
     }
+
+    this.destroy();
   }
 
   abstract loadSharedResources(signal: AbortSignal): Promise<SR>;
   abstract loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<LR>;
   abstract renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SR, localResources: LR): void;
+
+  afterDetach(): void {
+  }
 }

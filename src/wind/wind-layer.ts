@@ -1,14 +1,13 @@
-import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
+import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import Extent from "@arcgis/core/geometry/Extent";
 import { mat4 } from "gl-matrix";
-import { LayerView2D as BaseLayerView2D, VisualizationRenderParams, LocalResources as BaseLocalResources, SharedResources as BaseSharedResources } from "./base";
-import { defined } from "./util";
+import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../visualization";
+import { defined } from "../util";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 import BaseLayer from "@arcgis/core/layers/Layer";
-import { createWindMesh, createWindMeshWorker } from "./wind-processing";
-// import * as workers from "@arcgis/core/core/workers";
+import { MainWindClient, WindClient, WorkerWindClient } from "./wind-client";
 
-export class SharedResources extends BaseSharedResources {
+class WindSharedResources extends SharedResources {
   programs: HashMap<{
     program: WebGLProgram;
     uniforms: HashMap<WebGLUniformLocation>
@@ -120,7 +119,7 @@ export class SharedResources extends BaseSharedResources {
   }
 }
 
-export class LocalResources extends BaseLocalResources {
+class WindLocalResources extends LocalResources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
   vertexBuffer: WebGLBuffer | null = null;
@@ -166,67 +165,41 @@ export class LocalResources extends BaseLocalResources {
   }
 }
 
-@subclass("wind-es.wind.Layer")
-export class Layer extends BaseLayer {
-  spatialReference = {
-    wkid: 4326
-  };
-
-  override createLayerView(view: any): any {
-    if (view.type === "2d") {
-      return new LayerView2D({
-        view: view,
-        layer: this
-      } as any);
-    }
-  }
-}
-
-const useWorker = true;
-
 @subclass("wind-es.wind.LayerView2D")
-export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources> {
-  private _imageryTileLayer: ImageryTileLayer;
-
+class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, WindLocalResources> {
+  private imageryTileLayer: ImageryTileLayer;
   override animate = true;
 
-  private worker: Worker | null;
+  @property({})
+  dataSource: WindSource;
+  useWebWorkers?
+  @property({})
+  meshCreator: MeshCreator = Work;
 
   constructor(params: any) {
     super(params);
     
-    this._imageryTileLayer = new ImageryTileLayer({
+    this.imageryTileLayer = new ImageryTileLayer({
       url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
     });
-    
-    // workers.open(new URL("./wind-worker.js", document.baseURI).href).then((connection) => {
-    //   console.log("Workers connection", connection);
-    // });
-
-    this.worker = useWorker ? new Worker("./wind-worker.js") : null;
   }
   
-  override async loadSharedResources(): Promise<SharedResources> {
-    return new SharedResources();
+  override async loadSharedResources(): Promise<WindSharedResources> {
+    return new WindSharedResources();
   }
 
-  override async loadLocalResources(extent: Extent, resolution: number): Promise<LocalResources> {
+  override async loadLocalResources(extent: Extent, resolution: number): Promise<WindLocalResources> {
     const width = Math.round((extent.xmax - extent.xmin) / resolution);
     const height = Math.round((extent.ymax - extent.ymin) / resolution);
 
-    await this._imageryTileLayer.load();
-    const rasterData = await this._imageryTileLayer.fetchPixels(extent, width, height);
+    await this.imageryTileLayer.load();
+    const rasterData = await this.imageryTileLayer.fetchPixels(extent, width, height);
 
-    if (this.worker) {
-      const { vertexData, indexData } = await createWindMeshWorker(this.worker, rasterData.pixelBlock);
-      return new LocalResources(extent, resolution, vertexData, indexData);
-    } else {
-      const { vertexData, indexData } = createWindMesh(rasterData.pixelBlock);
-      return new LocalResources(extent, resolution, vertexData, indexData);
-    }
+    const { vertexData, indexData } = await this.client.createWindMesh(rasterData.pixelBlock);
+    return new WindLocalResources(extent, resolution, vertexData, indexData);
   }
 
-  override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SharedResources, localResources: LocalResources): void {
+  override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: WindSharedResources, localResources: WindLocalResources): void {
     defined(localResources.vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 36, 0);
@@ -260,7 +233,6 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.translation[0], renderParams.translation[1], 1]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
     mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.scale, renderParams.scale, 1]);
-    // mat4.translate();
 
     const solidProgram = sharedResources.programs!["texture"]?.program!;
     gl.useProgram(solidProgram);
@@ -274,5 +246,22 @@ export class LayerView2D extends BaseLayerView2D<SharedResources, LocalResources
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
     gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
+  }
+
+  override afterDetach(): void {
+    this.imageryTileLayer.destroy();
+    this.client.destroy();
+  }
+}
+
+@subclass("wind-es.wind.Layer")
+export class WindLayer extends BaseLayer {
+  override createLayerView(view: any): any {
+    if (view.type === "2d") {
+      return new WindLayerView2D({
+        view: view,
+        layer: this
+      } as any);
+    }
   }
 }

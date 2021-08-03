@@ -5,7 +5,7 @@ module.exports = {
   devtool: false,
   entry: {
     main: "./src/main.ts",
-    "wind-worker": "./src/wind-worker.ts"
+    "wind-worker": "./src/wind/wind-worker.ts"
   },
   module: {
     rules: [
