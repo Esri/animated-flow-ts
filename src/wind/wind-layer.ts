@@ -122,6 +122,7 @@ class WindSharedResources extends SharedResources {
 class WindLocalResources extends LocalResources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
+  downsample: number;
   vertexBuffer: WebGLBuffer | null = null;
   indexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
@@ -129,9 +130,10 @@ class WindLocalResources extends LocalResources {
   u_ClipFromScreen = mat4.create();
   indexCount = 0;
 
-  constructor(extent: Extent, resolution: number, vertexData: Float32Array, indexData: Uint32Array) {
+  constructor(extent: Extent, resolution: number, downsample: number, vertexData: Float32Array, indexData: Uint32Array) {
     super(extent, resolution);
 
+    this.downsample = downsample;
     this.vertexData = vertexData;
     this.indexData = indexData;
     this.indexCount = indexData.length;
@@ -179,9 +181,11 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
 
     const layer = this.layer as WindLayer;
 
-    const windData = await layer.source.fetchWindData(extent, width, height, signal);
-    const { vertexData, indexData } = await layer.tracer.createWindMesh(windData);
-    return new WindLocalResources(extent, resolution, vertexData, indexData);
+    const downsample = 4;
+
+    const windData = await layer.source.fetchWindData(extent, width / downsample, height / downsample, signal);
+    const { vertexData, indexData } = await layer.tracer.createWindMesh(windData, 5);
+    return new WindLocalResources(extent, resolution, downsample, vertexData, indexData);
   }
 
   override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: WindSharedResources, localResources: WindLocalResources): void {
@@ -217,7 +221,7 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
     mat4.identity(localResources.u_ScreenFromLocal);
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.translation[0], renderParams.translation[1], 1]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
-    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.scale, renderParams.scale, 1]);
+    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.scale * localResources.downsample, renderParams.scale * localResources.downsample, 1]);
 
     const solidProgram = sharedResources.programs!["texture"]?.program!;
     gl.useProgram(solidProgram);

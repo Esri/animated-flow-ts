@@ -85,7 +85,6 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[
 
   let t = 0;
   let d = 0;
-  let c = 0;
   
   let x = x0;
   let y = y0;
@@ -96,7 +95,7 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[
     time: t
   });
   
-  while (c < 100) {
+  for (let i = 0; i < 100; i++) {
     const [vx, vy] = f(x, y);
     const v = Math.sqrt(vx * vx + vy * vy);
     if (v < MIN_SPEED_THRESHOLD) {
@@ -109,7 +108,6 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[
     const dt = segmentLength / v;
     t += dt;
     d += segmentLength;
-    c++;
 
     line.push({
       position: [x, y],
@@ -124,7 +122,7 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[
 function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Vertex[][] {
   const lines: Vertex[][] = [];
 
-  for (let i = 0; i < 5000; i++) {
+  for (let i = 0; i < 4000; i++) {
     const line = trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H), segmentLength);
     lines.push(line);
   }

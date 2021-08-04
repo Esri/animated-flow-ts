@@ -2,22 +2,22 @@ import { createWindMesh } from "./wind-shared";
 import { Mesh, WindData } from "./wind-types";
 
 export abstract class WindTracer {
-  abstract createWindMesh(windData: WindData): Promise<Mesh>;
+  abstract createWindMesh(windData: WindData, smoothing: number): Promise<Mesh>;
   
   destroy(): void {
   }
 }
 
 export class MainWindTracer extends WindTracer {
-  override async createWindMesh(windData: WindData): Promise<Mesh> {
-    return createWindMesh(windData, 10);
+  override async createWindMesh(windData: WindData, smoothing: number): Promise<Mesh> {
+    return createWindMesh(windData, smoothing);
   }
 }
 
 export class WorkerWindTracer extends WindTracer {
   private worker = new Worker("./wind-worker.js");
 
-  override createWindMesh(windData: WindData): Promise<Mesh> {
+  override createWindMesh(windData: WindData, smoothing: number): Promise<Mesh> {
     return new Promise((resolve) => {
       const listener = (evt: MessageEvent): void => {
         if (evt.data.method === "createWindMesh") {
@@ -34,8 +34,11 @@ export class WorkerWindTracer extends WindTracer {
   
       this.worker.postMessage({
         method: "createWindMesh",
-        windData
-      });
+        windData,
+        smoothing
+      }, [
+        windData.data.buffer
+      ]);
     });
   }
 
