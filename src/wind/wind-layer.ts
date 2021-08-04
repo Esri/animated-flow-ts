@@ -4,8 +4,8 @@ import { mat4 } from "gl-matrix";
 import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../visualization";
 import { defined } from "../util";
 import BaseLayer from "@arcgis/core/layers/Layer";
-import { WorkerWindTracer } from "./wind-meshing";
-import { ImageryTileLayerWindSource } from "./wind-sources";
+import { MainWindTracer, WindTracer, WorkerWindTracer } from "./wind-meshing";
+import { ImageryTileLayerWindSource, WindSource } from "./wind-sources";
 
 class WindSharedResources extends SharedResources {
   programs: HashMap<{
@@ -244,11 +244,20 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
 
 @subclass("wind-es.wind.WindLayer")
 export class WindLayer extends BaseLayer {
-  source = new ImageryTileLayerWindSource("https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer");
-  tracer = new WorkerWindTracer();
+  source: WindSource;
+  tracer: WindTracer;
 
   constructor(params: any) {
     super(params);
+
+    if (params.url && params.source) {
+      throw new Error("Only one of 'url' or 'source' parameters can be specified when creating a WindLayer.");
+    }
+
+    const useWebWorkers = ("useWebWorkers" in params) ? params.useWebWorkers : true;
+
+    this.source = params.url ? new ImageryTileLayerWindSource(params.url) : params.source; 
+    this.tracer = useWebWorkers ? new WorkerWindTracer() : new MainWindTracer();
   }
 
   override createLayerView(view: any): any {

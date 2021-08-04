@@ -21,7 +21,7 @@ import { defined } from "./util";
  * with the underlying basemap.
  * 
  * When a visualization is rendered, a `VisualizationRenderParams`
- * object is passed to the `wind-es.base.LayerView2D.renderVisualization()`
+ * object is passed to the `wind-es.visualization.LayerView2D.renderVisualization()`
  * that defines its position, orientation and scale.
  */
 export type VisualizationRenderParams = {
@@ -120,7 +120,7 @@ export abstract class LocalResources extends Resources {
 
 type ResourcesEntry<R> = { resources: R; attached: boolean; } | { abortController: AbortController };
 
-@subclass("wind-es.base.LayerView2D")
+@subclass("wind-es.visualization.LayerView2D")
 export abstract class VisualizationLayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
   private _sharedResources: ResourcesEntry<SR> | null = null;
   private _localResources: ResourcesEntry<LR>[] = [];

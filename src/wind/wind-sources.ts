@@ -1,6 +1,6 @@
 import Extent from "@arcgis/core/geometry/Extent";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
-import { WindData } from "./wind-types";
+import { Field, WindData } from "./wind-types";
 
 export abstract class WindSource {
   abstract fetchWindData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<WindData>;
@@ -52,5 +52,37 @@ export class ImageryTileLayerWindSource {
   
   destroy(): void {
     this.imageryTileLayer.destroy();
+  }
+}
+
+export class AnalyticWindSource {
+  constructor(private mapField: Field) {
+  }
+  
+  async fetchWindData(extent: Extent, width: number, height: number): Promise<WindData> {
+    const pixelScale = 1;
+
+    width = Math.round(width);
+    height = Math.round(height);
+
+    const data = new Float32Array(width * height * 2);
+
+    for (let y = 0; y < height; y++) {
+      const yMap = extent.ymin + (extent.ymax - extent.ymin) * (y / height);
+
+      for (let x = 0; x < width; x++) {
+        const xMap = extent.xmin + (extent.xmax - extent.xmin) * (x / width);
+        const [u, v] = this.mapField(xMap, yMap);
+        data[2 * (y * width + x) + 0] = u;
+        data[2 * (y * width + x) + 1] = v;
+      }
+    }
+  
+    return {
+      data,
+      width,
+      height,
+      pixelScale
+    };
   }
 }
