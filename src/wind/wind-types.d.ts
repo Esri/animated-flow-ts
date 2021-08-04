@@ -11,7 +11,6 @@ export type Mesh = {
 
 export type Vertex = {
   position: [number, number];
-  distance: number;
   time: number;
 }
 

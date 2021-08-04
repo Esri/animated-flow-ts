@@ -85,14 +85,12 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[
   const line: Vertex[] = [];
 
   let t = 0;
-  let d = 0;
   
   let x = x0;
   let y = y0;
 
   line.push({
     position: [x, y],
-    distance: d,
     time: t
   });
   
@@ -108,11 +106,9 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[
     y += dy * segmentLength;
     const dt = segmentLength / v;
     t += dt;
-    d += segmentLength;
 
     line.push({
       position: [x, y],
-      distance: d,
       time: t
     });
   }
