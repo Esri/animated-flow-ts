@@ -154,15 +154,7 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
     });
   }
 
-  cnt = 0;
-
   override render(renderParams: any): void {
-    ++this.cnt;
-
-    if (this.cnt % 60 === 0) {
-      console.log(renderParams.state.size, renderParams.state.scale, renderParams.state.resolution, renderParams.state.extent.width, renderParams.state.extent.height);
-    }
-
     if (!this._sharedResources || "abortController" in this._sharedResources) {
       this.requestRender();
       return;
@@ -255,7 +247,4 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
   abstract loadSharedResources(signal: AbortSignal): Promise<SR>;
   abstract loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<LR>;
   abstract renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SR, localResources: LR): void;
-
-  afterDetach(): void {
-  }
 }

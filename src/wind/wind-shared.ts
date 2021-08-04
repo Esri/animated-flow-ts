@@ -1,8 +1,67 @@
 import { Field, Mesh, Vertex, WindData } from "./wind-types";
 
 const MIN_SPEED_THRESHOLD = 0.001;
+const MIN_WEIGHT_THRESHOLD = 0.001;
 
-function createWindFieldFromData(windData: WindData): Field {
+function smooth(data: Float32Array, width: number, height: number, sigma: number): Float32Array {
+  const horizontal = new Float32Array(data.length);
+
+  const halfRadius = Math.round(3 * sigma);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let totalWeight = 0;
+      let s0 = 0;
+      let s1 = 0;
+
+      for (let d = -halfRadius; d <= halfRadius; d++) {
+        if (x + d < 0 || x + d >= width) {
+          continue;
+        }
+
+        const weight = Math.exp(-d * d / (sigma * sigma));
+
+        totalWeight += weight;
+        s0 += weight * data[2 * (y * width + (x + d)) + 0]!;
+        s1 += weight * data[2 * (y * width + (x + d)) + 1]!;
+      }
+
+      horizontal[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s0 / totalWeight);
+      horizontal[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s1 / totalWeight);
+    }
+  }
+
+  const final = new Float32Array(data.length);
+  
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      let totalWeight = 0;
+      let s0 = 0;
+      let s1 = 0;
+
+      for (let d = -halfRadius; d <= halfRadius; d++) {
+        if (y + d < 0 || y + d >= height) {
+          continue;
+        }
+
+        const weight = Math.exp(-d * d / (sigma * sigma));
+
+        totalWeight += weight;
+        s0 += weight * horizontal[2 * ((y + d) * width + x) + 0]!;
+        s1 += weight * horizontal[2 * ((y + d) * width + x) + 1]!;
+      }
+
+      final[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s0 / totalWeight);
+      final[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s1 / totalWeight);
+    }
+  }
+
+  return final;
+}
+
+function createWindFieldFromData(windData: WindData, smoothing: number): Field {
+  const data = smooth(windData.data, windData.width, windData.height, smoothing);
+
   const f = (x: number, y: number): [number, number] => {
     const X = Math.round(x);
     const Y = Math.round(y);
@@ -15,7 +74,7 @@ function createWindFieldFromData(windData: WindData): Field {
       return [0, 0];
     }
 
-    return [windData.data[2 * (Y * windData.height + X) + 0]!, windData.data[2 * (Y * windData.width + X) + 1]!];
+    return [data[2 * (Y * windData.width + X) + 0]!, data[2 * (Y * windData.width + X) + 1]!];
   };
 
   return f;
@@ -73,13 +132,13 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Ve
   return lines;
 }
 
-export function createWindMesh(WindData: WindData): Mesh {
+export function createWindMesh(windData: WindData, smoothing: number): Mesh {
   let vertexCount = 0;
   const vertexData: number[] = [];
   const indexData: number[] = [];
 
-  const f = createWindFieldFromData(WindData);
-  const flowLines = getFlowLines(f, WindData.width, WindData.height, 3);
+  const f = createWindFieldFromData(windData, smoothing);
+  const flowLines = getFlowLines(f, windData.width, windData.height, 3);
 
   for (const line of flowLines) {
     const random = Math.random();

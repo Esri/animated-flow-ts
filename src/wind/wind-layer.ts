@@ -1,12 +1,11 @@
-import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
+import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
 import Extent from "@arcgis/core/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../visualization";
 import { defined } from "../util";
-import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 import BaseLayer from "@arcgis/core/layers/Layer";
-import { MainWindClient, WindClient, WorkerWindClient } from "./wind-sources";
-import { WindTracer } from "./wind-meshing";
+import { WorkerWindTracer } from "./wind-meshing";
+import { ImageryTileLayerWindSource } from "./wind-sources";
 
 class WindSharedResources extends SharedResources {
   programs: HashMap<{
@@ -170,32 +169,19 @@ class WindLocalResources extends LocalResources {
 class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, WindLocalResources> {
   override animate = true;
 
-  private ownWindSource: boolean;
-  private ownWindTracer: boolean;
-
-  @property({})
-  source: WindSource;
-
-  @property({})
-  tracer: WindTracer;
-
-  constructor(params: any) {
-    super(params);
-  }
-  
   override async loadSharedResources(): Promise<WindSharedResources> {
     return new WindSharedResources();
   }
 
-  override async loadLocalResources(extent: Extent, resolution: number): Promise<WindLocalResources> {
+  override async loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<WindLocalResources> {
     const width = Math.round((extent.xmax - extent.xmin) / resolution);
     const height = Math.round((extent.ymax - extent.ymin) / resolution);
 
-    // await this.imageryTileLayer.load();
-    // const rasterData = await this.imageryTileLayer.fetchPixels(extent, width, height);
+    const layer = this.layer as WindLayer;
 
-    // const { vertexData, indexData } = await this.client.createWindMesh(rasterData.pixelBlock);
-    // return new WindLocalResources(extent, resolution, vertexData, indexData);
+    const windData = await layer.source.fetchWindData(extent, width, height, signal);
+    const { vertexData, indexData } = await layer.tracer.createWindMesh(windData);
+    return new WindLocalResources(extent, resolution, vertexData, indexData);
   }
 
   override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: WindSharedResources, localResources: WindLocalResources): void {
@@ -246,15 +232,17 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
 
     gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
   }
-
-  override afterDetach(): void {
-    this.source.destroy();
-    this.tracer.destroy();
-  }
 }
 
 @subclass("wind-es.wind.WindLayer")
 export class WindLayer extends BaseLayer {
+  source = new ImageryTileLayerWindSource("https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer");
+  tracer = new WorkerWindTracer();
+
+  constructor(params: any) {
+    super(params);
+  }
+
   override createLayerView(view: any): any {
     if (view.type === "2d") {
       return new WindLayerView2D({
@@ -262,5 +250,11 @@ export class WindLayer extends BaseLayer {
         layer: this
       } as any);
     }
+  }
+
+  override destroy(): void {
+    super.destroy();
+    this.source.destroy();
+    this.tracer.destroy();
   }
 }

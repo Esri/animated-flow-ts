@@ -10,7 +10,7 @@ export abstract class WindTracer {
 
 export class MainWindTracer extends WindTracer {
   override async createWindMesh(windData: WindData): Promise<Mesh> {
-    return createWindMesh(windData);
+    return createWindMesh(windData, 10);
   }
 }
 
