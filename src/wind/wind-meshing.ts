@@ -1,22 +1,23 @@
-import { createWindMesh, Mesh, PixelBlock } from "./wind-processing";
+import { createWindMesh } from "./wind-shared";
+import { Mesh, WindData } from "./wind-types";
 
-export abstract class WindClient {
-  abstract createWindMesh(pixelBlock: PixelBlock): Promise<Mesh>;
+export abstract class WindTracer {
+  abstract createWindMesh(windData: WindData): Promise<Mesh>;
   
   destroy(): void {
   }
 }
 
-export class MainWindClient extends WindClient {
-  override async createWindMesh(pixelBlock: PixelBlock): Promise<Mesh> {
-    return createWindMesh(pixelBlock);
+export class MainWindTracer extends WindTracer {
+  override async createWindMesh(windData: WindData): Promise<Mesh> {
+    return createWindMesh(windData);
   }
 }
 
-export class WorkerWindClient extends WindClient {
+export class WorkerWindTracer extends WindTracer {
   private worker = new Worker("./wind-worker.js");
 
-  override createWindMesh(pixelBlock: PixelBlock): Promise<Mesh> {
+  override createWindMesh(windData: WindData): Promise<Mesh> {
     return new Promise((resolve) => {
       const listener = (evt: MessageEvent): void => {
         if (evt.data.method === "createWindMesh") {
@@ -33,7 +34,7 @@ export class WorkerWindClient extends WindClient {
   
       this.worker.postMessage({
         method: "createWindMesh",
-        pixelBlock: { pixels: pixelBlock.pixels, width: pixelBlock.width, height: pixelBlock.height }
+        windData
       });
     });
   }

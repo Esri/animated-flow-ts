@@ -5,7 +5,8 @@ import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, Sh
 import { defined } from "../util";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 import BaseLayer from "@arcgis/core/layers/Layer";
-import { MainWindClient, WindClient, WorkerWindClient } from "./wind-client";
+import { MainWindClient, WindClient, WorkerWindClient } from "./wind-sources";
+import { WindTracer } from "./wind-meshing";
 
 class WindSharedResources extends SharedResources {
   programs: HashMap<{
@@ -167,21 +168,19 @@ class WindLocalResources extends LocalResources {
 
 @subclass("wind-es.wind.WindLayerView2D")
 class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, WindLocalResources> {
-  private imageryTileLayer: ImageryTileLayer;
   override animate = true;
 
+  private ownWindSource: boolean;
+  private ownWindTracer: boolean;
+
   @property({})
-  dataSource: WindSource;
-  useWebWorkers?
+  source: WindSource;
+
   @property({})
-  meshCreator: MeshCreator = Work;
+  tracer: WindTracer;
 
   constructor(params: any) {
     super(params);
-    
-    this.imageryTileLayer = new ImageryTileLayer({
-      url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer"
-    });
   }
   
   override async loadSharedResources(): Promise<WindSharedResources> {
@@ -192,11 +191,11 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
     const width = Math.round((extent.xmax - extent.xmin) / resolution);
     const height = Math.round((extent.ymax - extent.ymin) / resolution);
 
-    await this.imageryTileLayer.load();
-    const rasterData = await this.imageryTileLayer.fetchPixels(extent, width, height);
+    // await this.imageryTileLayer.load();
+    // const rasterData = await this.imageryTileLayer.fetchPixels(extent, width, height);
 
-    const { vertexData, indexData } = await this.client.createWindMesh(rasterData.pixelBlock);
-    return new WindLocalResources(extent, resolution, vertexData, indexData);
+    // const { vertexData, indexData } = await this.client.createWindMesh(rasterData.pixelBlock);
+    // return new WindLocalResources(extent, resolution, vertexData, indexData);
   }
 
   override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: WindSharedResources, localResources: WindLocalResources): void {
@@ -249,8 +248,8 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
   }
 
   override afterDetach(): void {
-    this.imageryTileLayer.destroy();
-    this.client.destroy();
+    this.source.destroy();
+    this.tracer.destroy();
   }
 }
 

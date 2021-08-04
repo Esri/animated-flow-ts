@@ -1,10 +1,10 @@
-import { createWindMesh } from "./wind-processing";
+import { createWindMesh } from "./wind-shared";
 
 console.log("I AM A WORKER!");
 
 self.addEventListener("message", (evt) => {
   if (evt.data.method === "createWindMesh") {
-    const { vertexData, indexData } = createWindMesh(evt.data.pixelBlock);
+    const { vertexData, indexData } = createWindMesh(evt.data.windData);
     (self as any).postMessage(
       {
         method: "createWindMesh",
