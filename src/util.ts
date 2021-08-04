@@ -14,3 +14,16 @@
     throw new Error("Value is not defined.");
   }
 }
+
+export function createRand(seed = 3): () => number {
+  const m = 1 << 23;
+  const a = 65793;
+  const c = 4282663;
+
+  let z = seed;
+
+  return () => {
+    z = (a * z + c) % m;
+    return ((z >> 8) & ((1 << 15) - 1)) / (1 << 15);
+  };
+}

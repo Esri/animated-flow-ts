@@ -1,3 +1,4 @@
+import { createRand } from "../util";
 import { Field, Mesh, Vertex, WindData } from "./wind-types";
 
 const MIN_SPEED_THRESHOLD = 0.001;
@@ -122,8 +123,10 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Vertex[
 function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Vertex[][] {
   const lines: Vertex[][] = [];
 
+  const rand = createRand();
+
   for (let i = 0; i < 4000; i++) {
-    const line = trace(f, Math.round(Math.random() * W), Math.round(Math.random() * H), segmentLength);
+    const line = trace(f, Math.round(rand() * W), Math.round(rand() * H), segmentLength);
     lines.push(line);
   }
   
@@ -137,9 +140,10 @@ export function createWindMesh(windData: WindData, smoothing: number): Mesh {
 
   const f = createWindFieldFromData(windData, smoothing);
   const flowLines = getFlowLines(f, windData.width, windData.height, 3);
+  const rand = createRand();
 
   for (const line of flowLines) {
-    const random = Math.random();
+    const random = rand();
     const lastVertex = line[line.length - 1]!;
     const totalTime = lastVertex.time;
 

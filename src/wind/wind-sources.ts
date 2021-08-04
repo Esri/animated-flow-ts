@@ -17,6 +17,7 @@ export class ImageryTileLayerWindSource {
   }
   
   async fetchWindData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<WindData> {
+    // TODO! Do I even want this? Probably yes?
     const pixelScale = 1.0; // /* TODO: Dinamically?
 
     await this.imageryTileLayer.load(signal);
