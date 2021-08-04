@@ -11,9 +11,11 @@ export abstract class WindSource {
 
 export class ImageryTileLayerWindSource {
   private imageryTileLayer: ImageryTileLayer;
+  private magnitudeScale: number;
 
-  constructor(url: string) {
+  constructor(url: string, magnitudeScale: number) {
     this.imageryTileLayer = new ImageryTileLayer({ url });
+    this.magnitudeScale = magnitudeScale;
   }
   
   async fetchWindData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<WindData> {
@@ -30,8 +32,8 @@ export class ImageryTileLayerWindSource {
   
     for (let i = 0; i < actualWidth * actualHeight; i++) {
       // TODO! Make this configurable.
-      const mag = pixelBlock.pixels[0]![i]! / 10; // TODO?
-      const dir = Math.PI * pixelBlock.pixels[1]![i]! / 180; // TODO?
+      const mag = pixelBlock.pixels[0]![i]! * this.magnitudeScale;
+      const dir = Math.PI * pixelBlock.pixels[1]![i]! / 180;
   
       const co = Math.cos(dir);
       const si = Math.sin(dir);
@@ -73,8 +75,8 @@ export class AnalyticWindSource {
       for (let x = 0; x < width; x++) {
         const xMap = extent.xmin + (extent.xmax - extent.xmin) * (x / width);
         const [u, v] = this.mapField(xMap, yMap);
-        data[2 * (y * width + x) + 0] = u;
-        data[2 * (y * width + x) + 1] = v;
+        data[2 * ((height - 1 - y /* OR NOT? */) * width + x) + 0] = u;
+        data[2 * ((height - 1 - y /* OR NOT? */) * width + x) + 1] = v;
       }
     }
   
