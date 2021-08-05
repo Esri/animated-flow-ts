@@ -178,7 +178,7 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
   override async loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<WindLocalResources> {
     // TODO?
     extent = extent.clone();
-    extent.expand(1);
+    // extent.expand(1);
 
     const width = Math.round((extent.xmax - extent.xmin) / resolution);
     const height = Math.round((extent.ymax - extent.ymin) / resolution);
