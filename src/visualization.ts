@@ -163,8 +163,6 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
       return;
     }
 
-    console.log(this._localResources.map(x => x.loadTime));
-
     const gl: WebGLRenderingContext = renderParams.context;
 
     if (!this._sharedResources.attached) {
@@ -172,7 +170,7 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
       this._sharedResources.attached = true;
     }
 
-    let toRender: LR | null = null;
+    let toRender: ResourcesEntry<LR> | null = null;
 
     for (let i = this._localResources.length - 1; i >= 0; i--) {
       const localResources = this._localResources[i];
@@ -195,15 +193,15 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
             localResources.attached = true;
           }
 
-          toRender = localResources.resources;
+          toRender = localResources;
         }
       }
     }
 
 
     if (toRender) {
-      const xMap = toRender.extent.xmin;
-      const yMap = toRender.extent.ymax;
+      const xMap = toRender.resources.extent.xmin;
+      const yMap = toRender.resources.extent.ymax;
       const translation: [number, number] = [0, 0];
       renderParams.state.toScreen(translation, xMap, yMap);
 
@@ -211,16 +209,18 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
         size: renderParams.state.size,
         translation,
         rotation: Math.PI * renderParams.state.rotation / 180,
-        scale: toRender.resolution / renderParams.state.resolution,
+        scale: toRender.resources.resolution / renderParams.state.resolution,
         opacity: 1
       };
       
-      this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, toRender);
+      this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, toRender.resources);
     }
 
     if (this.animate) {
       this.requestRender();
     }
+
+    console.log("all", this._localResources.map(x => x.loadTime), "rendered", toRender);
   }
 
   override detach(): void {

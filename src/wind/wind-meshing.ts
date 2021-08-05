@@ -1,3 +1,4 @@
+import { defined } from "../util";
 import { createWindMesh } from "./wind-shared";
 import { FlowLinesMesh, WindData } from "./wind-types";
 
@@ -16,26 +17,33 @@ export class MainWindTracer extends WindTracer {
 
 export class WorkerWindTracer extends WindTracer {
   private worker = new Worker("./wind-worker.js");
+  private requestId = 0;
+  private requests = new Map<number, (result: FlowLinesMesh) => void>();
+
+  constructor() {
+    super();
+    this.worker.addEventListener("message", (evt) => {
+      if (evt.data.method === "createWindMesh") {
+        const resolve = this.requests.get(evt.data.requestId);
+        defined(resolve);
+        resolve({
+          vertexData: new Float32Array(evt.data.vertexData),
+          indexData: new Uint32Array(evt.data.indexData)
+        });
+      }
+    });
+  }
 
   override createWindMesh(windData: WindData, smoothing: number): Promise<FlowLinesMesh> {
     return new Promise((resolve) => {
-      const listener = (evt: MessageEvent): void => {
-        if (evt.data.method === "createWindMesh") {
-          resolve({
-            vertexData: new Float32Array(evt.data.vertexData),
-            indexData: new Uint32Array(evt.data.indexData)
-          });
-    
-          this.worker.removeEventListener("message", listener);
-        }
-      };
-      
-      this.worker.addEventListener("message", listener);
-  
+      this.requestId++;
+      this.requests.set(this.requestId, resolve);
+
       this.worker.postMessage({
         method: "createWindMesh",
         windData,
-        smoothing
+        smoothing,
+        requestId: this.requestId
       }, [
         windData.data.buffer
       ]);
@@ -43,6 +51,6 @@ export class WorkerWindTracer extends WindTracer {
   }
 
   override destroy(): void {
-    this.worker.terminate();  
+    this.worker.terminate();
   }
 }

@@ -7,7 +7,8 @@ self.addEventListener("message", (evt) => {
       {
         method: "createWindMesh",
         vertexData: vertexData.buffer,
-        indexData: indexData.buffer
+        indexData: indexData.buffer,
+        requestId: evt.data.requestId
       },
       [
         vertexData.buffer,
