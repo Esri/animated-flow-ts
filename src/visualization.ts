@@ -118,7 +118,7 @@ export abstract class LocalResources extends Resources {
   }
 }
 
-type ResourcesEntry<R> = { resources: R; attached: boolean; } | { abortController: AbortController };
+type ResourcesEntry<R> = { resources: R; attached: boolean; loadTime: number; } | { abortController: AbortController; loadTime: number; };
 
 @subclass("wind-es.visualization.LayerView2D")
 export abstract class VisualizationLayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
@@ -132,10 +132,11 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
 
   override attach(): void {
     const abortController = new AbortController();
-    const entry: ResourcesEntry<SR> = { abortController };
+    const loadTime = performance.now();
+    const entry: ResourcesEntry<SR> = { abortController, loadTime };
     this._sharedResources = entry;
     this.loadSharedResources(abortController.signal).then((resources) => {
-      this._sharedResources = { resources, attached: false };
+      this._sharedResources = { resources, attached: false, loadTime };
     });
 
     this.view.watch("stationary", (stationary) => {
@@ -147,10 +148,12 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
 
   private _loadVisualization(): void {
     const abortController = new AbortController();
-    const entry: ResourcesEntry<LR> = { abortController };
+    const loadTime = performance.now();
+    const entry: ResourcesEntry<LR> = { abortController, loadTime };
     this._localResources.push(entry);
     this.loadLocalResources(this.view.extent, this.view.resolution, abortController.signal).then((resources) => {
-      this._localResources[this._localResources.indexOf(entry)] = { resources, attached: false };
+      this._localResources[this._localResources.indexOf(entry)] = { resources, attached: false, loadTime };
+      this._localResources.sort((a, b) => a.loadTime - b.loadTime);
     });
   }
 
@@ -159,6 +162,8 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
       this.requestRender();
       return;
     }
+
+    console.log(this._localResources.map(x => x.loadTime));
 
     const gl: WebGLRenderingContext = renderParams.context;
 
@@ -179,8 +184,8 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
         } else if (localResources.attached) {
           localResources.resources.detach(gl);
           localResources.attached = false;
-          this._localResources.splice(i, 1);
         }
+        this._localResources.splice(i, 1);
       } else {
         if ("abortController" in localResources) {
           this.requestRender();

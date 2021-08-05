@@ -1,9 +1,8 @@
 /**
- * @module wind-es/main
+ * @module wind-es/fake-data
  * 
- * The entry point of the app.
- * 
- * Create a WGS-84 map with a basemap and a wind layer.
+ * An app that uses fake wind data provided by a vector field
+ * defined analytically in map units.
  */
 
 import EsriMap from "@arcgis/core/Map";
@@ -16,12 +15,12 @@ const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
-const center: [number, number] = [-98, 39];
+const center: [number, number] = [0, 0];//[-98, 39];
 
 const windLayer = new WindLayer({
   source: new AnalyticWindSource((x, y) => {
-    x -= center[0];
-    y -= center[1];
+    // x -= center[0];
+    // y -= center[1];
     const d2 = x * x + y * y;
     return [-y / d2, x / d2];
   }),

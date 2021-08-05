@@ -183,6 +183,8 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
     const width = Math.round((extent.xmax - extent.xmin) / resolution);
     const height = Math.round((extent.ymax - extent.ymin) / resolution);
 
+    // console.log("W", width, extent.xmax - extent.xmin, "H", height, extent.ymax - extent.ymin, "R", resolution);
+
     const layer = this.layer as WindLayer;
 
     const downsample = 1;

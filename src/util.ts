@@ -15,6 +15,13 @@
   }
 }
 
+/**
+ * Create a seeded, pseudo-random number generator. 
+ *
+ * @param seed The seed that determines the sequence of pseudo-random values.
+ * @returns A function with no arguments that returns values in the range [0, 1);
+ * such function is a plug-in replacement for `Math.random()`.
+ */
 export function createRand(seed = 3): () => number {
   const m = 1 << 23;
   const a = 65793;
