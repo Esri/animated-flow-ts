@@ -35,7 +35,7 @@ class WindSharedResources extends SharedResources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0);
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0); // TODO: Add support for devicePixelRatio?
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -66,7 +66,7 @@ class WindSharedResources extends SharedResources {
         if (t < v_Time) {
           gl_FragColor.a *= 0.0;
         } else {
-          gl_FragColor.a *= exp(-0.01 * (t - v_Time)) * (1.0 - exp(-v_Speed));
+          gl_FragColor.a *= exp(-0.01 * (t - v_Time)) * (1.0 - exp(-100.0 /* TODO! Factor! */ * v_Speed));
         }
 
         gl_FragColor.rgb *= gl_FragColor.a;
@@ -178,7 +178,7 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
   override async loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<WindLocalResources> {
     // TODO?
     extent = extent.clone();
-    extent.expand(1); // Increase this?
+    extent.expand(1.15); // Increase this?
 
     const width = Math.round((extent.xmax - extent.xmin) / resolution);
     const height = Math.round((extent.ymax - extent.ymin) / resolution);
@@ -187,8 +187,8 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
 
     const downsample = 1;
 
-    const windData = await layer.source.fetchWindData(extent, width / downsample, height / downsample, signal);
-    const { vertexData, indexData } = await layer.tracer.createWindMesh(windData, 5);
+    const windData = await (await layer.source).fetchWindData(extent, width / downsample, height / downsample, signal);
+    const { vertexData, indexData } = await (await layer.tracer).createWindMesh(windData, 5);
     return new WindLocalResources(extent, resolution, downsample, vertexData, indexData);
   }
 
@@ -244,8 +244,8 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
 
 @subclass("wind-es.wind.WindLayer")
 export class WindLayer extends BaseLayer {
-  source: WindSource;
-  tracer: WindTracer;
+  source: Promise<WindSource>;
+  tracer: Promise<WindTracer>;
 
   constructor(params: any) {
     super(params);
@@ -254,10 +254,12 @@ export class WindLayer extends BaseLayer {
       throw new Error("Only one of 'url' or 'source' parameters can be specified when creating a WindLayer.");
     }
 
+    // TODO: Support both UV and MagDir.
+
     const useWebWorkers = ("useWebWorkers" in params) ? params.useWebWorkers : true;
 
-    this.source = params.url ? new ImageryTileLayerWindSource(params.url, 0.1) : params.source; 
-    this.tracer = useWebWorkers ? new WorkerWindTracer() : new MainWindTracer();
+    this.source = Promise.resolve(params.url ? new ImageryTileLayerWindSource(params.url, 0.1 /* TODO: Configure? */) : params.source);
+    this.tracer = Promise.resolve(useWebWorkers ? new WorkerWindTracer() : new MainWindTracer());
   }
 
   override createLayerView(view: any): any {
@@ -271,7 +273,8 @@ export class WindLayer extends BaseLayer {
 
   override destroy(): void {
     super.destroy();
-    this.source.destroy();
-    this.tracer.destroy();
+    // TODO: Abort?
+    this.source.then((source) => source.destroy());
+    this.tracer.then((tracer) => tracer.destroy());
   }
 }

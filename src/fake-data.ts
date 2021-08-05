@@ -16,8 +16,6 @@ const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
-const center: [number, number] = [0, 0];//[-98, 39];
-
 function createVortex(vortexCenter: [number, number]): Field {
   return (x, y) => {
     x -= vortexCenter[0];
@@ -27,9 +25,9 @@ function createVortex(vortexCenter: [number, number]): Field {
   };
 }
 
-const vortex1 = createVortex([0, 0]);
-const vortex2 = createVortex([20, 0]);
-const vortex3 = createVortex([-10, -10]);
+const vortex1 = createVortex([-98, 39]);
+const vortex2 = createVortex([-98 + 20, 39]);
+const vortex3 = createVortex([-98 - 10, 39 - 10]);
 
 const winds = (x: number, y: number): [number, number] => {
   const v1 = vortex1(x, y);
@@ -39,6 +37,7 @@ const winds = (x: number, y: number): [number, number] => {
 };
 
 const windLayer = new WindLayer({
+  // TODO: Analytic is a bad name
   source: new AnalyticWindSource(winds),
   effect: "bloom(1.1, 0.3px, 0.1)",
   useWebWorkers: true
@@ -55,5 +54,5 @@ new MapView({
   container: "viewDiv",
   map: map,
   zoom: 4,
-  center
+  center: [-98, 39]
 });

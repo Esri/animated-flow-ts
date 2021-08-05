@@ -16,6 +16,10 @@ const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
+// NON TILED
+// https://sampleserver6.arcgisonline.com/arcgis/rest/services/NLCDLandCover2001/ImageServer?f=json
+
+// TILED
 const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer";
 
 const imageryLayer = new ImageryTileLayer({

@@ -3,6 +3,7 @@ import { createWindMesh } from "./wind-shared";
 import { FlowLinesMesh, WindData } from "./wind-types";
 
 export abstract class WindTracer {
+  // TODO: Add support for AbortController?
   abstract createWindMesh(windData: WindData, smoothing: number): Promise<FlowLinesMesh>;
   
   destroy(): void {

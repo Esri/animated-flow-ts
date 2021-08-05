@@ -3,6 +3,7 @@ import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 import { Field, WindData } from "./wind-types";
 
 export abstract class WindSource {
+  // TODO: Add support for AbortController?
   abstract fetchWindData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<WindData>;
   
   destroy(): void {
@@ -18,12 +19,15 @@ export class ImageryTileLayerWindSource {
     this.magnitudeScale = magnitudeScale;
   }
   
+  // TODO: Add support for devicePixelRatio?
   async fetchWindData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<WindData> {
     // TODO! Do I even want this? Probably yes?
     const pixelScale = 1.0; // /* TODO: Dinamically?
 
     await this.imageryTileLayer.load(signal);
+    // TODO Chech for aborted?
     const rasterData = await this.imageryTileLayer.fetchPixels(extent, Math.round(width * pixelScale), Math.round(height * pixelScale), { signal });
+    // TODO Chech for aborted?
     const pixelBlock = rasterData.pixelBlock;
 
     const actualWidth = pixelBlock.width;
@@ -32,6 +36,7 @@ export class ImageryTileLayerWindSource {
   
     for (let i = 0; i < actualWidth * actualHeight; i++) {
       // TODO! Make this configurable.
+      // TODO: Support both MagDir and UV.
       const mag = pixelBlock.pixels[0]![i]! * this.magnitudeScale;
       const dir = Math.PI * pixelBlock.pixels[1]![i]! / 180;
   

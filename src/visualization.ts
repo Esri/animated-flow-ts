@@ -131,6 +131,7 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
   animate = false;
 
   override attach(): void {
+    // TODO: Actually abort when possible?
     const abortController = new AbortController();
     const loadTime = performance.now();
     const entry: ResourcesEntry<SR> = { abortController, loadTime };
@@ -147,6 +148,7 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
   }
 
   private _loadVisualization(): void {
+    // TODO: Actually abort when possible?
     const abortController = new AbortController();
     const loadTime = performance.now();
     const entry: ResourcesEntry<LR> = { abortController, loadTime };
@@ -219,8 +221,6 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
     if (this.animate) {
       this.requestRender();
     }
-
-    console.log("all", this._localResources.map(x => x.loadTime), "rendered", toRender);
   }
 
   override detach(): void {
