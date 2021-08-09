@@ -37,6 +37,9 @@ export class ImageryTileLayerWindSource {
     for (let i = 0; i < actualWidth * actualHeight; i++) {
       // TODO! Make this configurable.
       // TODO: Support both MagDir and UV.
+      
+      // esriImageServiceDataTypeVector-MagDir esriImageServiceDataTypeVector-UV
+
       const mag = pixelBlock.pixels[0]![i]! * this.magnitudeScale;
       const dir = Math.PI * pixelBlock.pixels[1]![i]! / 180;
   
@@ -80,8 +83,8 @@ export class AnalyticWindSource {
       for (let x = 0; x < width; x++) {
         const xMap = extent.xmin + (extent.xmax - extent.xmin) * (x / width);
         const [u, v] = this.mapField(xMap, yMap);
-        data[2 * ((height - 1 - y /* OR NOT? */) * width + x) + 0] = u;
-        data[2 * ((height - 1 - y /* OR NOT? */) * width + x) + 1] = v;
+        data[2 * ((height - 1 - y) * width + x) + 0] = u;
+        data[2 * ((height - 1 - y) * width + x) + 1] = v;
       }
     }
   
