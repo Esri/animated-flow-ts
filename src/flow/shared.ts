@@ -1,5 +1,5 @@
 import { createRand } from "../core/util";
-import { Field, FlowLinesMesh, TimestampedVertex, FlowData } from "./flow-types";
+import { Field, FlowLinesMesh, TimestampedVertex, FlowData } from "./types";
 
 const MIN_SPEED_THRESHOLD = 0.001;
 const MIN_WEIGHT_THRESHOLD = 0.001;

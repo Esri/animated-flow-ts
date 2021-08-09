@@ -1,6 +1,6 @@
 import { defined } from "../core/util";
-import { createFlowMesh } from "./flow-shared";
-import { FlowLinesMesh, FlowData } from "./flow-types";
+import { createFlowMesh } from "./shared";
+import { FlowLinesMesh, FlowData } from "./types";
 
 export abstract class FlowTracer {
   // TODO: Add support for AbortController?

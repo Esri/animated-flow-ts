@@ -8,9 +8,9 @@
 import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
-import { FlowLayer } from "../flow/flow-layer";
-import { VectorFieldFlowSource } from "../flow/flow-sources";
-import { Field } from "../flow/flow-types";
+import { FlowLayer } from "../flow/layer";
+import { VectorFieldFlowSource } from "../flow/sources";
+import { Field } from "../flow/types";
 
 const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"

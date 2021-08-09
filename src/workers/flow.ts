@@ -1,4 +1,4 @@
-import { createFlowMesh } from "../flow/flow-shared";
+import { createFlowMesh } from "../flow/shared";
 
 self.addEventListener("message", (evt) => {
   if (evt.data.method === "createFlowMesh") {

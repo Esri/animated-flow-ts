@@ -7,7 +7,7 @@
 import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
-import { FlowLayer } from "../flow/flow-layer";
+import { FlowLayer } from "../flow/layer";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 
 const vectorTileLayer = new VectorTileLayer({

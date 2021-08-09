@@ -43,7 +43,7 @@ export type PixelBlock = {
 
 /**
  * A vertex of a flow line, as returned by The `trace()` function in
- * module `wind-es/flow/flow-shared.
+ * module `wind-es/flow/shared.
  * 
  * A flow line is a polyline where each vertex is timestamped in seconds.
  */

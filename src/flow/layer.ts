@@ -4,8 +4,8 @@ import { mat4 } from "gl-matrix";
 import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../core/visualization";
 import { defined } from "../core/util";
 import BaseLayer from "@arcgis/core/layers/Layer";
-import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./flow-meshing";
-import { ImageryTileLayerFlowSource, FlowSource } from "./flow-sources";
+import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
+import { ImageryTileLayerFlowSource, FlowSource } from "./sources";
 
 class FlowSharedResources extends SharedResources {
   programs: HashMap<{

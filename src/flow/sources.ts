@@ -1,6 +1,6 @@
 import Extent from "@arcgis/core/geometry/Extent";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
-import { Field, FlowData } from "./flow-types";
+import { Field, FlowData } from "./types";
 
 export abstract class FlowSource {
   // TODO: Add support for AbortController?
