@@ -1,5 +1,5 @@
 /**
- * @module wind-es/util
+ * @module wind-es/core/util
  * 
  * This module contains utilities of general interest.
  */

@@ -43,7 +43,7 @@ export type PixelBlock = {
 
 /**
  * A vertex of a flow line, as returned by The `trace()` function in
- * module `wind/wind-shared.
+ * module `wind-es/flow/flow-shared.
  * 
  * A flow line is a polyline where each vertex is timestamped in seconds.
  */
@@ -52,7 +52,7 @@ export type TimestampedVertex = {
    * The position of the vertex.
    * 
    * Coordinates are expressed in "visualization units"; see module
-   * wind-es/visualization for more details.
+   * wind-es/core/visualization for more details.
    */
   position: [number, number];
 
@@ -71,7 +71,7 @@ export type TimestampedVertex = {
 }
 
 /**
- * The mesh data as returned by createWindMesh
+ * The mesh data as returned by createFlowMesh
  */
 export type FlowLinesMesh = {
   vertexData: Float32Array;
@@ -83,7 +83,7 @@ export type FlowLinesMesh = {
  */
 export type Field = (x: number, y: number) => [number, number];
 
-export type WindData = {
+export type FlowData = {
   data: Float32Array;
   width: number;
   height: number;

@@ -1,9 +1,9 @@
 /**
- * @module wind-es/visualization
+ * @module wind-es/core/visualization
  *
  * This module introduces abstract classes and functionality that are shared
  * by concrete layer and layer view types. So far the only concrete visualization
- * implemented is the wind visualization contained in the `wind` directory.
+ * implemented is the "flow" visualization contained in the `flow` directory.
  * 
  * The custom rendering system is designed around the concept of "visualizations".
  * Visualizations are renderable...
@@ -21,7 +21,7 @@ import { defined } from "./util";
  * with the underlying basemap.
  * 
  * When a visualization is rendered, a `VisualizationRenderParams`
- * object is passed to the `wind-es.visualization.LayerView2D.renderVisualization()`
+ * object is passed to the `wind-es.core.visualization.LayerView2D.renderVisualization()`
  * that defines its position, orientation and scale.
  */
 export type VisualizationRenderParams = {
@@ -120,7 +120,7 @@ export abstract class LocalResources extends Resources {
 
 type ResourcesEntry<R> = { resources: R; attached: boolean; loadTime: number; } | { abortController: AbortController; loadTime: number; };
 
-@subclass("wind-es.visualization.LayerView2D")
+@subclass("wind-es.core.visualization.LayerView2D")
 export abstract class VisualizationLayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
   private _sharedResources: ResourcesEntry<SR> | null = null;
   private _localResources: ResourcesEntry<LR>[] = [];

@@ -1,30 +1,30 @@
-import { defined } from "../util";
-import { createWindMesh } from "./wind-shared";
-import { FlowLinesMesh, WindData } from "./wind-types";
+import { defined } from "../core/util";
+import { createFlowMesh } from "./flow-shared";
+import { FlowLinesMesh, FlowData } from "./flow-types";
 
-export abstract class WindTracer {
+export abstract class FlowTracer {
   // TODO: Add support for AbortController?
-  abstract createWindMesh(windData: WindData, smoothing: number): Promise<FlowLinesMesh>;
+  abstract createFlowMesh(windData: FlowData, smoothing: number): Promise<FlowLinesMesh>;
   
   destroy(): void {
   }
 }
 
-export class MainWindTracer extends WindTracer {
-  override async createWindMesh(windData: WindData, smoothing: number): Promise<FlowLinesMesh> {
-    return createWindMesh(windData, smoothing);
+export class MainFlowTracer extends FlowTracer {
+  override async createFlowMesh(windData: FlowData, smoothing: number): Promise<FlowLinesMesh> {
+    return createFlowMesh(windData, smoothing);
   }
 }
 
-export class WorkerWindTracer extends WindTracer {
-  private worker = new Worker("./wind-worker.js");
+export class WorkerFlowTracer extends FlowTracer {
+  private worker = new Worker("./flow-worker.js");
   private requestId = 0;
   private requests = new Map<number, (result: FlowLinesMesh) => void>();
 
   constructor() {
     super();
     this.worker.addEventListener("message", (evt) => {
-      if (evt.data.method === "createWindMesh") {
+      if (evt.data.method === "createFlowMesh") {
         const resolve = this.requests.get(evt.data.requestId);
         defined(resolve);
         resolve({
@@ -35,18 +35,18 @@ export class WorkerWindTracer extends WindTracer {
     });
   }
 
-  override createWindMesh(windData: WindData, smoothing: number): Promise<FlowLinesMesh> {
+  override createFlowMesh(flowData: FlowData, smoothing: number): Promise<FlowLinesMesh> {
     return new Promise((resolve) => {
       this.requestId++;
       this.requests.set(this.requestId, resolve);
 
       this.worker.postMessage({
-        method: "createWindMesh",
-        windData,
+        method: "createFlowMesh",
+        flowData,
         smoothing,
         requestId: this.requestId
       }, [
-        windData.data.buffer
+        flowData.data.buffer
       ]);
     });
   }

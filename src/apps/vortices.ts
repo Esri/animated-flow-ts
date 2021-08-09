@@ -1,16 +1,16 @@
 /**
- * @module wind-es/fake-data
+ * @module wind-es/apps/vortices
  * 
- * An app that uses fake wind data provided by a vector field
- * defined analytically in map units.
+ * An app that defines a vector field analytically in map units
+ * and uses it to drive a flow visualization.
  */
 
 import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
-import { WindLayer } from "./wind/wind-layer";
-import { AnalyticWindSource } from "./wind/wind-sources";
-import { Field } from "./wind/wind-types";
+import { FlowLayer } from "../flow/flow-layer";
+import { VectorFieldFlowSource } from "../flow/flow-sources";
+import { Field } from "../flow/flow-types";
 
 const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
@@ -29,16 +29,16 @@ const vortex1 = createVortex([-98, 39]);
 const vortex2 = createVortex([-98 + 20, 39]);
 const vortex3 = createVortex([-98 - 10, 39 - 10]);
 
-const winds = (x: number, y: number): [number, number] => {
+const windVectorField = (x: number, y: number): [number, number] => {
   const v1 = vortex1(x, y);
   const v2 = vortex2(x, y);
   const v3 = vortex3(x, y);
   return [v1[0] + v2[0] + v3[0], v1[1] + v2[1] + v3[1]];
 };
 
-const windLayer = new WindLayer({
+const windLayer = new FlowLayer({
   // TODO: Analytic is a bad name
-  source: new AnalyticWindSource(winds),
+  source: new VectorFieldFlowSource(windVectorField),
   effect: "bloom(1.1, 0.3px, 0.1)",
   useWebWorkers: true
 } as any);

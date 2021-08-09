@@ -1,5 +1,5 @@
 /**
- * @module wind-es/real-data
+ * @module wind-es/apps/winds
  * 
  * An app that uses real wind data from an imagery tile layer.
  */
@@ -7,7 +7,7 @@
 import EsriMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
-import { WindLayer } from "./wind/wind-layer";
+import { FlowLayer } from "../flow/flow-layer";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
 
 const vectorTileLayer = new VectorTileLayer({
@@ -18,7 +18,7 @@ const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/re
 
 const imageryLayer = new ImageryTileLayer({ url });
 
-const windLayer = new WindLayer({
+const windLayer = new FlowLayer({
   url,
   effect: "bloom(1.1, 0.3px, 0.1)",
   useWebWorkers: true

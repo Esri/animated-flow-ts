@@ -1,5 +1,5 @@
-import { createRand } from "../util";
-import { Field, FlowLinesMesh, TimestampedVertex, WindData } from "./wind-types";
+import { createRand } from "../core/util";
+import { Field, FlowLinesMesh, TimestampedVertex, FlowData } from "./flow-types";
 
 const MIN_SPEED_THRESHOLD = 0.001;
 const MIN_WEIGHT_THRESHOLD = 0.001;
@@ -60,24 +60,24 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
   return final;
 }
 
-function createWindFieldFromData(windData: WindData, smoothing: number): Field {
-  const data = smooth(windData.data, windData.width, windData.height, smoothing);
+function createFlowFieldFromData(flowData: FlowData, smoothing: number): Field {
+  const data = smooth(flowData.data, flowData.width, flowData.height, smoothing);
 
   const f = (x: number, y: number): [number, number] => {
     const X = Math.round(x);
     let Y = Math.round(y);
     
-    if (X < 0 || X >= windData.width) {
+    if (X < 0 || X >= flowData.width) {
       return [0, 0];
     }
     
-    if (Y < 0 || Y >= windData.height) {
+    if (Y < 0 || Y >= flowData.height) {
       return [0, 0];
     }
 
-    Y = windData.height - 1 - Y;
+    Y = flowData.height - 1 - Y;
 
-    return [data[2 * (Y * windData.width + X) + 0]!, data[2 * (Y * windData.width + X) + 1]!];
+    return [data[2 * (Y * flowData.width + X) + 0]!, data[2 * (Y * flowData.width + X) + 1]!];
   };
 
   return f;
@@ -131,13 +131,13 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Ti
   return lines;
 }
 
-export function createWindMesh(windData: WindData, smoothing: number): FlowLinesMesh {
+export function createFlowMesh(flowData: FlowData, smoothing: number): FlowLinesMesh {
   let vertexCount = 0;
   const vertexData: number[] = [];
   const indexData: number[] = [];
 
-  const f = createWindFieldFromData(windData, smoothing);
-  const flowLines = getFlowLines(f, windData.width, windData.height, 3);
+  const f = createFlowFieldFromData(flowData, smoothing);
+  const flowLines = getFlowLines(f, flowData.width, flowData.height, 3);
   const rand = createRand();
 
   for (const line of flowLines) {
@@ -150,8 +150,8 @@ export function createWindMesh(windData: WindData, smoothing: number): FlowLines
       let { position: [x1, y1], time: t1 } = line[i]!;
       const speed = 100 /* TODO! Speed factor! */ / (t1 - t0);
 
-      y0 = windData.height - 1 - y0;
-      y1 = windData.height - 1 - y1;
+      y0 = flowData.height - 1 - y0;
+      y1 = flowData.height - 1 - y1;
 
       const l = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
       const ex = -(y1 - y0) / l;

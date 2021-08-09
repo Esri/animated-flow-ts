@@ -1,11 +1,11 @@
-import { createWindMesh } from "./wind-shared";
+import { createFlowMesh } from "./flow-shared";
 
 self.addEventListener("message", (evt) => {
-  if (evt.data.method === "createWindMesh") {
-    const { vertexData, indexData } = createWindMesh(evt.data.windData, evt.data.smoothing);
+  if (evt.data.method === "createFlowMesh") {
+    const { vertexData, indexData } = createFlowMesh(evt.data.flowData, evt.data.smoothing);
     (self as any).postMessage(
       {
-        method: "createWindMesh",
+        method: "createFlowMesh",
         vertexData: vertexData.buffer,
         indexData: indexData.buffer,
         requestId: evt.data.requestId

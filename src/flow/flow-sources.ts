@@ -1,16 +1,16 @@
 import Extent from "@arcgis/core/geometry/Extent";
 import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
-import { Field, WindData } from "./wind-types";
+import { Field, FlowData } from "./flow-types";
 
-export abstract class WindSource {
+export abstract class FlowSource {
   // TODO: Add support for AbortController?
-  abstract fetchWindData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<WindData>;
+  abstract fetchFlowData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<FlowData>;
   
   destroy(): void {
   }
 }
 
-export class ImageryTileLayerWindSource {
+export class ImageryTileLayerFlowSource {
   private imageryTileLayer: ImageryTileLayer;
   private magnitudeScale: number;
 
@@ -20,7 +20,7 @@ export class ImageryTileLayerWindSource {
   }
   
   // TODO: Add support for devicePixelRatio?
-  async fetchWindData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<WindData> {
+  async fetchFlowData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<FlowData> {
     // TODO! Do I even want this? Probably yes?
     const pixelScale = 1.0; // /* TODO: Dinamically?
 
@@ -50,7 +50,7 @@ export class ImageryTileLayerWindSource {
         u = pixelBlock.pixels[0]![i]! / this.magnitudeScale;
         v = pixelBlock.pixels[1]![i]! / this.magnitudeScale;
       } else {
-        console.error(`Unsupported data type "${dataType}"; the ImageryTileLayerWindSource class only suppors "vector-magdir" and "vector-uv".`);
+        console.error(`Unsupported data type "${dataType}"; the ImageryTileLayerFlowSource class only suppors "vector-magdir" and "vector-uv".`);
         u = 0;
         v = 0;
       }
@@ -72,11 +72,11 @@ export class ImageryTileLayerWindSource {
   }
 }
 
-export class AnalyticWindSource {
-  constructor(private mapField: Field) {
+export class VectorFieldFlowSource {
+  constructor(private mapVectorField: Field) {
   }
   
-  async fetchWindData(extent: Extent, width: number, height: number): Promise<WindData> {
+  async fetchFlowData(extent: Extent, width: number, height: number): Promise<FlowData> {
     const pixelScale = 1;
 
     width = Math.round(width);
@@ -89,7 +89,7 @@ export class AnalyticWindSource {
 
       for (let x = 0; x < width; x++) {
         const xMap = extent.xmin + (extent.xmax - extent.xmin) * (x / width);
-        const [u, v] = this.mapField(xMap, yMap);
+        const [u, v] = this.mapVectorField(xMap, yMap);
         data[2 * ((height - 1 - y) * width + x) + 0] = u;
         data[2 * ((height - 1 - y) * width + x) + 1] = v;
       }
