@@ -25,6 +25,7 @@ export class ImageryTileLayerWindSource {
     const pixelScale = 1.0; // /* TODO: Dinamically?
 
     await this.imageryTileLayer.load(signal);
+    const dataType = this.imageryTileLayer.rasterInfo.dataType;
     // TODO Chech for aborted?
     const rasterData = await this.imageryTileLayer.fetchPixels(extent, Math.round(width * pixelScale), Math.round(height * pixelScale), { signal });
     // TODO Chech for aborted?
@@ -35,19 +36,25 @@ export class ImageryTileLayerWindSource {
     const data = new Float32Array(actualWidth * actualHeight * 2);
   
     for (let i = 0; i < actualWidth * actualHeight; i++) {
-      // TODO! Make this configurable.
-      // TODO: Support both MagDir and UV.
-      
-      // esriImageServiceDataTypeVector-MagDir esriImageServiceDataTypeVector-UV
+      let u: number;
+      let v: number;
 
-      const mag = pixelBlock.pixels[0]![i]! * this.magnitudeScale;
-      const dir = Math.PI * pixelBlock.pixels[1]![i]! / 180;
-  
-      const co = Math.cos(dir);
-      const si = Math.sin(dir);
-      const u = co * mag + si * mag;
-      const v = -si * mag + co * mag;
-      
+      if (dataType === "vector-magdir") {
+        const mag = pixelBlock.pixels[0]![i]! * this.magnitudeScale;
+        const dir = Math.PI * pixelBlock.pixels[1]![i]! / 180;
+        const co = Math.cos(dir);
+        const si = Math.sin(dir);
+        u = co * mag + si * mag;
+        v = -si * mag + co * mag;
+      } else if (dataType === "vector-uv") {
+        u = pixelBlock.pixels[0]![i]! / this.magnitudeScale;
+        v = pixelBlock.pixels[1]![i]! / this.magnitudeScale;
+      } else {
+        console.error(`Unsupported data type "${dataType}"; the ImageryTileLayerWindSource class only suppors "vector-magdir" and "vector-uv".`);
+        u = 0;
+        v = 0;
+      }
+
       data[2 * i + 0] = u;
       data[2 * i + 1] = v;
     }

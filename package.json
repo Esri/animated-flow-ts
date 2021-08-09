@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "start": "webpack serve",
-    "build": "webpack"
+    "build": "webpack",
+    "deploy": "sh ./deploy.sh"
   },
   "author": "",
   "license": "ISC",
