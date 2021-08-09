@@ -4,20 +4,20 @@ import { FlowLinesMesh, FlowData } from "./flow-types";
 
 export abstract class FlowTracer {
   // TODO: Add support for AbortController?
-  abstract createFlowMesh(windData: FlowData, smoothing: number): Promise<FlowLinesMesh>;
+  abstract createFlowMesh(flowData: FlowData, smoothing: number): Promise<FlowLinesMesh>;
   
   destroy(): void {
   }
 }
 
 export class MainFlowTracer extends FlowTracer {
-  override async createFlowMesh(windData: FlowData, smoothing: number): Promise<FlowLinesMesh> {
-    return createFlowMesh(windData, smoothing);
+  override async createFlowMesh(flowData: FlowData, smoothing: number): Promise<FlowLinesMesh> {
+    return createFlowMesh(flowData, smoothing);
   }
 }
 
 export class WorkerFlowTracer extends FlowTracer {
-  private worker = new Worker("./flow-worker.js");
+  private worker = new Worker("./flow.js");
   private requestId = 0;
   private requests = new Map<number, (result: FlowLinesMesh) => void>();
 

@@ -1,15 +1,36 @@
 const path = require("path");
+const fs = require("fs");
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+const entry = {};
+const htmlPages = []; 
+
+const apps = fs.readdirSync(path.resolve(__dirname, "src", "apps"));
+
+for (const appFile of apps) {
+  const appName = path.basename(appFile, ".ts");
+  const appPath = path.join(__dirname, "src", "apps", appFile);
+  entry[appName] = appPath;
+  htmlPages.push(new HtmlWebpackPlugin({
+    inject: false,
+    chunks: [appName],
+    filename: `${appName}.html`,
+    title: appName
+  }));
+}
+
+const workers = fs.readdirSync(path.resolve(__dirname, "src", "workers"));
+
+for (const workerFile of workers) {
+  const workerName = path.basename(workerFile, ".ts");
+  const workerPath = path.resolve(__dirname, "src", "workers", workerFile);
+  entry[workerName] = workerPath;
+}
 
 module.exports = {
   mode: "development",
   devtool: false,
-  entry: {
-    "winds": "./src/apps/winds.ts",
-    "currents": "./src/apps/currents.ts",
-    "vortices": "./src/apps/vortices.ts",
-    "flow-worker": "./src/flow/flow-worker.ts"
-  },
+  entry,
   module: {
     rules: [
       {
@@ -27,20 +48,6 @@ module.exports = {
     path: path.resolve(__dirname, "dist")
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      inject: false,
-      chunks: ["winds"],
-      filename: "winds.html"
-    }),
-    new HtmlWebpackPlugin({
-      inject: false,
-      chunks: ["currents"],
-      filename: "currents.html"
-    }),
-    new HtmlWebpackPlugin({
-      inject: false,
-      chunks: ["vortices"],
-      filename: "vortices.html"
-    })
+    ...htmlPages
   ]
 };
