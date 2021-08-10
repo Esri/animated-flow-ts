@@ -5,9 +5,9 @@
  * and uses it to drive a flow visualization.
  */
 
-import EsriMap from "@arcgis/core/Map";
-import MapView from "@arcgis/core/views/MapView";
-import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
+import EsriMap from "esri/Map";
+import MapView from "esri/views/MapView";
+import VectorTileLayer from "esri/layers/VectorTileLayer";
 import { FlowLayer } from "../flow/layer";
 import { VectorFieldFlowSource } from "../flow/sources";
 import { Field } from "../flow/types";

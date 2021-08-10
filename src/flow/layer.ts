@@ -1,9 +1,9 @@
-import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
-import Extent from "@arcgis/core/geometry/Extent";
+import { subclass } from "esri/core/accessorSupport/decorators";
+import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../core/visualization";
 import { defined } from "../core/util";
-import BaseLayer from "@arcgis/core/layers/Layer";
+import BaseLayer from "esri/layers/Layer";
 import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
 import { ImageryTileLayerFlowSource, FlowSource } from "./sources";
 
@@ -167,7 +167,7 @@ class FlowLocalResources extends LocalResources {
   }
 }
 
-@subclass("wind-es.flow.FlowLayerView2D")
+@subclass("wind-es.flow.layer.FlowLayerView2D")
 class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, FlowLocalResources> {
   override animate = true;
 
@@ -242,7 +242,7 @@ class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, Flow
   }
 }
 
-@subclass("wind-es.flow.FlowLayer")
+@subclass("wind-es.flow.layer.FlowLayer")
 export class FlowLayer extends BaseLayer {
   source: Promise<FlowSource>;
   tracer: Promise<FlowTracer>;

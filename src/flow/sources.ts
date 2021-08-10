@@ -1,5 +1,5 @@
-import Extent from "@arcgis/core/geometry/Extent";
-import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
+import Extent from "esri/geometry/Extent";
+import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import { Field, FlowData } from "./types";
 
 export abstract class FlowSource {

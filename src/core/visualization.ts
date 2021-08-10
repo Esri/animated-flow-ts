@@ -9,9 +9,9 @@
  * Visualizations are renderable...
  */
 
-import Extent from "@arcgis/core/geometry/Extent";
-import BaseLayerViewGL2D from "@arcgis/core/views/2d/layers/BaseLayerViewGL2D";
-import { property, subclass } from "@arcgis/core/core/accessorSupport/decorators";
+import Extent from "esri/geometry/Extent";
+import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
+import { property, subclass } from "esri/core/accessorSupport/decorators";
 import { defined } from "./util";
 
 /**

@@ -4,11 +4,11 @@
  * An app that uses real wind data from an imagery tile layer.
  */
 
-import EsriMap from "@arcgis/core/Map";
-import MapView from "@arcgis/core/views/MapView";
-import VectorTileLayer from "@arcgis/core/layers/VectorTileLayer";
+import EsriMap from "esri/Map";
+import MapView from "esri/views/MapView";
+import VectorTileLayer from "esri/layers/VectorTileLayer";
 import { FlowLayer } from "../flow/layer";
-import ImageryTileLayer from "@arcgis/core/layers/ImageryTileLayer";
+import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 
 const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"

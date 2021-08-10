@@ -2,7 +2,7 @@ import { createFlowMesh as createFlowMeshImpl } from "../flow/shared";
 
 import { FlowDataWorker } from "../flow/types";
 
-// import SpatialReference from "@arcgis/core/geometry/SpatialReference";
+import SpatialReference from "esri/geometry/SpatialReference";
 
 // self.addEventListener("message", (evt) => {
 //   if (evt.data.method === "createFlowMesh") {
@@ -23,8 +23,8 @@ import { FlowDataWorker } from "../flow/types";
 // });
 
 export async function createFlowMesh(data: { flowData: FlowDataWorker; smoothing: number }): Promise<{ result: { vertexData: ArrayBuffer; indexData: ArrayBuffer; }; transferList: ArrayBuffer[] }> {
-  // const sr = new SpatialReference({ wkid: 4326 });
-  // console.log("SR JSON", sr.toJSON());
+  const sr = new SpatialReference({ wkid: 4326 });
+  console.log("SR JSON", sr.toJSON());
   
   const { vertexData, indexData } = createFlowMeshImpl(
     {

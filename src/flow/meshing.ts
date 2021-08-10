@@ -1,16 +1,23 @@
 import { defined } from "../core/util";
 import { createFlowMesh } from "./shared";
 import { FlowLinesMesh, FlowData } from "./types";
-import * as workers from "@arcgis/core/core/workers";
-import esriConfig from "@arcgis/core/config";
+import * as workers from "esri/core/workers";
+import esriConfig from "esri/config";
 
-esriConfig.workers.loaderUrl = "https://cdn.jsdelivr.net/npm/systemjs@6.10.0/dist/s.min.js";
+// esriConfig.workers.loaderUrl = "https://cdn.jsdelivr.net/npm/systemjs@6.10.0/dist/s.min.js";
 
-// esriConfig.workers.loaderConfig = {
-//   paths: {
-//     myWorkers: new URL(".", document.baseURI).href
-//   }
-//  };
+esriConfig.workers.loaderConfig = {
+  // paths: {
+  //   flow: new URL("pippo", document.baseURI).href
+  // }
+
+  packages: [
+    {
+      name: "js",
+      location: "http://localhost:8000/dist/js"
+    }
+  ]
+};
 
 export abstract class FlowTracer {
   // TODO: Add support for AbortController?
@@ -71,7 +78,7 @@ console.log(defined);
 // const local = window.location.href.substring(0, window.location.href.lastIndexOf("/"));
 // console.log({ local });
 export class WorkerFlowTracer extends FlowTracer {
-  private connection = workers.open("../workers/flow.js", { strategy: "local" });
+  private connection = workers.open("js/workers/flow");
 
   // constructor() {
   //   super();
