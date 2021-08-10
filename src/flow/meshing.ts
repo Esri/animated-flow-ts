@@ -2,7 +2,9 @@ import { defined } from "../core/util";
 import { createFlowMesh } from "./shared";
 import { FlowLinesMesh, FlowData } from "./types";
 import * as workers from "@arcgis/core/core/workers";
-// import esriConfig from "@arcgis/core/config";
+import esriConfig from "@arcgis/core/config";
+
+esriConfig.workers.loaderUrl = "https://cdn.jsdelivr.net/npm/systemjs@6.10.0/dist/s.min.js";
 
 // esriConfig.workers.loaderConfig = {
 //   paths: {
