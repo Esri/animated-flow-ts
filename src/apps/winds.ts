@@ -11,13 +11,11 @@ import { FlowLayer } from "../flow/layer";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import esriConfig from "esri/config";
 
-
-
 esriConfig.workers.loaderConfig = {
   packages: [
     {
       name: "js",
-      location: "http://localhost:8000/dist/js"
+      location: location.origin + "/dist/js"
     }
   ]
 };
