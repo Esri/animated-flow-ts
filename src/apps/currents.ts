@@ -14,7 +14,7 @@
 /**
  * @module wind-es/apps/currents
  *
- * An app that uses real wind data from an imagery tile layer.
+ * An app that uses real UV ocean current data from an imagery tile layer.
  */
 
 import EsriMap from "esri/Map";

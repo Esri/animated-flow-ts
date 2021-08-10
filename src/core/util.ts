@@ -48,17 +48,31 @@ export function createRand(seed = 3): () => number {
   };
 }
 
+/**
+ * Throw an `AbortError` if a given `AbortSignal` is aborted. 
+ *
+ * @param signal The abort signal to check.
+ */
 export function throwIfAborted(signal: AbortSignal): void {
   if (signal.aborted) {
     throw new DOMException("Operation was aborted.", "AbortError");
   }
 }
 
+/**
+ * Relinquish control to the event loop.
+ * 
+ * This function is called by long-running processes
+ * to make them abortable halfway through the computation.
+ *
+ * @param signal An abort signal
+ * @returns A promise that resolves when execution should
+ * continue.
+ */
 export async function rest(signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (signal.aborted) {
-        console.warn("*** INTERRUPTED ***");
         reject(new DOMException("Operation was aborted.", "AbortError"));
       }
 

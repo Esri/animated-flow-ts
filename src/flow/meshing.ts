@@ -11,6 +11,12 @@
   limitations under the License.
 */
 
+/**
+ * @module wind-es/flow/meshing
+ *
+ * This module...
+ */
+
 import { createFlowMesh } from "./shared";
 import { FlowLinesMesh, FlowData } from "./types";
 import * as workers from "esri/core/workers";

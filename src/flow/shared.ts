@@ -11,6 +11,12 @@
   limitations under the License.
 */
 
+/**
+ * @module wind-es/flow/shared
+ *
+ * This module...
+ */
+
 import { createRand, rest } from "../core/util";
 import { Field, FlowLinesMesh, TimestampedVertex, FlowData } from "./types";
 
@@ -166,6 +172,7 @@ export async function createFlowMesh(
       console.log("Resting...");
       restTime = currentTime;
       await rest(signal);
+      console.log("Done resting!");
     }
 
     const random = rand();

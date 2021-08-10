@@ -12,6 +12,12 @@
 */
 
 /**
+ * @module wind-es/flow/types
+ *
+ * This module contains simple type definitions used by the `flow` visualization.
+ */
+
+/**
  * A pixel block as returned by `ImageryTileLayer.fetchPixels()` into the property `pixelBlock`
  * of the fetched raster data object.
  */

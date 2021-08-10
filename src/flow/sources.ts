@@ -11,6 +11,12 @@
   limitations under the License.
 */
 
+/**
+ * @module wind-es/flow/sources
+ *
+ * This module...
+ */
+
 import Extent from "esri/geometry/Extent";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import { Field, FlowData } from "./types";
