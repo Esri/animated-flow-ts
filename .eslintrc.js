@@ -4,13 +4,11 @@ module.exports = {
   parserOptions: {
     sourceType: "module"
   },
-  plugins: ["@typescript-eslint", "jsapi", "jsdoc", "prettier"],
+  plugins: ["@typescript-eslint", "prettier"],
   rules: {
     "arrow-body-style": "error",
     "curly": "error",
     "eqeqeq": ["error", "smart"],
-    "jsapi/no-empty-catch": "error",
-    "jsdoc/check-alignment": "error",
     "new-parens": "error",
     "no-caller": "error",
     "no-case-declarations": "error",
