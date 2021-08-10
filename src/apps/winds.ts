@@ -14,7 +14,7 @@ import esriConfig from "esri/config";
 esriConfig.workers.loaderConfig = {
   packages: [
     {
-      name: "js",
+      name: "wind-es",
       location: location.origin + "/demos/js"
     }
   ]

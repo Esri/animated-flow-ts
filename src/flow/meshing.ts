@@ -17,7 +17,7 @@ export class MainFlowTracer extends FlowTracer {
 }
 
 export class WorkerFlowTracer extends FlowTracer {
-  private connection = workers.open("js/workers/flow");
+  private connection = workers.open("wind-es/workers/flow");
 
   override async createFlowMesh(flowData: FlowData, smoothing: number): Promise<FlowLinesMesh> {
     const connection = await this.connection;
