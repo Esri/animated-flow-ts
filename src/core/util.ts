@@ -47,3 +47,21 @@ export function createRand(seed = 3): () => number {
     return ((z >> 8) & ((1 << 15) - 1)) / (1 << 15);
   };
 }
+
+export function throwIfAborted(signal: AbortSignal): void {
+  if (signal.aborted) {
+    throw new DOMException("Operation was aborted.", "AbortError");
+  }
+}
+
+export async function rest(signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (signal.aborted) {
+        reject(new DOMException("Operation was aborted.", "AbortError"));
+      }
+
+      resolve();
+    }, 0);
+  });
+}

@@ -202,7 +202,7 @@ class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, Flow
     const downsample = 1;
 
     const flowData = await (await layer.source).fetchFlowData(extent, width / downsample, height / downsample, signal);
-    const { vertexData, indexData } = await (await layer.tracer).createFlowMesh(flowData, 5);
+    const { vertexData, indexData } = await (await layer.tracer).createFlowMesh(flowData, 5, signal);
     return new FlowLocalResources(extent, resolution, downsample, vertexData, indexData);
   }
 

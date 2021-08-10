@@ -35,16 +35,17 @@ import SpatialReference from "esri/geometry/SpatialReference";
 //   }
 // });
 
-export async function createFlowMesh(data: { flowData: FlowDataWorker; smoothing: number }): Promise<{ result: { vertexData: ArrayBuffer; indexData: ArrayBuffer; }; transferList: ArrayBuffer[] }> {
+export async function createFlowMesh(data: { flowData: FlowDataWorker; smoothing: number }, options: { signal: AbortSignal }): Promise<{ result: { vertexData: ArrayBuffer; indexData: ArrayBuffer; }; transferList: ArrayBuffer[] }> {
   const sr = new SpatialReference({ wkid: 4326 });
   console.log("SR JSON", sr.toJSON());
   
-  const { vertexData, indexData } = createFlowMeshImpl(
+  const { vertexData, indexData } = await createFlowMeshImpl(
     {
       ...data.flowData,
       data: new Float32Array(data.flowData.buffer)
     },
-    data.smoothing
+    data.smoothing,
+    options.signal
   );
 
   return {

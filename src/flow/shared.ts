@@ -11,7 +11,7 @@
   limitations under the License.
 */
 
-import { createRand } from "../core/util";
+import { createRand, rest } from "../core/util";
 import { Field, FlowLinesMesh, TimestampedVertex, FlowData } from "./types";
 
 const MIN_SPEED_THRESHOLD = 0.001;
@@ -144,7 +144,7 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Ti
   return lines;
 }
 
-export function createFlowMesh(flowData: FlowData, smoothing: number): FlowLinesMesh {
+export async function createFlowMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh> {
   let vertexCount = 0;
   const vertexData: number[] = [];
   const indexData: number[] = [];
@@ -153,7 +153,17 @@ export function createFlowMesh(flowData: FlowData, smoothing: number): FlowLines
   const flowLines = getFlowLines(f, flowData.width, flowData.height, 3);
   const rand = createRand();
 
+  let restTime = performance.now();
+
   for (const line of flowLines) {
+    const currentTime = performance.now();
+
+    if (currentTime - restTime > 100) {
+      console.log("Resting...");
+      restTime = currentTime;
+      await rest(signal);
+    }
+
     const random = rand();
     const lastVertex = line[line.length - 1]!;
     const totalTime = lastVertex.time;
