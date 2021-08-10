@@ -2,9 +2,7 @@
 
 **wind-es** is ... [ArcGIS API for JavaScript](https://developers.arcgis.com/javascript/latest/) ... [custom layer views](https://developers.arcgis.com/javascript/latest/sample-code/custom-gl-visuals/).
 
-## Live demos
-
-### View it live!
+**Live demos**
 
 - MagDir tiled image service: https://wind-es.s3.us-west-1.amazonaws.com/demos/winds.html
 - UV tiled image service: https://wind-es.s3.us-west-1.amazonaws.com/demos/currents.html
@@ -14,16 +12,14 @@
 
 ## Features
 
-* Animated markers
-* Animated polylines
-* Flock/swarms of markers
+* TODO
 
 ## Instructions
 
 1. Clone the repo.
 2. `npm install`
 3. `npm start`
-4. Point your browser to `http://localhost:9000/audubon-gl-arcgis.html`
+4. Point your browser to `http://localhost:3000`
 
 ## Requirements
 
@@ -32,8 +28,7 @@
 
 ## Resources
 
-* [AudubonGL documentation](https://audubon-gl.s3-us-west-1.amazonaws.com/docs/index.html)
-* [Project page](https://audubon-gl.s3-us-west-1.amazonaws.com/super-secret-page.html)
+* [Live demos](https://wind-es.s3.us-west-1.amazonaws.com/index.html)
 
 ## Issues
 
@@ -55,4 +50,4 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-A copy of the license is available in the repository's [LICENSE.txt](https://github.com/ddamicoesri/audubon-gl/blob/main/LICENSE.txt) file.
+A copy of the license is available in the repository's [LICENSE.txt](https://devtopia.esri.com/dari8942/wind-es/blob/main/LICENSE.txt) file.
