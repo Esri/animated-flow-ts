@@ -58,6 +58,7 @@ export async function rest(signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (signal.aborted) {
+        console.warn("*** INTERRUPTED ***");
         reject(new DOMException("Operation was aborted.", "AbortError"));
       }
 

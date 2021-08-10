@@ -78,6 +78,8 @@ export type VisualizationRenderParams = {
    * replaced with fresher visualizations with more recent data.
    */
   opacity: number;
+
+  pixelRatio: number;
 }
 
 /**
@@ -161,6 +163,16 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
   }
 
   private _loadVisualization(): void {
+    for (let i = this._localResources.length - 1; i >= 0; i--) {
+      const localResources = this._localResources[i];
+      defined(localResources);
+      
+      if ("abortController" in localResources) {
+        localResources.abortController.abort();
+        this._localResources.splice(i, 1);
+      }
+    }
+
     // TODO: Actually abort when possible?
     const abortController = new AbortController();
     const loadTime = performance.now();
@@ -190,7 +202,7 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
     for (let i = this._localResources.length - 1; i >= 0; i--) {
       const localResources = this._localResources[i];
       defined(localResources);
-    
+
       if (toRender) {
         if ("abortController" in localResources) {
           localResources.abortController.abort();
@@ -225,7 +237,8 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
         translation,
         rotation: Math.PI * renderParams.state.rotation / 180,
         scale: toRender.resources.resolution / renderParams.state.resolution,
-        opacity: 1
+        opacity: 1,
+        pixelRatio: devicePixelRatio
       };
       
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, toRender.resources);

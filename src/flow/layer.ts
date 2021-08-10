@@ -16,7 +16,7 @@ import { subclass } from "esri/core/accessorSupport/decorators";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../core/visualization";
-import { defined } from "../core/util";
+import { defined, throwIfAborted } from "../core/util";
 import BaseLayer from "esri/layers/Layer";
 import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
 import { ImageryTileLayerFlowSource, FlowSource } from "./sources";
@@ -40,6 +40,7 @@ class FlowSharedResources extends SharedResources {
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_Rotation;
       uniform mat4 u_ClipFromScreen;
+      uniform float u_PixelRatio;
 
       varying float v_Side;
       varying float v_Time;
@@ -49,7 +50,7 @@ class FlowSharedResources extends SharedResources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0); // TODO: Add support for devicePixelRatio?
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) / u_PixelRatio /* Is this right? */;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -121,6 +122,7 @@ class FlowSharedResources extends SharedResources {
           u_ScreenFromLocal: gl.getUniformLocation(program, "u_ScreenFromLocal")!,
           u_Rotation: gl.getUniformLocation(program, "u_Rotation")!,
           u_ClipFromScreen: gl.getUniformLocation(program, "u_ClipFromScreen")!,
+          u_PixelRatio: gl.getUniformLocation(program, "u_PixelRatio")!,
           u_Opacity: gl.getUniformLocation(program, "u_Opacity")!,
           u_Time: gl.getUniformLocation(program, "u_Time")!
         }
@@ -201,8 +203,12 @@ class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, Flow
 
     const downsample = 1;
 
-    const flowData = await (await layer.source).fetchFlowData(extent, width / downsample, height / downsample, signal);
-    const { vertexData, indexData } = await (await layer.tracer).createFlowMesh(flowData, 5, signal);
+    const [source, tracer] = await Promise.all([layer.source, layer.tracer]);
+
+    throwIfAborted(signal);
+
+    const flowData = await source.fetchFlowData(extent, width / downsample, height / downsample, signal);
+    const { vertexData, indexData } = await tracer.createFlowMesh(flowData, 5, signal);
     return new FlowLocalResources(extent, resolution, downsample, vertexData, indexData);
   }
 
@@ -246,6 +252,7 @@ class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, Flow
     gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
     gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_Rotation"]!, false, localResources.u_Rotation);
     gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
+    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Opacity"]!, renderParams.opacity);
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
 
