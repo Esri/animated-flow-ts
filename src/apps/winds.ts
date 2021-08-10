@@ -15,7 +15,7 @@ esriConfig.workers.loaderConfig = {
   packages: [
     {
       name: "js",
-      location: location.origin + "/dist/js"
+      location: location.origin + "/demos/js"
     }
   ]
 };
