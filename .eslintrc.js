@@ -36,16 +36,14 @@ module.exports = {
     {
       files: ["*.ts", "*.tsx"],
       rules: {
-        // turn on when this can replace TSLint's `typedef` rule
-        // https://github.com/typescript-eslint/typescript-eslint/issues/2035
-        "@typescript-eslint/explicit-function-return-type": ["off", { allowExpressions: true }],
+        "@typescript-eslint/explicit-function-return-type": ["error", { allowExpressions: true }],
         "@typescript-eslint/naming-convention": ["error", { selector: ["class", "interface"], format: ["PascalCase"] }],
-        "@typescript-eslint/no-redeclare": ["off"], // turn on when this doesn't error on mixins
+        "@typescript-eslint/no-redeclare": ["error"],
         "@typescript-eslint/no-require-imports": ["error"],
         "@typescript-eslint/no-unused-expressions": ["error", { allowShortCircuit: true, allowTernary: true }],
         "@typescript-eslint/prefer-namespace-keyword": "error",
-        "no-redeclare": "off",
-        "no-unused-expressions": "off"
+        "no-redeclare": "error",
+        "no-unused-expressions": "error"
       }
     }
   ]
