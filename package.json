@@ -4,8 +4,8 @@
   "description": "",
   "private": true,
   "scripts": {
-    "start": "webpack serve",
-    "build": "webpack",
+    "build-apps": "webpack --config webpack.apps.config.js",
+    "build-workers": "webpack --config webpack.workers.config.js",
     "deploy": "sh ./deploy.sh"
   },
   "author": "",
@@ -15,8 +15,7 @@
     "ts-loader": "^9.2.4",
     "typescript": "^4.3.5",
     "webpack": "^5.47.1",
-    "webpack-cli": "^4.7.2",
-    "webpack-dev-server": "^3.11.2"
+    "webpack-cli": "^4.7.2"
   },
   "dependencies": {
     "@arcgis/core": "^4.21.0-next.20210808",

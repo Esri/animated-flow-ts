@@ -1,23 +1,7 @@
 const path = require("path");
 const fs = require("fs");
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const entry = {};
-const htmlPages = []; 
-
-const apps = fs.readdirSync(path.resolve(__dirname, "src", "apps"));
-
-for (const appFile of apps) {
-  const appName = path.basename(appFile, ".ts");
-  const appPath = path.join(__dirname, "src", "apps", appFile);
-  entry[appName] = appPath;
-  htmlPages.push(new HtmlWebpackPlugin({
-    inject: false,
-    chunks: [appName],
-    filename: `${appName}.html`,
-    title: appName
-  }));
-}
 
 const workers = fs.readdirSync(path.resolve(__dirname, "src", "workers"));
 
@@ -45,9 +29,10 @@ module.exports = {
   },
   output: {
     filename: "[name].js",
-    path: path.resolve(__dirname, "dist")
+    path: path.resolve(__dirname, "dist", "workers"),
+    libraryTarget: "module"
   },
-  plugins: [
-    ...htmlPages
-  ]
+  experiments: {
+    outputModule: true
+  }
 };

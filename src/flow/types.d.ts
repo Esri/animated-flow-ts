@@ -89,3 +89,10 @@ export type FlowData = {
   height: number;
   pixelScale: number;
 }
+
+export type FlowDataWorker = {
+  buffer: ArrayBuffer;
+  width: number;
+  height: number;
+  pixelScale: number;
+}
