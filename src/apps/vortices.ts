@@ -13,7 +13,7 @@
 
 /**
  * @module wind-es/apps/vortices
- * 
+ *
  * An app that defines a vector field analytically in map units
  * and uses it to drive a flow visualization.
  */
@@ -67,15 +67,12 @@ const windLayer = new FlowLayer({
 } as any);
 
 const map = new EsriMap({
-  layers: [
-    vectorTileLayer,
-    windLayer
-  ]
+  layers: [vectorTileLayer, windLayer]
 });
 
 new MapView({
   container: "viewDiv",
-  map: map,
+  map,
   zoom: 4,
   center: [-98, 39]
 });

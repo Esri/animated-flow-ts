@@ -18,9 +18,8 @@ import { Field, FlowData } from "./types";
 export abstract class FlowSource {
   // TODO: Add support for AbortController?
   abstract fetchFlowData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<FlowData>;
-  
-  destroy(): void {
-  }
+
+  destroy(): void {}
 }
 
 export class ImageryTileLayerFlowSource {
@@ -31,7 +30,7 @@ export class ImageryTileLayerFlowSource {
     this.imageryTileLayer = new ImageryTileLayer({ url });
     this.magnitudeScale = magnitudeScale;
   }
-  
+
   // TODO: Add support for devicePixelRatio?
   async fetchFlowData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<FlowData> {
     // TODO! Do I even want this? Probably yes?
@@ -40,21 +39,26 @@ export class ImageryTileLayerFlowSource {
     await this.imageryTileLayer.load(signal);
     const dataType = this.imageryTileLayer.rasterInfo.dataType;
     // TODO Chech for aborted?
-    const rasterData = await this.imageryTileLayer.fetchPixels(extent, Math.round(width * pixelScale), Math.round(height * pixelScale), { signal });
+    const rasterData = await this.imageryTileLayer.fetchPixels(
+      extent,
+      Math.round(width * pixelScale),
+      Math.round(height * pixelScale),
+      { signal }
+    );
     // TODO Chech for aborted?
     const pixelBlock = rasterData.pixelBlock;
 
     const actualWidth = pixelBlock.width;
     const actualHeight = pixelBlock.height;
     const data = new Float32Array(actualWidth * actualHeight * 2);
-  
+
     for (let i = 0; i < actualWidth * actualHeight; i++) {
       let u: number;
       let v: number;
 
       if (dataType === "vector-magdir") {
         const mag = pixelBlock.pixels[0]![i]! * this.magnitudeScale;
-        const dir = Math.PI * pixelBlock.pixels[1]![i]! / 180;
+        const dir = (Math.PI * pixelBlock.pixels[1]![i]!) / 180;
         const co = Math.cos(dir);
         const si = Math.sin(dir);
         u = co * mag + si * mag;
@@ -63,7 +67,9 @@ export class ImageryTileLayerFlowSource {
         u = pixelBlock.pixels[0]![i]! / this.magnitudeScale;
         v = pixelBlock.pixels[1]![i]! / this.magnitudeScale;
       } else {
-        console.error(`Unsupported data type "${dataType}"; the ImageryTileLayerFlowSource class only suppors "vector-magdir" and "vector-uv".`);
+        console.error(
+          `Unsupported data type "${dataType}"; the ImageryTileLayerFlowSource class only suppors "vector-magdir" and "vector-uv".`
+        );
         u = 0;
         v = 0;
       }
@@ -79,16 +85,15 @@ export class ImageryTileLayerFlowSource {
       pixelScale
     };
   }
-  
+
   destroy(): void {
     this.imageryTileLayer.destroy();
   }
 }
 
 export class VectorFieldFlowSource {
-  constructor(private mapVectorField: Field) {
-  }
-  
+  constructor(private mapVectorField: Field) {}
+
   async fetchFlowData(extent: Extent, width: number, height: number): Promise<FlowData> {
     const pixelScale = 1;
 
@@ -107,7 +112,7 @@ export class VectorFieldFlowSource {
         data[2 * ((height - 1 - y) * width + x) + 1] = v;
       }
     }
-  
+
     return {
       data,
       width,

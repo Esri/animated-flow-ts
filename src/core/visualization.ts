@@ -17,7 +17,7 @@
  * This module introduces abstract classes and functionality that are shared
  * by concrete layer and layer view types. So far the only concrete visualization
  * implemented is the "flow" visualization contained in the `flow` directory.
- * 
+ *
  * The custom rendering system is designed around the concept of "visualizations".
  * Visualizations are renderable...
  */
@@ -32,7 +32,7 @@ import { defined } from "./util";
  *
  * When constructed and rendered correctly it naturally aligns
  * with the underlying basemap.
- * 
+ *
  * When a visualization is rendered, a `VisualizationRenderParams`
  * object is passed to the `wind-es.core.visualization.LayerView2D.renderVisualization()`
  * that defines its position, orientation and scale.
@@ -40,7 +40,7 @@ import { defined } from "./util";
 export type VisualizationRenderParams = {
   /**
    * Size of the drawing surface.
-   * 
+   *
    * This coincides with the size of the MapView when the device pixel ratio
    * is 1. For retina displays it is going to be larger than 1.
    */
@@ -50,7 +50,7 @@ export type VisualizationRenderParams = {
    * The position on the drawing surface of the upper-left corner of the extent.
    */
   translation: [number, number];
-  
+
   /**
    * The rotation of the visualization in radians.
    *
@@ -80,13 +80,13 @@ export type VisualizationRenderParams = {
   opacity: number;
 
   pixelRatio: number;
-}
+};
 
 /**
  * Resources are things needed to render a visualization.
- * 
+ *
  * These are typically WebGL resources.
- * 
+ *
  * Resource objects are possibly created asynchronously
  * in a detached state; then they synchronously attached;
  * finally, when they are not needed anymore, they are
@@ -96,7 +96,7 @@ export type VisualizationRenderParams = {
 export abstract class Resources {
   /**
    * Create the internal WebGL and non-WebGL objects.
-   * 
+   *
    * Internally...
    *
    * @param gl The WebGL context.
@@ -105,15 +105,14 @@ export abstract class Resources {
   abstract detach(gl: WebGLRenderingContext): void;
 }
 
-export abstract class SharedResources extends Resources {
-}
+export abstract class SharedResources extends Resources {}
 
 export abstract class LocalResources extends Resources {
   private _size: [number, number];
 
   constructor(private _extent: Extent, private _resolution: number) {
     super();
-    
+
     this._size = [
       Math.round((_extent.xmax - _extent.xmin) / _resolution),
       Math.round((_extent.ymax - _extent.ymin) / _resolution)
@@ -127,16 +126,21 @@ export abstract class LocalResources extends Resources {
   get resolution(): number {
     return this._resolution;
   }
-  
+
   get size(): [number, number] {
     return this._size;
   }
 }
 
-type ResourcesEntry<R> = { resources: R; attached: boolean; loadTime: number; } | { abortController: AbortController; loadTime: number; };
+type ResourcesEntry<R> =
+  | { resources: R; attached: boolean; loadTime: number }
+  | { abortController: AbortController; loadTime: number };
 
 @subclass("wind-es.core.visualization.LayerView2D")
-export abstract class VisualizationLayerView2D<SR extends SharedResources, LR extends LocalResources> extends BaseLayerViewGL2D {
+export abstract class VisualizationLayerView2D<
+  SR extends SharedResources,
+  LR extends LocalResources
+> extends BaseLayerViewGL2D {
   private _sharedResources: ResourcesEntry<SR> | null = null;
   private _localResources: ResourcesEntry<LR>[] = [];
 
@@ -166,7 +170,7 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
     for (let i = this._localResources.length - 1; i >= 0; i--) {
       const localResources = this._localResources[i];
       defined(localResources);
-      
+
       if ("abortController" in localResources) {
         localResources.abortController.abort();
         this._localResources.splice(i, 1);
@@ -225,7 +229,6 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
       }
     }
 
-
     if (toRender) {
       const xMap = toRender.resources.extent.xmin;
       const yMap = toRender.resources.extent.ymax;
@@ -235,12 +238,12 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
       const visualizationRenderParams: VisualizationRenderParams = {
         size: renderParams.state.size,
         translation,
-        rotation: Math.PI * renderParams.state.rotation / 180,
+        rotation: (Math.PI * renderParams.state.rotation) / 180,
         scale: toRender.resources.resolution / renderParams.state.resolution,
         opacity: 1,
         pixelRatio: devicePixelRatio
       };
-      
+
       this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, toRender.resources);
     }
 
@@ -277,5 +280,10 @@ export abstract class VisualizationLayerView2D<SR extends SharedResources, LR ex
 
   abstract loadSharedResources(signal: AbortSignal): Promise<SR>;
   abstract loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<LR>;
-  abstract renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: SR, localResources: LR): void;
+  abstract renderVisualization(
+    gl: WebGLRenderingContext,
+    renderParams: VisualizationRenderParams,
+    sharedResources: SR,
+    localResources: LR
+  ): void;
 }

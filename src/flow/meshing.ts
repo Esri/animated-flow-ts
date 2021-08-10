@@ -18,9 +18,8 @@ import { throwIfAborted } from "../core/util";
 
 export abstract class FlowTracer {
   abstract createFlowMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh>;
-  
-  destroy(): void {
-  }
+
+  destroy(): void {}
 }
 
 export class MainFlowTracer extends FlowTracer {
@@ -36,7 +35,7 @@ export class WorkerFlowTracer extends FlowTracer {
     const connection = await this.connection;
 
     throwIfAborted(signal);
-    
+
     const result = await connection.invoke(
       "createFlowMesh",
       {

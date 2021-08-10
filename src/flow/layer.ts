@@ -14,7 +14,12 @@
 import { subclass } from "esri/core/accessorSupport/decorators";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
-import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../core/visualization";
+import {
+  VisualizationLayerView2D,
+  VisualizationRenderParams,
+  LocalResources,
+  SharedResources
+} from "../core/visualization";
 import { defined, throwIfAborted } from "../core/util";
 import BaseLayer from "esri/layers/Layer";
 import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
@@ -23,7 +28,7 @@ import { ImageryTileLayerFlowSource, FlowSource } from "./sources";
 class FlowSharedResources extends SharedResources {
   programs: HashMap<{
     program: WebGLProgram;
-    uniforms: HashMap<WebGLUniformLocation>
+    uniforms: HashMap<WebGLUniformLocation>;
   }> | null = null;
 
   override attach(gl: WebGLRenderingContext): void {
@@ -57,7 +62,7 @@ class FlowSharedResources extends SharedResources {
         v_Speed = a_Speed;
         v_Random = a_Random;
       }`;
-      
+
     const fragmentSource = `
       precision mediump float;
 
@@ -85,7 +90,7 @@ class FlowSharedResources extends SharedResources {
 
         gl_FragColor.rgb *= gl_FragColor.a;
       }`;
-      
+
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     defined(vertexShader);
     gl.shaderSource(vertexShader, vertexSource);
@@ -94,7 +99,7 @@ class FlowSharedResources extends SharedResources {
     defined(fragmentShader);
     gl.shaderSource(fragmentShader, fragmentSource);
     gl.compileShader(fragmentShader);
-    
+
     const program = gl.createProgram();
     defined(program);
     gl.attachShader(program, vertexShader);
@@ -113,7 +118,7 @@ class FlowSharedResources extends SharedResources {
     console.log(gl.getShaderInfoLog(vertexShader));
     console.log(gl.getShaderInfoLog(fragmentShader));
     console.log(gl.getProgramInfoLog(program));
-    
+
     this.programs = {
       texture: {
         program,
@@ -145,7 +150,13 @@ class FlowLocalResources extends LocalResources {
   u_ClipFromScreen = mat4.create();
   indexCount = 0;
 
-  constructor(extent: Extent, resolution: number, downsample: number, vertexData: Float32Array, indexData: Uint32Array) {
+  constructor(
+    extent: Extent,
+    resolution: number,
+    downsample: number,
+    vertexData: Float32Array,
+    indexData: Uint32Array
+  ) {
     super(extent, resolution);
 
     this.downsample = downsample;
@@ -190,7 +201,11 @@ class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, Flow
     return new FlowSharedResources();
   }
 
-  override async loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<FlowLocalResources> {
+  override async loadLocalResources(
+    extent: Extent,
+    resolution: number,
+    signal: AbortSignal
+  ): Promise<FlowLocalResources> {
     // TODO?
     extent = extent.clone();
     extent.expand(1.15); // Increase this?
@@ -211,7 +226,12 @@ class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, Flow
     return new FlowLocalResources(extent, resolution, downsample, vertexData, indexData);
   }
 
-  override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: FlowSharedResources, localResources: FlowLocalResources): void {
+  override renderVisualization(
+    gl: WebGLRenderingContext,
+    renderParams: VisualizationRenderParams,
+    sharedResources: FlowSharedResources,
+    localResources: FlowLocalResources
+  ): void {
     defined(localResources.vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 36, 0);
@@ -236,21 +256,45 @@ class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, Flow
 
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
-    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [2 / renderParams.size[0], -2 / renderParams.size[1], 1]);
+    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
+      2 / renderParams.size[0],
+      -2 / renderParams.size[1],
+      1
+    ]);
 
     mat4.identity(localResources.u_Rotation);
     mat4.rotateZ(localResources.u_Rotation, localResources.u_Rotation, renderParams.rotation);
 
     mat4.identity(localResources.u_ScreenFromLocal);
-    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.translation[0], renderParams.translation[1], 1]);
+    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
+      renderParams.translation[0],
+      renderParams.translation[1],
+      1
+    ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
-    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.scale * localResources.downsample, renderParams.scale * localResources.downsample, 1]);
+    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
+      renderParams.scale * localResources.downsample,
+      renderParams.scale * localResources.downsample,
+      1
+    ]);
 
     const solidProgram = sharedResources.programs!["texture"]?.program!;
     gl.useProgram(solidProgram);
-    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
-    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_Rotation"]!, false, localResources.u_Rotation);
-    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
+    gl.uniformMatrix4fv(
+      sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!,
+      false,
+      localResources.u_ScreenFromLocal
+    );
+    gl.uniformMatrix4fv(
+      sharedResources.programs!["texture"]?.uniforms["u_Rotation"]!,
+      false,
+      localResources.u_Rotation
+    );
+    gl.uniformMatrix4fv(
+      sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!,
+      false,
+      localResources.u_ClipFromScreen
+    );
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Opacity"]!, renderParams.opacity);
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
@@ -276,16 +320,18 @@ export class FlowLayer extends BaseLayer {
 
     // TODO: Support both UV and MagDir.
 
-    const useWebWorkers = ("useWebWorkers" in params) ? params.useWebWorkers : true;
+    const useWebWorkers = "useWebWorkers" in params ? params.useWebWorkers : true;
 
-    this.source = Promise.resolve(params.url ? new ImageryTileLayerFlowSource(params.url, 0.1 /* TODO: Configure? */) : params.source);
+    this.source = Promise.resolve(
+      params.url ? new ImageryTileLayerFlowSource(params.url, 0.1 /* TODO: Configure? */) : params.source
+    );
     this.tracer = Promise.resolve(useWebWorkers ? new WorkerFlowTracer() : new MainFlowTracer());
   }
 
   override createLayerView(view: any): any {
     if (view.type === "2d") {
       return new FlowLayerView2D({
-        view: view,
+        view,
         layer: this
       } as any);
     }

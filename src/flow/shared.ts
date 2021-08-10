@@ -33,20 +33,20 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
           continue;
         }
 
-        const weight = Math.exp(-d * d / (sigma * sigma));
+        const weight = Math.exp((-d * d) / (sigma * sigma));
 
         totalWeight += weight;
         s0 += weight * data[2 * (y * width + (x + d)) + 0]!;
         s1 += weight * data[2 * (y * width + (x + d)) + 1]!;
       }
 
-      horizontal[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s0 / totalWeight);
-      horizontal[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s1 / totalWeight);
+      horizontal[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s0 / totalWeight;
+      horizontal[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s1 / totalWeight;
     }
   }
 
   const final = new Float32Array(data.length);
-  
+
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       let totalWeight = 0;
@@ -58,15 +58,15 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
           continue;
         }
 
-        const weight = Math.exp(-d * d / (sigma * sigma));
+        const weight = Math.exp((-d * d) / (sigma * sigma));
 
         totalWeight += weight;
         s0 += weight * horizontal[2 * ((y + d) * width + x) + 0]!;
         s1 += weight * horizontal[2 * ((y + d) * width + x) + 1]!;
       }
 
-      final[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s0 / totalWeight);
-      final[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : (s1 / totalWeight);
+      final[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s0 / totalWeight;
+      final[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s1 / totalWeight;
     }
   }
 
@@ -79,11 +79,11 @@ function createFlowFieldFromData(flowData: FlowData, smoothing: number): Field {
   const f = (x: number, y: number): [number, number] => {
     const X = Math.round(x);
     let Y = Math.round(y);
-    
+
     if (X < 0 || X >= flowData.width) {
       return [0, 0];
     }
-    
+
     if (Y < 0 || Y >= flowData.height) {
       return [0, 0];
     }
@@ -100,7 +100,7 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Timesta
   const line: TimestampedVertex[] = [];
 
   let t = 0;
-  
+
   let x = x0;
   let y = y0;
 
@@ -108,7 +108,7 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Timesta
     position: [x, y],
     time: t
   });
-  
+
   for (let i = 0; i < 100; i++) {
     const [vx, vy] = f(x, y);
     const v = Math.sqrt(vx * vx + vy * vy);
@@ -140,11 +140,15 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Ti
     const line = trace(f, Math.round(rand() * W), Math.round(rand() * H), segmentLength);
     lines.push(line);
   }
-  
+
   return lines;
 }
 
-export async function createFlowMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh> {
+export async function createFlowMesh(
+  flowData: FlowData,
+  smoothing: number,
+  signal: AbortSignal
+): Promise<FlowLinesMesh> {
   let vertexCount = 0;
   const vertexData: number[] = [];
   const indexData: number[] = [];
@@ -169,8 +173,14 @@ export async function createFlowMesh(flowData: FlowData, smoothing: number, sign
     const totalTime = lastVertex.time;
 
     for (let i = 1; i < line.length; i++) {
-      let { position: [x0, y0], time: t0 } = line[i - 1]!;
-      let { position: [x1, y1], time: t1 } = line[i]!;
+      let {
+        position: [x0, y0],
+        time: t0
+      } = line[i - 1]!;
+      let {
+        position: [x1, y1],
+        time: t1
+      } = line[i]!;
       const speed = 100 /* TODO! Speed factor! */ / (t1 - t0);
 
       y0 = flowData.height - 1 - y0;
@@ -181,10 +191,42 @@ export async function createFlowMesh(flowData: FlowData, smoothing: number, sign
       const ey = (x1 - x0) / l;
 
       vertexData.push(
-        x0, y0, ex, ey, -1, t0, totalTime, speed, random,
-        x0, y0, -ex, -ey, +1, t0, totalTime, speed, random,
-        x1, y1, ex, ey, -1, t1, totalTime, speed, random,
-        x1, y1, -ex, -ey, +1, t1, totalTime, speed, random
+        x0,
+        y0,
+        ex,
+        ey,
+        -1,
+        t0,
+        totalTime,
+        speed,
+        random,
+        x0,
+        y0,
+        -ex,
+        -ey,
+        +1,
+        t0,
+        totalTime,
+        speed,
+        random,
+        x1,
+        y1,
+        ex,
+        ey,
+        -1,
+        t1,
+        totalTime,
+        speed,
+        random,
+        x1,
+        y1,
+        -ex,
+        -ey,
+        +1,
+        t1,
+        totalTime,
+        speed,
+        random
       );
 
       indexData.push(
