@@ -10,7 +10,7 @@
     "build": "tsc",
     "deploy": "sh ./deploy.sh",
     "open": "open-cli https://wind-es.s3.us-west-1.amazonaws.com/index.html",
-    "lint": "eslint ./src/** --fix",
+    "eslint": "eslint ./src/** --fix",
     "prettier": "prettier ./src/** --write"
   },
   "author": "",
