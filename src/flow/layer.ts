@@ -11,7 +11,6 @@
   limitations under the License.
 */
 
-
 import { subclass } from "esri/core/accessorSupport/decorators";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
