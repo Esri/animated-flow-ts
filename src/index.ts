@@ -26,7 +26,7 @@ const flow = new FlowVisualizationStyle(
 
 const div = document.createElement("div");
 
-flow.createImage(new Point({ x: -98, y: 39, spatialReference: SpatialReference.WGS84 }), 0.05, 640, 360, "rgba(20, 30, 40, 1)", new AbortController().signal).then((image) => {
+flow.createImage(new Point({ x: -98, y: 39, spatialReference: SpatialReference.WGS84 }), 0.05, 320, 180, "rgba(20, 30, 40, 1)", new AbortController().signal).then((image) => {
   div.appendChild(image);
 });
 
