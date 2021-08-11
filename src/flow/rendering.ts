@@ -1,7 +1,11 @@
+import Color from "esri/Color";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
-import { LocalResources, SharedResources } from "../core/rendering";
-import { defined } from "../core/util";
+import { LocalResources, SharedResources, VisualizationStyle } from "../core/rendering";
+import { VisualizationRenderParams } from "../core/types";
+import { defined, throwIfAborted } from "../core/util";
+import { FlowTracer } from "./meshing";
+import { FlowSource } from "./sources";
 
 export class FlowSharedResources extends SharedResources {
   programs: HashMap<{
@@ -120,13 +124,13 @@ export class FlowSharedResources extends SharedResources {
 export class FlowLocalResources extends LocalResources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
+  indexCount = 0;
   downsample: number;
   vertexBuffer: WebGLBuffer | null = null;
   indexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
   u_Rotation = mat4.create();
   u_ClipFromScreen = mat4.create();
-  indexCount = 0;
 
   constructor(
     extent: Extent,
@@ -172,6 +176,121 @@ export class FlowLocalResources extends LocalResources {
   }
 }
 
-export class FlowVisualization {
+export class FlowVisualizationStyle extends VisualizationStyle<FlowSharedResources, FlowLocalResources> {
+  constructor(private source: Promise<FlowSource>, private tracer: Promise<FlowTracer>, private color: Color) {
+    super();
+  }
 
+  override async loadSharedResources(): Promise<FlowSharedResources> {
+    return new FlowSharedResources();
+  }
+
+  override async loadLocalResources(
+    extent: Extent,
+    resolution: number,
+    pixelRatio: number,
+    signal: AbortSignal
+  ): Promise<FlowLocalResources> {
+    // TODO?
+    extent = extent.clone();
+    extent.expand(1.15); // Increase this?
+
+    const width = Math.round((extent.xmax - extent.xmin) / resolution);
+    const height = Math.round((extent.ymax - extent.ymin) / resolution);
+
+    const downsample = 1;
+
+    const [source, tracer] = await Promise.all([this.source, this.tracer]);
+
+    throwIfAborted(signal);
+
+    const flowData = await source.fetchFlowData(extent, width / downsample, height / downsample, signal);
+    const { vertexData, indexData } = await tracer.createFlowLinesMesh(flowData, 5, signal);
+    return new FlowLocalResources(extent, resolution, pixelRatio, downsample, vertexData, indexData);
+  }
+
+  override renderVisualization(
+    gl: WebGLRenderingContext,
+    renderParams: VisualizationRenderParams,
+    sharedResources: FlowSharedResources,
+    localResources: FlowLocalResources
+  ): void {
+    defined(localResources.vertexBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 36, 0);
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 36, 8);
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 36, 16);
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 36, 20);
+    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 36, 24);
+    gl.vertexAttribPointer(5, 1, gl.FLOAT, false, 36, 28);
+    gl.vertexAttribPointer(6, 1, gl.FLOAT, false, 36, 32);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.enableVertexAttribArray(0);
+    gl.enableVertexAttribArray(1);
+    gl.enableVertexAttribArray(2);
+    gl.enableVertexAttribArray(3);
+    gl.enableVertexAttribArray(4);
+    gl.enableVertexAttribArray(5);
+    gl.enableVertexAttribArray(6);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, localResources.indexBuffer);
+
+    gl.disable(gl.CULL_FACE);
+
+    mat4.identity(localResources.u_ClipFromScreen);
+    mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
+    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
+      2 / renderParams.size[0],
+      -2 / renderParams.size[1],
+      1
+    ]);
+
+    mat4.identity(localResources.u_Rotation);
+    mat4.rotateZ(localResources.u_Rotation, localResources.u_Rotation, renderParams.rotation);
+
+    mat4.identity(localResources.u_ScreenFromLocal);
+    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
+      renderParams.translation[0],
+      renderParams.translation[1],
+      1
+    ]);
+    mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
+    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
+      renderParams.scale * localResources.downsample,
+      renderParams.scale * localResources.downsample,
+      1
+    ]);
+
+    const solidProgram = sharedResources.programs!["texture"]?.program!;
+    gl.useProgram(solidProgram);
+    gl.uniformMatrix4fv(
+      sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!,
+      false,
+      localResources.u_ScreenFromLocal
+    );
+    gl.uniformMatrix4fv(
+      sharedResources.programs!["texture"]?.uniforms["u_Rotation"]!,
+      false,
+      localResources.u_Rotation
+    );
+    gl.uniformMatrix4fv(
+      sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!,
+      false,
+      localResources.u_ClipFromScreen
+    );
+    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
+    gl.uniform4f(
+      sharedResources.programs!["texture"]?.uniforms["u_Color"]!,
+      this.color.r / 255.0,
+      this.color.g / 255.0,
+      this.color.b / 255.0,
+      this.color.a * renderParams.opacity
+    );
+    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+    gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
+  }
 }

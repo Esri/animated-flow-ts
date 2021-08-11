@@ -18,13 +18,9 @@
  */
 
 import { subclass } from "esri/core/accessorSupport/decorators";
-import Extent from "esri/geometry/Extent";
-import { mat4 } from "gl-matrix";
 import {
   VisualizationLayerView2D
 } from "../core/view";
-import { defined, throwIfAborted } from "../core/util";
-import { VisualizationRenderParams } from "../core/types";
 import { FlowLayer } from "./layer";
 import { FlowLocalResources, FlowSharedResources, FlowVisualizationStyle } from "./rendering";
 import { VisualizationStyle } from "../core/rendering";
@@ -33,8 +29,7 @@ import { VisualizationStyle } from "../core/rendering";
 export class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, FlowLocalResources> {
   override animate = true;
 
-  createVisualizationStyle(): VisualizationStyle {
-    // TODO: must be async
+  createVisualizationStyle(): VisualizationStyle<FlowSharedResources, FlowLocalResources> {
     const layer = this.layer as FlowLayer;
 
     return new FlowVisualizationStyle(layer.source, layer.tracer, layer.color);

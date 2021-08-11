@@ -129,19 +129,36 @@ export abstract class LocalResources extends Resources {
 }
 
 /**
- * A resource entry describe
+ * A resource entry is a resource object plus additional information
+ * about its internal state with respect to its "readiness" for rendering.
  * 
- * - For resources that are being loaded, the entry is the abort controller that
- *   can be used to abort the loading.
- * - For resources that are loaded, the entry is the resource object plus its
- *   attachment state, i.e. whether `attach()` has been called or not.
+ * - A resource in the "loading" state is being loaded; it is possibly
+ *   fetching data from the network and it is not ready to be attached,
+ *   yet alone rendered.
+ * - A resource in the "loaded" state is loaded, and it is ready to be
+ *   attached.
+ * - A resource in the "attached" state is ready for rendering; it can
+ *   be passed to `VisualizationStyle.renderVisualization()` and then
+ *   can be detached when it is not needed anymore.
+ * - A resource in the "detached" state has been detached; it cannot be
+ *   used for rendering, or for anything really.
  */
 export interface ResourcesEntry<R extends Resources> {
-  state: 
-  { name: "loading"; abortController: AbortController; } |
-  { name: "loaded"; resources: R; } |
-  { name: "attached"; resources: R; } |
-  { name: "detached"; };
+  /**
+   * The state of the resource object associated to this entry.
+   */
+  state:
+    // The resource object is being loaded.
+    { name: "loading"; abortController: AbortController; } |
+    
+    // The resource object `resources` is loaded but not attached.
+    { name: "loaded"; resources: R; } |
+
+    // The resource object `resources` is attached and ready for rendering.
+    { name: "attached"; resources: R; } |
+
+    // The resource object has been detached and should not be accessed anymore.
+    { name: "detached"; };
 }
 
 /**

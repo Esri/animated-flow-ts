@@ -18,11 +18,14 @@ export abstract class VisualizationLayerView2D<
   animate = false;
 
   private visualizationStyle: VisualizationStyle<SR, LR> | null = null;
-
   protected abstract createVisualizationStyle(): VisualizationStyle<SR, LR>;
 
   override attach(): void {
-    this.visualizationStyle = this.createVisualizationStyle();
+    if (!this.visualizationStyle) {
+      this.visualizationStyle = this.createVisualizationStyle();
+      this.requestRender();
+    }
+
     const abortController = new AbortController();
     const entry: ResourcesEntry<SR> = { state: { name: "loading", abortController } };
     this._sharedResources = entry;
@@ -139,13 +142,4 @@ export abstract class VisualizationLayerView2D<
 
     this.destroy();
   }
-
-  // abstract loadSharedResources(signal: AbortSignal): Promise<SR>;
-  // abstract loadLocalResources(extent: Extent, resolution: number, pixelRatio: number, signal: AbortSignal): Promise<LR>;
-  // abstract renderVisualization(
-  //   gl: WebGLRenderingContext,
-  //   renderParams: VisualizationRenderParams,
-  //   sharedResources: SR,
-  //   localResources: LR
-  // ): void;
 }
