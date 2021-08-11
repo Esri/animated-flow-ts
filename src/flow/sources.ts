@@ -51,7 +51,6 @@ export class ImageryTileLayerFlowSource {
       Math.round(height * pixelScale),
       { signal }
     );
-    // TODO Chech for aborted?
     const pixelBlock = rasterData.pixelBlock;
 
     const actualWidth = pixelBlock.width;

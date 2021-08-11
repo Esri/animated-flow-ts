@@ -23,24 +23,24 @@
  * that ships as part of the ArcGIS API for JavaScript.
  */
 
-import { createFlowMesh as createFlowMeshImpl } from "../flow/shared";
-import { FlowDataWorker } from "../flow/types";
+import { createFlowLinesMesh as createFlowLinesMeshImpl } from "../flow/shared";
+import { TransferableFlowData } from "../flow/types";
 
 /**
  * Create
  *
- * It is a wrapper around `wind-es.flow.shared.createFlowMesh` that
+ * It is a wrapper around `wind-es.flow.shared.createFlowLinesMesh` that
  * takes care of marshalling and unmarshalling the parameters.
  * 
  * @param data 
  * @param options 
  * @returns 
  */
-export async function createFlowMesh(
-  data: { flowData: FlowDataWorker; smoothing: number },
+export async function createFlowLinesMesh(
+  data: { flowData: TransferableFlowData; smoothing: number },
   options: { signal: AbortSignal }
 ): Promise<{ result: { vertexBuffer: ArrayBuffer; indexBuffer: ArrayBuffer }; transferList: ArrayBuffer[] }> {
-  const { vertexData, indexData } = await createFlowMeshImpl(
+  const { vertexData, indexData } = await createFlowLinesMeshImpl(
     {
       ...data.flowData,
       data: new Float32Array(data.flowData.buffer)

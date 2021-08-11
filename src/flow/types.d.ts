@@ -66,7 +66,7 @@ export type PixelBlock = {
  *
  * A flow line is a polyline where each vertex is timestamped in seconds.
  */
-export type TimestampedVertex = {
+export type FlowLineVertex = {
   /**
    * The position of the vertex.
    *
@@ -90,7 +90,7 @@ export type TimestampedVertex = {
 };
 
 /**
- * The mesh data as returned by createFlowMesh
+ * The mesh data as returned by createFlowLinesMesh...
  */
 export type FlowLinesMesh = {
   vertexData: Float32Array;
@@ -102,6 +102,9 @@ export type FlowLinesMesh = {
  */
 export type Field = (x: number, y: number) => [number, number];
 
+/**
+ * A 2D 
+ */
 export type FlowData = {
   data: Float32Array;
   width: number;
@@ -109,7 +112,7 @@ export type FlowData = {
   pixelScale: number;
 };
 
-export type FlowDataWorker = {
+export type TransferableFlowData = {
   buffer: ArrayBuffer;
   width: number;
   height: number;

@@ -26,9 +26,7 @@
  */
 
 import Extent from "esri/geometry/Extent";
-import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
-import { property, subclass } from "esri/core/accessorSupport/decorators";
-import { defined } from "./util";
+import { assert } from "./util";
 import { VisualizationRenderParams } from "./types";
 
 /**
@@ -138,155 +136,77 @@ export abstract class LocalResources extends Resources {
  * - For resources that are loaded, the entry is the resource object plus its
  *   attachment state, i.e. whether `attach()` has been called or not.
  */
-type ResourcesEntry<R extends Resources> =
-  | { resources: R; attached: boolean; }
-  | { abortController: AbortController; };
+export interface ResourcesEntry<R extends Resources> {
+  state: 
+  { name: "loading"; abortController: AbortController; } |
+  { name: "loaded"; resources: R; } |
+  { name: "attached"; resources: R; } |
+  { name: "detached"; };
+}
 
-@subclass("wind-es.core.visualization.LayerView2D")
-export abstract class VisualizationLayerView2D<
-  SR extends SharedResources,
-  LR extends LocalResources
-> extends BaseLayerViewGL2D {
-  private _sharedResources: ResourcesEntry<SR> | null = null;
-  private _localResources: ResourcesEntry<LR>[] = [];
+/**
+ * Attach a resource object and reflect the state change in the resource entry.
+ * 
+ * @param gl The WebGL context.
+ * @param entry The entry to be attached.
+ */
+export function attach<R extends Resources>(gl: WebGLRenderingContext, entry: ResourcesEntry<R>): void {
+  assert(entry.state.name === "loaded");
+  const resources = entry.state.resources;
+  resources.attach(gl);
+  entry.state = { name: "attached", resources };
+}
 
-  @property({
-    type: Boolean
-  })
-  animate = false;
+/**
+ * Detach a resource object and reflect the state change in the resource entry.
+ * 
+ * @param gl The WebGL context.
+ * @param entry The entry to be detached.
+ */
+export function detach<R extends Resources>(gl: WebGLRenderingContext, entry: ResourcesEntry<R>): void {
+  assert(entry.state.name === "attached");
+  const resources = entry.state.resources;
+  resources.detach(gl);
+  entry.state = { name: "detached" };
+}
 
-  override attach(): void {
-    // TODO: Actually abort when possible?
-    const abortController = new AbortController();
-    const loadTime = performance.now();
-    const entry: ResourcesEntry<SR> = { abortController, loadTime };
-    this._sharedResources = entry;
-    this.loadSharedResources(abortController.signal).then((resources) => {
-      this._sharedResources = { resources, attached: false, loadTime };
-    });
-
-    this.view.watch("stationary", (stationary) => {
-      if (stationary) {
-        this._loadVisualization();
-      }
-    });
-  }
-
-  private _loadVisualization(): void {
-    for (let i = this._localResources.length - 1; i >= 0; i--) {
-      const localResources = this._localResources[i];
-      defined(localResources);
-
-      if ("abortController" in localResources) {
-        console.log("ABORTING!");
-        localResources.abortController.abort();
-        this._localResources.splice(i, 1);
-      }
-    }
-
-    // TODO: Actually abort when possible?
-    const abortController = new AbortController();
-    const loadTime = performance.now();
-    const entry: ResourcesEntry<LR> = { abortController, loadTime };
-    this._localResources.push(entry);
-    this.loadLocalResources(this.view.extent, this.view.resolution, abortController.signal).then((resources) => {
-      this._localResources[this._localResources.indexOf(entry)] = { resources, attached: false, loadTime };
-      this._localResources.sort((a, b) => a.loadTime - b.loadTime);
-    });
-  }
-
-  override render(renderParams: any): void {
-    if (!this._sharedResources || "abortController" in this._sharedResources) {
-      this.requestRender();
-      return;
-    }
-
-    const gl: WebGLRenderingContext = renderParams.context;
-
-    if (!this._sharedResources.attached) {
-      this._sharedResources.resources.attach(gl);
-      this._sharedResources.attached = true;
-    }
-
-    let toRender: ResourcesEntry<LR> | null = null;
-
-    for (let i = this._localResources.length - 1; i >= 0; i--) {
-      const localResources = this._localResources[i];
-      defined(localResources);
-
-      if (toRender) {
-        if ("abortController" in localResources) {
-          localResources.abortController.abort();
-        } else if (localResources.attached) {
-          localResources.resources.detach(gl);
-          localResources.attached = false;
-        }
-        this._localResources.splice(i, 1);
-      } else {
-        if ("abortController" in localResources) {
-          this.requestRender();
-        } else {
-          if (!localResources.attached) {
-            localResources.resources.attach(gl);
-            localResources.attached = true;
-          }
-
-          toRender = localResources;
-        }
-      }
-    }
-
-    if (toRender) {
-      const xMap = toRender.resources.extent.xmin;
-      const yMap = toRender.resources.extent.ymax;
-      const translation: [number, number] = [0, 0];
-      renderParams.state.toScreen(translation, xMap, yMap);
-
-      const visualizationRenderParams: VisualizationRenderParams = {
-        size: renderParams.state.size,
-        translation,
-        rotation: (Math.PI * renderParams.state.rotation) / 180,
-        scale: toRender.resources.resolution / renderParams.state.resolution,
-        opacity: 1,
-        pixelRatio: devicePixelRatio
-      };
-
-      this.renderVisualization(gl, visualizationRenderParams, this._sharedResources.resources, toRender.resources);
-    }
-
-    if (this.animate) {
-      this.requestRender();
-    }
-  }
-
-  override detach(): void {
-    const gl: WebGLRenderingContext = this.context;
-
-    for (const localResources of this._localResources) {
-      if ("abortController" in localResources) {
-        localResources.abortController.abort();
-      } else if (localResources.attached) {
-        localResources.resources.detach(gl);
-      }
-    }
-
-    this._localResources = [];
-
-    if (this._sharedResources) {
-      if ("abortController" in this._sharedResources) {
-        this._sharedResources.abortController.abort();
-      } else if (this._sharedResources.attached) {
-        this._sharedResources.resources.detach(gl);
-      }
-
-      this._sharedResources = null;
-    }
-
-    this.destroy();
-  }
-
+/**
+ * Visualization styles define how to load shared and local resources
+ * and how to render them.
+ */
+export abstract class VisualizationStyle<SR extends SharedResources, LR extends LocalResources> {
+  /**
+   * Load the shared resources.
+   * 
+   * @param signal An abort signal.
+   * @returns A promise to a shared resource object.
+   */
   abstract loadSharedResources(signal: AbortSignal): Promise<SR>;
-  abstract loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<LR>;
+
+  /**
+   * Load the local resources.
+   * 
+   * @param extent The extent to load.
+   * @param resolution The resolution at which to load the resources.
+   * @param pixelRatio The target pixel ratio; this is useful to scale user-specified sizes and lengths.
+   * @param signal An abort signal.
+   * @returns A promise to a shared resource object.
+   */
+  abstract loadLocalResources(
+    extent: Extent,
+    resolution: number,
+    pixelRatio: number,
+    signal: AbortSignal
+  ): Promise<LR>;
+
+  /**
+   * Render a visualization.
+   *
+   * @param gl The WebGL context.
+   * @param renderParams Define where to place the visualization on screen.
+   * @param sharedResources The shared resources shared by all visualizations.
+   * @param localResources The local resources specific to the visualization being rendered.
+   */
   abstract renderVisualization(
     gl: WebGLRenderingContext,
     renderParams: VisualizationRenderParams,

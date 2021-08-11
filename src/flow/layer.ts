@@ -22,7 +22,7 @@ import Color from "esri/Color";
 import { property, subclass } from "esri/core/accessorSupport/decorators";
 import BaseLayer from "esri/layers/Layer";
 import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
-import { FlowLayerView2D } from "./rendering";
+import { FlowLayerView2D } from "./view";
 import { ImageryTileLayerFlowSource, FlowSource } from "./sources";
 
 @subclass("wind-es.flow.layer.FlowLayer")

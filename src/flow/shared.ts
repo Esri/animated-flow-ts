@@ -18,7 +18,7 @@
  */
 
 import { createRand, rest } from "../core/util";
-import { Field, FlowLinesMesh, TimestampedVertex, FlowData } from "./types";
+import { Field, FlowLinesMesh, FlowLineVertex, FlowData } from "./types";
 
 const MIN_SPEED_THRESHOLD = 0.001;
 const MIN_WEIGHT_THRESHOLD = 0.001;
@@ -102,8 +102,8 @@ function createFlowFieldFromData(flowData: FlowData, smoothing: number): Field {
   return f;
 }
 
-function trace(f: Field, x0: number, y0: number, segmentLength: number): TimestampedVertex[] {
-  const line: TimestampedVertex[] = [];
+function trace(f: Field, x0: number, y0: number, segmentLength: number): FlowLineVertex[] {
+  const line: FlowLineVertex[] = [];
 
   let t = 0;
 
@@ -137,8 +137,8 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): Timesta
   return line;
 }
 
-function getFlowLines(f: Field, W: number, H: number, segmentLength: number): TimestampedVertex[][] {
-  const lines: TimestampedVertex[][] = [];
+function getFlowLines(f: Field, W: number, H: number, segmentLength: number): FlowLineVertex[][] {
+  const lines: FlowLineVertex[][] = [];
 
   const rand = createRand();
 
@@ -150,7 +150,7 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Ti
   return lines;
 }
 
-export async function createFlowMesh(
+export async function createFlowLinesMesh(
   flowData: FlowData,
   smoothing: number,
   signal: AbortSignal

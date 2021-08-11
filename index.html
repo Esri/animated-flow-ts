@@ -5,6 +5,31 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>wind-es</title>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.21/esri/themes/dark/main.css">
+  <script>
+    window.dojoConfig = {
+      packages: [
+        {
+          name: "wind-es",
+          location: location.origin + "/demos/js"
+        }
+      ],
+      paths: {
+        "gl-matrix": "https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.6.1/gl-matrix"
+      }
+    };
+    </script>
+  <script src="https://js.arcgis.com/4.21/"></script>
 </head>
 <body>
   <h1>wind-es</h1>
@@ -13,5 +38,10 @@
     <li><a href="demos/currents.html">currents</a></li>
     <li><a href="demos/vortices.html">vortices</a></li>
   </ul>
+  <script>
+    require(["wind-es/apps/currents"], (currents) => {
+      console.log("currents", currents);
+    });
+  </script>
 </body>
 </html>
