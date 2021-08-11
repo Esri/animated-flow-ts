@@ -14,13 +14,28 @@
 /**
  * @module wind-es/workers/flow
  *
- * A worker...
+ * A worker module that implements tracing the wind particles and
+ * triangulating the resulting flow lines.
+ *
+ * Note that this file **is not** compiled to a worker script
+ * compatible with the HTML5 `new Worker()` constructor; this
+ * module must be loaded using Esri's [workers framework](https://developers.arcgis.com/javascript/latest/api-reference/esri-core-workers.html)
+ * that ships as part of the ArcGIS API for JavaScript.
  */
 
 import { createFlowMesh as createFlowMeshImpl } from "../flow/shared";
-
 import { FlowDataWorker } from "../flow/types";
 
+/**
+ * Create
+ *
+ * It is a wrapper around `wind-es.flow.shared.createFlowMesh` that
+ * takes care of marshalling and unmarshalling the parameters.
+ * 
+ * @param data 
+ * @param options 
+ * @returns 
+ */
 export async function createFlowMesh(
   data: { flowData: FlowDataWorker; smoothing: number },
   options: { signal: AbortSignal }

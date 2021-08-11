@@ -19,7 +19,10 @@
  * implemented is the "flow" visualization contained in the `flow` directory.
  *
  * The custom rendering system is designed around the concept of "visualizations".
- * Visualizations are renderable extents. They...
+ * Visualizations are renderable extents. They are comprised of a set of "shared"
+ * resources and another one of "local" resources. The shared resources are shared
+ * by multiple visualizations, while the local resources are extent-specific and
+ * hence are used solely by the visualization associated with that specific extent.
  */
 
 import Extent from "esri/geometry/Extent";
@@ -41,22 +44,52 @@ import { VisualizationRenderParams } from "./types";
  */
 export abstract class Resources {
   /**
-   * Create the internal WebGL and non-WebGL objects.
-   *
-   * Internally...
+   * Initializes the resources in this object.
    *
    * @param gl The WebGL context.
    */
   abstract attach(gl: WebGLRenderingContext): void;
+
+  /**
+   * Releases the resources in this object.
+   *
+   * @param gl The WebGL context.
+   */
   abstract detach(gl: WebGLRenderingContext): void;
 }
 
+/**
+ * Shared resources are just like resources.
+ */
 export abstract class SharedResources extends Resources {}
 
+/**
+ * Local resources augment resources with an extent and details
+ * about how that extent is mapped to screen space.
+ */
 export abstract class LocalResources extends Resources {
+  /**
+   * Local resources can be thought as existing in screen space.
+   * 
+   * The size property is the size of the drawing surface to which
+   * these resources mut be mapped.
+   * 
+   * For instance, when the first visualization is loaded into a
+   * newly created map, it will be created with a size equal to
+   * the drawing surface of the `MapView`.
+   */
   private _size: [number, number];
 
-  constructor(private _extent: Extent, private _resolution: number) {
+  /**
+   * Create some local resources.
+   *
+   * @param _extent The extent associated to the local resources.
+   * @param _resolution The resolution of the local resources.
+   * @param _pixelRatio The pixel ratio; this information can
+   * be used by concrete classes to decide whether to load hi-res
+   * or lo-res sprites, for instance.
+   */
+  constructor(private _extent: Extent, private _resolution: number, private _pixelRatio: number) {
     super();
 
     this._size = [
@@ -65,22 +98,49 @@ export abstract class LocalResources extends Resources {
     ];
   }
 
+  /**
+   * The extent associated to the local resources.
+   */
   get extent(): Extent {
     return this._extent;
   }
 
+  /**
+   * The resolution of the local resources.
+   */
   get resolution(): number {
     return this._resolution;
   }
 
+  /**
+   * The size in pixels of the local resources; it is obtained
+   * by dividing the extent by the resolution.
+   */
   get size(): [number, number] {
     return this._size;
   }
+
+  /**
+   * The pixel ratio; this information can
+   * be used by concrete classes to decide whether to load hi-res
+   * or lo-res sprites, for instance.
+   */
+  get pixelRatio(): number {
+    return this._pixelRatio;
+  }
 }
 
-type ResourcesEntry<R> =
-  | { resources: R; attached: boolean; loadTime: number }
-  | { abortController: AbortController; loadTime: number };
+/**
+ * A resource entry describe
+ * 
+ * - For resources that are being loaded, the entry is the abort controller that
+ *   can be used to abort the loading.
+ * - For resources that are loaded, the entry is the resource object plus its
+ *   attachment state, i.e. whether `attach()` has been called or not.
+ */
+type ResourcesEntry<R extends Resources> =
+  | { resources: R; attached: boolean; }
+  | { abortController: AbortController; };
 
 @subclass("wind-es.core.visualization.LayerView2D")
 export abstract class VisualizationLayerView2D<

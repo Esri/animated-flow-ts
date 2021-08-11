@@ -57,7 +57,16 @@
   opacity: number;
 
   /**
-   * The pixel ratio
+   * The pixel ratio of the rendering device.
+   * 
+   * It is possible that `Resource.pixelRatio` is different from
+   * `VisualizationRenderParams.pixelRatio`, for instance because
+   * the visualization has been first loaded on a different screen
+   * and then has been moved to another one; in this scenario, the
+   * rendering code that overrides `VisualizationLayerView2D.renderVisualization()`
+   * may need to rescale some visual elements on the fly so that
+   * something reasonable can still be shown while waiting for a
+   * new visualization, with a matching pixel ratio, to load.
    */
   pixelRatio: number;
 };
