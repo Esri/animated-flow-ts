@@ -26,140 +26,9 @@
  */
 
 import Extent from "esri/geometry/Extent";
-import { assert } from "./util";
-import { VisualizationRenderParams } from "./types";
-
-/**
- * Resources are things needed to render a visualization.
- *
- * These are typically WebGL resources.
- *
- * Resource objects are possibly created asynchronously
- * in a detached state; then they synchronously attached;
- * finally, when they are not needed anymore, they are
- * detached; a resource object that has been detached
- * cannot be reattached.
- */
-export abstract class Resources {
-  /**
-   * Initializes the resources in this object.
-   *
-   * @param gl The WebGL context.
-   */
-  abstract attach(gl: WebGLRenderingContext): void;
-
-  /**
-   * Releases the resources in this object.
-   *
-   * @param gl The WebGL context.
-   */
-  abstract detach(gl: WebGLRenderingContext): void;
-}
-
-/**
- * Shared resources are just like resources.
- */
-export abstract class SharedResources extends Resources {}
-
-/**
- * Local resources augment resources with an extent and details
- * about how that extent is mapped to screen space.
- */
-export abstract class LocalResources extends Resources {
-  /**
-   * Local resources can be thought as existing in screen space.
-   * 
-   * The size property is the size of the drawing surface to which
-   * these resources mut be mapped.
-   * 
-   * For instance, when the first visualization is loaded into a
-   * newly created map, it will be created with a size equal to
-   * the drawing surface of the `MapView`.
-   */
-  private _size: [number, number];
-
-  /**
-   * Create some local resources.
-   *
-   * @param _extent The extent associated to the local resources.
-   * @param _resolution The resolution of the local resources.
-   * @param _pixelRatio The pixel ratio; this information can
-   * be used by concrete classes to decide whether to load hi-res
-   * or lo-res sprites, for instance.
-   */
-  constructor(private _extent: Extent, private _resolution: number, private _pixelRatio: number) {
-    super();
-
-    this._size = [
-      Math.round((_extent.xmax - _extent.xmin) / _resolution),
-      Math.round((_extent.ymax - _extent.ymin) / _resolution)
-    ];
-  }
-
-  /**
-   * The extent associated to the local resources.
-   */
-  get extent(): Extent {
-    return this._extent;
-  }
-
-  /**
-   * The resolution of the local resources.
-   */
-  get resolution(): number {
-    return this._resolution;
-  }
-
-  /**
-   * The size in pixels of the local resources; it is obtained
-   * by dividing the extent by the resolution.
-   */
-  get size(): [number, number] {
-    return this._size;
-  }
-
-  /**
-   * The pixel ratio; this information can
-   * be used by concrete classes to decide whether to load hi-res
-   * or lo-res sprites, for instance.
-   */
-  get pixelRatio(): number {
-    return this._pixelRatio;
-  }
-}
-
-/**
- * A resource entry is a resource object plus additional information
- * about its internal state with respect to its "readiness" for rendering.
- * 
- * - A resource in the "loading" state is being loaded; it is possibly
- *   fetching data from the network and it is not ready to be attached,
- *   yet alone rendered.
- * - A resource in the "loaded" state is loaded, and it is ready to be
- *   attached.
- * - A resource in the "attached" state is ready for rendering; it can
- *   be passed to `VisualizationStyle.renderVisualization()` and then
- *   can be detached when it is not needed anymore.
- * - A resource in the "detached" state has been detached; it cannot be
- *   used for rendering, or for anything really.
- */
-export interface ResourcesEntry<R extends Resources> {
-  /**
-   * The state of the resource object associated to this entry.
-   */
-  state:
-    // The resource object is being loaded.
-    { name: "loading"; abortController: AbortController; } |
-    
-    // The resource object `resources` is loaded but not attached.
-    { name: "loaded"; resources: R; } |
-
-    // The resource object `resources` is attached and ready for rendering.
-    { name: "attached"; resources: R; } |
-
-    // The resource object has been detached and should not be accessed anymore.
-    { name: "detached"; };
-}
+import { assert, defined } from "./util";
+import { Resources, ResourcesEntry, VisualizationRenderParams } from "./types";
+import Point from "esri/geometry/Point";
 
 /**
  * Attach a resource object and reflect the state change in the resource entry.
@@ -191,7 +60,7 @@ export function detach<R extends Resources>(gl: WebGLRenderingContext, entry: Re
  * Visualization styles define how to load shared and local resources
  * and how to render them.
  */
-export abstract class VisualizationStyle<SR extends SharedResources, LR extends LocalResources> {
+export abstract class VisualizationStyle<SR extends Resources, LR extends Resources> {
   /**
    * Load the shared resources.
    * 
@@ -212,6 +81,7 @@ export abstract class VisualizationStyle<SR extends SharedResources, LR extends 
   abstract loadLocalResources(
     extent: Extent,
     resolution: number,
+    size: [number, number],
     pixelRatio: number,
     signal: AbortSignal
   ): Promise<LR>;
@@ -230,4 +100,50 @@ export abstract class VisualizationStyle<SR extends SharedResources, LR extends 
     sharedResources: SR,
     localResources: LR
   ): void;
+
+  async createImage(center: Point, resolution: number, width: number, height: number, backgroundColor: string, signal: AbortSignal): Promise<HTMLCanvasElement> {
+    const glCanvas = document.createElement("canvas");
+    glCanvas.width = width;
+    glCanvas.height = height;
+    const gl = glCanvas.getContext("webgl", {
+      preserveDrawingBuffer: true
+    });
+    defined(gl);
+    
+    gl.getExtension("OES_element_index_uint");
+
+    const extent = new Extent({
+      xmin: 0,
+      ymin: 0,
+      xmax: width * resolution,
+      ymax: height * resolution
+    });
+    extent.centerAt(center);
+
+    const renderParams: VisualizationRenderParams = {
+      size: [width, height],
+      translation: [0, 0],
+      rotation: 0,
+      scale: 1,
+      opacity: 1,
+      pixelRatio: 1
+    };
+    
+    const sharedResources = await this.loadSharedResources(signal);
+    sharedResources.attach(gl);
+    const localResources = await this.loadLocalResources(extent, resolution, [width, height], 1, signal);
+    localResources.attach(gl);
+    this.renderVisualization(gl, renderParams, sharedResources, localResources);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    defined(ctx);
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(glCanvas, 0, 0);
+
+    return canvas;
+  }
 }

@@ -18,9 +18,7 @@
  */
 
 import { subclass } from "esri/core/accessorSupport/decorators";
-import {
-  VisualizationLayerView2D
-} from "../core/view";
+import { VisualizationLayerView2D } from "../core/view";
 import { FlowLayer } from "./layer";
 import { FlowLocalResources, FlowSharedResources, FlowVisualizationStyle } from "./rendering";
 import { VisualizationStyle } from "../core/rendering";

@@ -1,19 +1,19 @@
 import Color from "esri/Color";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
-import { LocalResources, SharedResources, VisualizationStyle } from "../core/rendering";
-import { VisualizationRenderParams } from "../core/types";
+import { VisualizationStyle } from "../core/rendering";
+import { Awaitable, Resources, VisualizationRenderParams } from "../core/types";
 import { defined, throwIfAborted } from "../core/util";
 import { FlowTracer } from "./meshing";
 import { FlowSource } from "./sources";
 
-export class FlowSharedResources extends SharedResources {
+export class FlowSharedResources implements Resources {
   programs: HashMap<{
     program: WebGLProgram;
     uniforms: HashMap<WebGLUniformLocation>;
   }> | null = null;
 
-  override attach(gl: WebGLRenderingContext): void {
+  attach(gl: WebGLRenderingContext): void {
     const vertexSource = `
       attribute vec2 a_Position;
       attribute vec2 a_Extrude;
@@ -116,12 +116,12 @@ export class FlowSharedResources extends SharedResources {
     };
   }
 
-  override detach(gl: WebGLRenderingContext): void {
+  detach(gl: WebGLRenderingContext): void {
     gl.deleteProgram(this.programs!["solid"]?.program!);
   }
 }
 
-export class FlowLocalResources extends LocalResources {
+export class FlowLocalResources implements Resources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
   indexCount = 0;
@@ -133,22 +133,17 @@ export class FlowLocalResources extends LocalResources {
   u_ClipFromScreen = mat4.create();
 
   constructor(
-    extent: Extent,
-    resolution: number,
-    pixelRatio: number,
     downsample: number,
     vertexData: Float32Array,
     indexData: Uint32Array
   ) {
-    super(extent, resolution, pixelRatio);
-
     this.downsample = downsample;
     this.vertexData = vertexData;
     this.indexData = indexData;
     this.indexCount = indexData.length;
   }
 
-  override attach(gl: WebGLRenderingContext): void {
+  attach(gl: WebGLRenderingContext): void {
     defined(this.vertexData);
     defined(this.indexData);
 
@@ -170,14 +165,14 @@ export class FlowLocalResources extends LocalResources {
     this.indexBuffer = indexBuffer;
   }
 
-  override detach(gl: WebGLRenderingContext): void {
+  detach(gl: WebGLRenderingContext): void {
     gl.deleteBuffer(this.vertexBuffer);
     gl.deleteBuffer(this.indexBuffer);
   }
 }
 
 export class FlowVisualizationStyle extends VisualizationStyle<FlowSharedResources, FlowLocalResources> {
-  constructor(private source: Promise<FlowSource>, private tracer: Promise<FlowTracer>, private color: Color) {
+  constructor(private source: Awaitable<FlowSource>, private tracer: Awaitable<FlowTracer>, private color: Color) {
     super();
   }
 
@@ -187,16 +182,14 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowSharedResourc
 
   override async loadLocalResources(
     extent: Extent,
-    resolution: number,
-    pixelRatio: number,
+    _resolution: number,
+    size: [number, number],
+    _pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLocalResources> {
     // TODO?
     extent = extent.clone();
     extent.expand(1.15); // Increase this?
-
-    const width = Math.round((extent.xmax - extent.xmin) / resolution);
-    const height = Math.round((extent.ymax - extent.ymin) / resolution);
 
     const downsample = 1;
 
@@ -204,9 +197,9 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowSharedResourc
 
     throwIfAborted(signal);
 
-    const flowData = await source.fetchFlowData(extent, width / downsample, height / downsample, signal);
+    const flowData = await source.fetchFlowData(extent, size[0] / downsample, size[1] / downsample, signal);
     const { vertexData, indexData } = await tracer.createFlowLinesMesh(flowData, 5, signal);
-    return new FlowLocalResources(extent, resolution, pixelRatio, downsample, vertexData, indexData);
+    return new FlowLocalResources(downsample, vertexData, indexData);
   }
 
   override renderVisualization(

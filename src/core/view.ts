@@ -1,23 +1,24 @@
 import { property, subclass } from "esri/core/accessorSupport/decorators";
 import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
-import { attach, detach, LocalResources, ResourcesEntry, SharedResources, VisualizationStyle } from "./rendering";
-import { VisualizationRenderParams } from "./types";
+import { attach, detach, VisualizationStyle } from "./rendering";
+import { LocalResourcesEntry, Resources, SharedResourcesEntry, VisualizationRenderParams } from "./types";
 import { defined } from "./util";
 
 @subclass("wind-es.core.visualization.LayerView2D")
 export abstract class VisualizationLayerView2D<
-  SR extends SharedResources,
-  LR extends LocalResources
+  SR extends Resources,
+  LR extends Resources
 > extends BaseLayerViewGL2D {
-  private _sharedResources: ResourcesEntry<SR> | null = null;
-  private _localResources: ResourcesEntry<LR>[] = [];
-
+  private _sharedResources: SharedResourcesEntry<SR> | null = null;
+  private _localResources: LocalResourcesEntry<LR>[] = [];
+  
   @property({
     type: Boolean
   })
   animate = false;
 
   private visualizationStyle: VisualizationStyle<SR, LR> | null = null;
+
   protected abstract createVisualizationStyle(): VisualizationStyle<SR, LR>;
 
   override attach(): void {
@@ -27,7 +28,7 @@ export abstract class VisualizationLayerView2D<
     }
 
     const abortController = new AbortController();
-    const entry: ResourcesEntry<SR> = { state: { name: "loading", abortController } };
+    const entry: SharedResourcesEntry<SR> = { state: { name: "loading", abortController } };
     this._sharedResources = entry;
     this.visualizationStyle.loadSharedResources(abortController.signal).then((resources) => {
       entry.state = { name: "loaded", resources };
@@ -49,10 +50,24 @@ export abstract class VisualizationLayerView2D<
     }
 
     const abortController = new AbortController();
-    const entry: ResourcesEntry<LR> = { state: { name: "loading", abortController } };
+
+    const extent = this.view.extent;
+    const resolution = this.view.resolution;
+    const pixelRatio = devicePixelRatio;
+    const size: [number, number] = [
+      Math.round((extent.xmax - extent.xmin) / resolution),
+      Math.round((extent.ymax - extent.ymin) / resolution)
+    ];
+    const entry: LocalResourcesEntry<LR> = {
+      state: { name: "loading", abortController },
+      extent,
+      resolution,
+      size,
+      pixelRatio
+    };
     this._localResources.push(entry);
     defined(this.visualizationStyle);
-    this.visualizationStyle.loadLocalResources(this.view.extent, this.view.resolution, devicePixelRatio, abortController.signal).then((resources) => {
+    this.visualizationStyle.loadLocalResources(extent, resolution, size, pixelRatio, abortController.signal).then((resources) => {
       entry.state = { name: "loaded", resources };
     });
   }
@@ -69,7 +84,7 @@ export abstract class VisualizationLayerView2D<
       attach(gl, this._sharedResources);
     }
 
-    let toRender: ResourcesEntry<LR> | null = null;
+    let toRender: LocalResourcesEntry<LR> | null = null;
 
     for (let i = this._localResources.length - 1; i >= 0; i--) {
       const localResources = this._localResources[i];
@@ -94,8 +109,8 @@ export abstract class VisualizationLayerView2D<
     }
 
     if (this._sharedResources.state.name === "attached" && toRender && toRender.state.name === "attached") {
-      const xMap = toRender.state.resources.extent.xmin;
-      const yMap = toRender.state.resources.extent.ymax;
+      const xMap = toRender.extent.xmin;
+      const yMap = toRender.extent.ymax;
       const translation: [number, number] = [0, 0];
       renderParams.state.toScreen(translation, xMap, yMap);
 
@@ -103,7 +118,7 @@ export abstract class VisualizationLayerView2D<
         size: renderParams.state.size,
         translation,
         rotation: (Math.PI * renderParams.state.rotation) / 180,
-        scale: toRender.state.resources.resolution / renderParams.state.resolution,
+        scale: toRender.resolution / renderParams.state.resolution,
         opacity: 1,
         pixelRatio: devicePixelRatio
       };

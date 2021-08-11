@@ -28,11 +28,12 @@ export abstract class FlowSource {
   destroy(): void {}
 }
 
-export class ImageryTileLayerFlowSource {
+export class ImageryTileLayerFlowSource extends FlowSource {
   private imageryTileLayer: ImageryTileLayer;
   private magnitudeScale: number;
 
   constructor(url: string, magnitudeScale: number) {
+    super();
     this.imageryTileLayer = new ImageryTileLayer({ url });
     this.magnitudeScale = magnitudeScale;
   }
@@ -91,13 +92,15 @@ export class ImageryTileLayerFlowSource {
     };
   }
 
-  destroy(): void {
+  override destroy(): void {
     this.imageryTileLayer.destroy();
   }
 }
 
-export class VectorFieldFlowSource {
-  constructor(private mapVectorField: Field) {}
+export class VectorFieldFlowSource extends FlowSource {
+  constructor(private mapVectorField: Field) {
+    super();
+  }
 
   async fetchFlowData(extent: Extent, width: number, height: number): Promise<FlowData> {
     const pixelScale = 1;
