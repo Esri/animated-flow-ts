@@ -18,6 +18,7 @@
  * that supports animated visualization of flow in `MapView`.
  */
 
+import Color from "esri/Color";
 import { property, subclass } from "esri/core/accessorSupport/decorators";
 import BaseLayer from "esri/layers/Layer";
 import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
@@ -29,11 +30,20 @@ export class FlowLayer extends BaseLayer {
   source: Promise<FlowSource>;
   tracer: Promise<FlowTracer>;
 
-  @property({})
-  blendMode: any;
+  @property({
+    type: String
+  })
+  blendMode?: string;
 
-  @property({})
-  effect: any;
+  @property({
+    type: String
+  })
+  effect?: string;
+
+  @property({
+    type: Color
+  })
+  color = new Color([255, 255, 255, 1]);
 
   constructor(params: any) {
     super(params);
@@ -49,6 +59,7 @@ export class FlowLayer extends BaseLayer {
     this.source = Promise.resolve(
       params.url ? new ImageryTileLayerFlowSource(params.url, 0.1 /* TODO: Configure? */) : params.source
     );
+
     this.tracer = Promise.resolve(useWebWorkers ? new WorkerFlowTracer() : new MainFlowTracer());
   }
 

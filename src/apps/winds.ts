@@ -23,6 +23,7 @@ import VectorTileLayer from "esri/layers/VectorTileLayer";
 import { FlowLayer } from "../flow/layer";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import esriConfig from "esri/config";
+import Color from "esri/Color";
 
 esriConfig.workers.loaderConfig = {
   packages: [
@@ -45,7 +46,8 @@ const imageryLayer = new ImageryTileLayer({ url });
 const windLayer = new FlowLayer({
   url,
   effect: "bloom(1.5, 0.5px, 0.2)",
-  useWebWorkers: true
+  useWebWorkers: true,
+  color: new Color([60, 160, 220, 1])
 } as any);
 
 const map = new EsriMap({

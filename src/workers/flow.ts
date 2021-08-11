@@ -24,7 +24,7 @@ import { FlowDataWorker } from "../flow/types";
 export async function createFlowMesh(
   data: { flowData: FlowDataWorker; smoothing: number },
   options: { signal: AbortSignal }
-): Promise<{ result: { vertexData: ArrayBuffer; indexData: ArrayBuffer }; transferList: ArrayBuffer[] }> {
+): Promise<{ result: { vertexBuffer: ArrayBuffer; indexBuffer: ArrayBuffer }; transferList: ArrayBuffer[] }> {
   const { vertexData, indexData } = await createFlowMeshImpl(
     {
       ...data.flowData,
@@ -36,8 +36,8 @@ export async function createFlowMesh(
 
   return {
     result: {
-      vertexData: vertexData.buffer,
-      indexData: indexData.buffer
+      vertexBuffer: vertexData.buffer,
+      indexBuffer: indexData.buffer
     },
     transferList: [vertexData.buffer, indexData.buffer]
   };

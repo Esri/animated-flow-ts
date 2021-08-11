@@ -26,10 +26,8 @@ import {
   SharedResources
 } from "../core/rendering";
 import { defined, throwIfAborted } from "../core/util";
-import BaseLayer from "esri/layers/Layer";
-import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
-import { ImageryTileLayerFlowSource, FlowSource } from "./sources";
 import { VisualizationRenderParams } from "../core/types";
+import { FlowLayer } from "./layer";
 
 class FlowSharedResources extends SharedResources {
   programs: HashMap<{
@@ -72,7 +70,7 @@ class FlowSharedResources extends SharedResources {
     const fragmentSource = `
       precision mediump float;
 
-      uniform float u_Opacity;
+      uniform vec4 u_Color;
       uniform float u_Time;
       
       varying float v_Side;
@@ -82,10 +80,9 @@ class FlowSharedResources extends SharedResources {
       varying float v_Random;
 
       void main(void) {
-        // gl_FragColor = vec4(60.0 / 255.0, 160.0 / 255.0, 220.0 / 255.0, 1.0);
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_FragColor = u_Color;
 
-        gl_FragColor.a *= u_Opacity * (1.0 - length(v_Side));
+        gl_FragColor.a *= 1.0 - length(v_Side);
         
         float t = mod(50.0 * u_Time + v_Random * 2.0 * v_TotalTime, 2.0 * v_TotalTime);
 
@@ -134,7 +131,7 @@ class FlowSharedResources extends SharedResources {
           u_Rotation: gl.getUniformLocation(program, "u_Rotation")!,
           u_ClipFromScreen: gl.getUniformLocation(program, "u_ClipFromScreen")!,
           u_PixelRatio: gl.getUniformLocation(program, "u_PixelRatio")!,
-          u_Opacity: gl.getUniformLocation(program, "u_Opacity")!,
+          u_Color: gl.getUniformLocation(program, "u_Color")!,
           u_Time: gl.getUniformLocation(program, "u_Time")!
         }
       }
@@ -303,51 +300,18 @@ export class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResource
       localResources.u_ClipFromScreen
     );
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
-    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Opacity"]!, renderParams.opacity);
+    gl.uniform4f(
+      sharedResources.programs!["texture"]?.uniforms["u_Color"]!,
+      (this.layer as any).color.r / 255.0,
+      (this.layer as any).color.g / 255.0,
+      (this.layer as any).color.b / 255.0,
+      (this.layer as any).color.a * renderParams.opacity
+    );
     gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
     gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
-  }
-}
-
-@subclass("wind-es.flow.layer.FlowLayer")
-export class FlowLayer extends BaseLayer {
-  source: Promise<FlowSource>;
-  tracer: Promise<FlowTracer>;
-
-  constructor(params: any) {
-    super(params);
-
-    if (params.url && params.source) {
-      throw new Error("Only one of 'url' or 'source' parameters can be specified when creating a FlowLayer.");
-    }
-
-    // TODO: Support both UV and MagDir.
-
-    const useWebWorkers = "useWebWorkers" in params ? params.useWebWorkers : true;
-
-    this.source = Promise.resolve(
-      params.url ? new ImageryTileLayerFlowSource(params.url, 0.1 /* TODO: Configure? */) : params.source
-    );
-    this.tracer = Promise.resolve(useWebWorkers ? new WorkerFlowTracer() : new MainFlowTracer());
-  }
-
-  override createLayerView(view: any): any {
-    if (view.type === "2d") {
-      return new FlowLayerView2D({
-        view,
-        layer: this
-      } as any);
-    }
-  }
-
-  override destroy(): void {
-    super.destroy();
-    // TODO: Abort?
-    this.source.then((source) => source.destroy());
-    this.tracer.then((tracer) => tracer.destroy());
   }
 }

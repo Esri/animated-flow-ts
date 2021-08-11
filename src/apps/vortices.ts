@@ -25,6 +25,7 @@ import { FlowLayer } from "../flow/layer";
 import { VectorFieldFlowSource } from "../flow/sources";
 import { Field } from "../flow/types";
 import esriConfig from "esri/config";
+import Color from "esri/Color";
 
 esriConfig.workers.loaderConfig = {
   packages: [
@@ -61,8 +62,9 @@ const windVectorField = (x: number, y: number): [number, number] => {
 
 const windLayer = new FlowLayer({
   source: new VectorFieldFlowSource(windVectorField),
-  effect: "bloom(1.1, 0.3px, 0.1)",
-  useWebWorkers: true
+  effect: "bloom(1.5, 0.5px, 0.2)",
+  useWebWorkers: true,
+  color: new Color([60, 220, 160, 1])
 } as any);
 
 const map = new EsriMap({

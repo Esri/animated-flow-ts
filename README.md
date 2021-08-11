@@ -2,7 +2,7 @@
 
 **wind-es** is ... [ArcGIS API for JavaScript](https://developers.arcgis.com/javascript/latest/) ... [custom layer views](https://developers.arcgis.com/javascript/latest/sample-code/custom-gl-visuals/).
 
-**Live demos**
+## Live demos
 
 - Magnitude/direction wind: https://wind-es.s3.us-west-1.amazonaws.com/demos/winds.html
 - UV ocean currents: https://wind-es.s3.us-west-1.amazonaws.com/demos/currents.html

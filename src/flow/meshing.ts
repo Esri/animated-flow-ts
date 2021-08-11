@@ -58,8 +58,8 @@ export class WorkerFlowTracer extends FlowTracer {
     );
 
     return {
-      vertexData: new Float32Array(result.vertexData),
-      indexData: new Uint32Array(result.indexData)
+      vertexData: new Float32Array(result.vertexBuffer),
+      indexData: new Uint32Array(result.indexBuffer)
     };
   }
 

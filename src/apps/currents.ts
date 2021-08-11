@@ -71,7 +71,7 @@ const temperatureLayer = new ImageryLayer({
 });
 
 const groupLayer = new GroupLayer({
-  effect: "bloom(1.1, 0.3px, 0.1)"
+  effect: "bloom(1.5, 0.5px, 0.2)",
 });
 groupLayer.add(currentsLayer);
 groupLayer.add(temperatureLayer);
