@@ -82,7 +82,8 @@ class FlowSharedResources extends SharedResources {
       varying float v_Random;
 
       void main(void) {
-        gl_FragColor = vec4(60.0 / 255.0, 160.0 / 255.0, 220.0 / 255.0, 1.0);
+        // gl_FragColor = vec4(60.0 / 255.0, 160.0 / 255.0, 220.0 / 255.0, 1.0);
+        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 
         gl_FragColor.a *= u_Opacity * (1.0 - length(v_Side));
         

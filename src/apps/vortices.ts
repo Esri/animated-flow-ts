@@ -60,7 +60,6 @@ const windVectorField = (x: number, y: number): [number, number] => {
 };
 
 const windLayer = new FlowLayer({
-  // TODO: Analytic is a bad name
   source: new VectorFieldFlowSource(windVectorField),
   effect: "bloom(1.1, 0.3px, 0.1)",
   useWebWorkers: true

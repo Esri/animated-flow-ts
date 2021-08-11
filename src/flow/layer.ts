@@ -18,7 +18,7 @@
  * that supports animated visualization of flow in `MapView`.
  */
 
-import { subclass } from "esri/core/accessorSupport/decorators";
+import { property, subclass } from "esri/core/accessorSupport/decorators";
 import BaseLayer from "esri/layers/Layer";
 import { MainFlowTracer, FlowTracer, WorkerFlowTracer } from "./meshing";
 import { FlowLayerView2D } from "./rendering";
@@ -28,6 +28,12 @@ import { ImageryTileLayerFlowSource, FlowSource } from "./sources";
 export class FlowLayer extends BaseLayer {
   source: Promise<FlowSource>;
   tracer: Promise<FlowTracer>;
+
+  @property({})
+  blendMode: any;
+
+  @property({})
+  effect: any;
 
   constructor(params: any) {
     super(params);

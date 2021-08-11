@@ -4,15 +4,18 @@
 
 **Live demos**
 
-- MagDir tiled image service: https://wind-es.s3.us-west-1.amazonaws.com/demos/winds.html
-- UV tiled image service: https://wind-es.s3.us-west-1.amazonaws.com/demos/currents.html
+- Magnitude/direction wind: https://wind-es.s3.us-west-1.amazonaws.com/demos/winds.html
+- UV ocean currents: https://wind-es.s3.us-west-1.amazonaws.com/demos/currents.html
 - Client-side data: https://wind-es.s3.us-west-1.amazonaws.com/demos/vortices.html
 
 ![App](screenshot.png)
 
 ## Features
 
-* TODO
+- A custom WebGL layer compatible with `MapView`.
+- Visualize flow using animated lines.
+- Support UV tiled imagery layers and magnitude/direction tiled imagery layers.
+- Can be used in conjunction with [blend modes and layer effects](https://developers.arcgis.com/javascript/latest/sample-code/intro-blendmode-layer/).
 
 ## Instructions
 
@@ -23,12 +26,12 @@
 
 ## Requirements
 
-* Notepad or your favorite code editor
-* Web browser with access to the Internet
+- Notepad or your favorite code editor.
+- Web browser with access to the Internet.
 
 ## Resources
 
-* [Live demos](https://wind-es.s3.us-west-1.amazonaws.com/index.html)
+- [Live demos](https://wind-es.s3.us-west-1.amazonaws.com/index.html)
 
 ## Issues
 
