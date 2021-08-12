@@ -54,7 +54,7 @@ export class FlowGlobalResources implements Resources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) / u_PixelRatio /* Is this right? */;
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) / u_PixelRatio /* Is this right? */; /* TODO: CONFIGURABLE PARAMETER (line width) */
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -80,12 +80,12 @@ export class FlowGlobalResources implements Resources {
 
         gl_FragColor.a *= 1.0 - length(v_Side);
         
-        float t = mod(50.0 * u_Time + v_Random * 2.0 * v_TotalTime, 2.0 * v_TotalTime);
+        float t = mod(50.0 * u_Time + v_Random * 2.0 * v_TotalTime, 2.0 * v_TotalTime); /* TODO: CONFIGURABLE PARAMETER (50, 2, looping mode?) */
 
         if (t < v_Time) {
           gl_FragColor.a *= 0.0;
         } else {
-          gl_FragColor.a *= exp(-0.01 * (t - v_Time)) * (1.0 - exp(-100.0 /* TODO! Factor! */ * v_Speed));
+          gl_FragColor.a *= exp(-0.01 * (t - v_Time)) * (1.0 - exp(-100.0 /* TODO! Factor! */ * v_Speed)); /* TODO: CONFIGURABLE PARAMETER (0.01 and 100) */
         }
 
         gl_FragColor.rgb *= gl_FragColor.a;
@@ -143,15 +143,15 @@ export class FlowLocalResources implements Resources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
   indexCount = 0;
-  downsample: number;
+  cellSize: number;
   vertexBuffer: WebGLBuffer | null = null;
   indexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
   u_Rotation = mat4.create();
   u_ClipFromScreen = mat4.create();
 
-  constructor(downsample: number, vertexData: Float32Array, indexData: Uint32Array) {
-    this.downsample = downsample;
+  constructor(cellSize: number, vertexData: Float32Array, indexData: Uint32Array) {
+    this.cellSize = cellSize;
     this.vertexData = vertexData;
     this.indexData = indexData;
     this.indexCount = indexData.length;
@@ -203,17 +203,17 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
   ): Promise<FlowLocalResources> {
     // TODO?
     extent = extent.clone();
-    extent.expand(1.15); // Increase this?
+    extent.expand(1.15); // Increase this? /* TODO: CONFIGURABLE PARAMETER (1.15) */
 
-    const downsample = 1;
+    const gridScale = 1; /* TODO: CONFIGURABLE PARAMETER (Do I even want this? What about smoothing?) */
 
     const [source, tracer] = await Promise.all([this.source, this.tracer]);
 
     throwIfAborted(signal);
 
-    const flowData = await source.fetchFlowData(extent, size[0] / downsample, size[1] / downsample, signal);
+    const flowData = await source.fetchFlowData(extent, size[0], size[1], gridScale, signal);
     const { vertexData, indexData } = await tracer.createFlowLinesMesh(flowData, 5, signal);
-    return new FlowLocalResources(downsample, vertexData, indexData);
+    return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
 
   override renderVisualization(
@@ -263,8 +263,8 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
     mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
-      renderParams.scale * localResources.downsample,
-      renderParams.scale * localResources.downsample,
+      renderParams.scale * localResources.cellSize,
+      renderParams.scale * localResources.cellSize,
       1
     ]);
 

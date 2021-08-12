@@ -20,8 +20,8 @@
 import { createRand, rest } from "../core/util";
 import { Field, FlowLinesMesh, FlowLineVertex, FlowData } from "./types";
 
-const MIN_SPEED_THRESHOLD = 0.001;
-const MIN_WEIGHT_THRESHOLD = 0.001;
+const MIN_SPEED_THRESHOLD = 0.001; /* TODO: CONFIGURABLE PARAMETER */
+const MIN_WEIGHT_THRESHOLD = 0.001; /* TODO: CONFIGURABLE PARAMETER */
 
 function smooth(data: Float32Array, width: number, height: number, sigma: number): Float32Array {
   const horizontal = new Float32Array(data.length);
@@ -115,12 +115,13 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): FlowLin
     time: t
   });
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 100 /* TODO: CONFIGURABLE PARAMETER */; i++) {
     const [vx, vy] = f(x, y);
     const v = Math.sqrt(vx * vx + vy * vy);
     if (v < MIN_SPEED_THRESHOLD) {
       return line;
     }
+    /* TODO: CONFIGURABLE PARAMETER (sub-vertex update rate) */
     const dx = vx / v;
     const dy = vy / v;
     x += dx * segmentLength;
@@ -142,7 +143,7 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Fl
 
   const rand = createRand();
 
-  for (let i = 0; i < 4000; i++) {
+  for (let i = 0; i < 4000 /* TODO: CONFIGURABLE PARAMETER */; i++) {
     const line = trace(f, Math.round(rand() * W), Math.round(rand() * H), segmentLength);
     lines.push(line);
   }
@@ -168,7 +169,7 @@ export async function createFlowLinesMesh(
   for (const line of flowLines) {
     const currentTime = performance.now();
 
-    if (currentTime - restTime > 100) {
+    if (currentTime - restTime > 100 /* TODO: CONFIGURABLE PARAMETER */) {
       console.log("Resting...");
       restTime = currentTime;
       await rest(signal);
@@ -188,7 +189,7 @@ export async function createFlowLinesMesh(
         position: [x1, y1],
         time: t1
       } = line[i]!;
-      const speed = 100 /* TODO! Speed factor! */ / (t1 - t0);
+      const speed = 100 /* TODO: CONFIGURABLE PARAMETER */ / (t1 - t0);
 
       y0 = flowData.rows - 1 - y0;
       y1 = flowData.rows - 1 - y1;

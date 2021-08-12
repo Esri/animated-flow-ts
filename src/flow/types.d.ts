@@ -114,24 +114,24 @@ export type FlowData = {
   data: Float32Array;
   columns: number;
   rows: number;
-  gridScale: number;
+  cellSize: number;
 };
 
 export type TransferableFlowData = {
   buffer: ArrayBuffer;
   columns: number;
   rows: number;
-  gridScale: number;
+  cellSize: number;
 };
 
 /**
  * A flow source is a gate
  */
 export interface FlowSource {
-  fetchFlowData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<FlowData>;
+  fetchFlowData(extent: Extent, width: number, height: number, gridScale: number, signal: AbortSignal): Promise<FlowData>;
   destroy(): void;
 }
-
+ 
 export interface FlowTracer {
   createFlowLinesMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh>;
   destroy(): void;

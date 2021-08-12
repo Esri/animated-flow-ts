@@ -100,7 +100,7 @@ export class FlowLayer extends Layer {
     }
     
     if (params.url) {
-      this.source = Promise.resolve(new ImageryTileLayerFlowSource(params.url, 0.1 /* TODO: Configure? */));
+      this.source = Promise.resolve(new ImageryTileLayerFlowSource(params.url));
       this.ownSource = true;
     } else {
       this.source = Promise.resolve(params.source);
