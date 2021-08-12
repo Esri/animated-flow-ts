@@ -29,7 +29,11 @@ export abstract class FlowTracer {
 }
 
 export class MainFlowTracer extends FlowTracer {
-  override async createFlowLinesMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh> {
+  override async createFlowLinesMesh(
+    flowData: FlowData,
+    smoothing: number,
+    signal: AbortSignal
+  ): Promise<FlowLinesMesh> {
     return createFlowLinesMesh(flowData, smoothing, signal);
   }
 }
@@ -37,7 +41,11 @@ export class MainFlowTracer extends FlowTracer {
 export class WorkerFlowTracer extends FlowTracer {
   private connection = workers.open("wind-es/workers/flow");
 
-  override async createFlowLinesMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh> {
+  override async createFlowLinesMesh(
+    flowData: FlowData,
+    smoothing: number,
+    signal: AbortSignal
+  ): Promise<FlowLinesMesh> {
     const connection = await this.connection;
 
     throwIfAborted(signal);

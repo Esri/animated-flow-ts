@@ -31,10 +31,10 @@ import { TransferableFlowData } from "../flow/types";
  *
  * It is a wrapper around `wind-es.flow.shared.createFlowLinesMesh` that
  * takes care of marshalling and unmarshalling the parameters.
- * 
- * @param data 
- * @param options 
- * @returns 
+ *
+ * @param data
+ * @param options
+ * @returns
  */
 export async function createFlowLinesMesh(
   data: { flowData: TransferableFlowData; smoothing: number },

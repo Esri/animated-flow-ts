@@ -60,7 +60,7 @@ export function createRand(seed = 3): () => number {
 }
 
 /**
- * Throw an `AbortError` if a given `AbortSignal` is aborted. 
+ * Throw an `AbortError` if a given `AbortSignal` is aborted.
  *
  * @param signal The abort signal to check.
  */
@@ -72,7 +72,7 @@ export function throwIfAborted(signal: AbortSignal): void {
 
 /**
  * Relinquish control to the event loop.
- * 
+ *
  * This function is called by long-running processes
  * to make them abortable halfway through the computation.
  *

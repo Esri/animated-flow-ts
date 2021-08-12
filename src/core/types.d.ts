@@ -6,7 +6,7 @@
 
 /**
  * A value that can be accessed by using `await`.
- * 
+ *
  * It could be `T` or a promise to `T`. After awaiting, it is resolved as `T` anyway.
  */
 export type Awaitable<T> = T | Promise<T>;
@@ -21,7 +21,7 @@ export type Awaitable<T> = T | Promise<T>;
  * object is passed to the `wind-es.core.visualization.LayerView2D.renderVisualization()`
  * that defines its position, orientation and scale.
  */
- export type VisualizationRenderParams = {
+export type VisualizationRenderParams = {
   /**
    * Size of the drawing surface.
    *
@@ -65,7 +65,7 @@ export type Awaitable<T> = T | Promise<T>;
 
   /**
    * The pixel ratio of the rendering device.
-   * 
+   *
    * It is possible that `Resource.pixelRatio` is different from
    * `VisualizationRenderParams.pixelRatio`, for instance because
    * the visualization has been first loaded on a different screen
@@ -89,7 +89,7 @@ export type Awaitable<T> = T | Promise<T>;
  * detached; a resource object that has been detached
  * cannot be reattached.
  */
- export interface Resources {
+export interface Resources {
   /**
    * Initializes the resources in this object.
    *
@@ -108,7 +108,7 @@ export type Awaitable<T> = T | Promise<T>;
 /**
  * A resource entry is a resource object plus additional information
  * about its internal state with respect to its "readiness" for rendering.
- * 
+ *
  * - A resource in the "loading" state is being loaded; it is possibly
  *   fetching data from the network and it is not ready to be attached,
  *   yet alone rendered.
@@ -124,60 +124,58 @@ export interface ResourcesEntry<R extends Resources> {
   /**
    * The state of the resource object associated to this entry.
    */
-  state:
-    // The resource object is being loaded.
-    { name: "loading"; abortController: AbortController; } |
-    
+  state: // The resource object is being loaded.
+  | { name: "loading"; abortController: AbortController }
+
     // The resource object `resources` is loaded but not attached.
-    { name: "loaded"; resources: R; } |
+    | { name: "loaded"; resources: R }
 
     // The resource object `resources` is attached and ready for rendering.
-    { name: "attached"; resources: R; } |
+    | { name: "attached"; resources: R }
 
     // The resource object has been detached and should not be accessed anymore.
-    { name: "detached"; };
+    | { name: "detached" };
 }
 
 /**
  * Shared resources are just like resources.
  */
-export interface SharedResourcesEntry<R extends Resources> extends ResourcesEntry<R> {
-}
+export interface SharedResourcesEntry<R extends Resources> extends ResourcesEntry<R> {}
 
 /**
-* Local resources augment resources with an extent and details
-* about how that extent is mapped to screen space.
-*/
+ * Local resources augment resources with an extent and details
+ * about how that extent is mapped to screen space.
+ */
 export interface LocalResourcesEntry<R extends Resources> extends ResourcesEntry<R> {
   /**
-  * Local resources can be thought as existing in screen space.
-  * 
-  * The size property is the size of the drawing surface to which
-  * these resources mut be mapped.
-  * 
-  * For instance, when the first visualization is loaded into a
-  * newly created map, it will be created with a size equal to
-  * the drawing surface of the `MapView`.
-  * 
-  * Size is obtained by dividing the with and height of the extent
-  * by the resolution.
-  */
+   * Local resources can be thought as existing in screen space.
+   *
+   * The size property is the size of the drawing surface to which
+   * these resources mut be mapped.
+   *
+   * For instance, when the first visualization is loaded into a
+   * newly created map, it will be created with a size equal to
+   * the drawing surface of the `MapView`.
+   *
+   * Size is obtained by dividing the with and height of the extent
+   * by the resolution.
+   */
   size: [number, number];
 
   /**
-  * The extent associated to the local resources.
-  */
+   * The extent associated to the local resources.
+   */
   extent: Extent;
 
   /**
-  * The resolution of the local resources.
-  */
+   * The resolution of the local resources.
+   */
   resolution: number;
 
   /**
-  * The pixel ratio; this information can
-  * be used by concrete classes to decide whether to load hi-res
-  * or lo-res sprites, for instance.
-  */
+   * The pixel ratio; this information can
+   * be used by concrete classes to decide whether to load hi-res
+   * or lo-res sprites, for instance.
+   */
   pixelRatio: number;
 }

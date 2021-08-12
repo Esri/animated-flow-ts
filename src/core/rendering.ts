@@ -32,7 +32,7 @@ import Point from "esri/geometry/Point";
 
 /**
  * Attach a resource object and reflect the state change in the resource entry.
- * 
+ *
  * @param gl The WebGL context.
  * @param entry The entry to be attached.
  */
@@ -45,7 +45,7 @@ export function attach<R extends Resources>(gl: WebGLRenderingContext, entry: Re
 
 /**
  * Detach a resource object and reflect the state change in the resource entry.
- * 
+ *
  * @param gl The WebGL context.
  * @param entry The entry to be detached.
  */
@@ -63,7 +63,7 @@ export function detach<R extends Resources>(gl: WebGLRenderingContext, entry: Re
 export abstract class VisualizationStyle<SR extends Resources, LR extends Resources> {
   /**
    * Load the shared resources.
-   * 
+   *
    * @param signal An abort signal.
    * @returns A promise to a shared resource object.
    */
@@ -71,7 +71,7 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
 
   /**
    * Load the local resources.
-   * 
+   *
    * @param extent The extent to load.
    * @param resolution The resolution at which to load the resources.
    * @param pixelRatio The target pixel ratio; this is useful to scale user-specified sizes and lengths.
@@ -101,7 +101,15 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
     localResources: LR
   ): void;
 
-  async createImage(gl: WebGLRenderingContext, center: Point, resolution: number, width: number, height: number, backgroundColor: string, signal: AbortSignal): Promise<HTMLCanvasElement> {
+  async createImage(
+    gl: WebGLRenderingContext,
+    center: Point,
+    resolution: number,
+    width: number,
+    height: number,
+    backgroundColor: string,
+    signal: AbortSignal
+  ): Promise<HTMLCanvasElement> {
     const extent = new Extent({
       xmin: 0,
       ymin: 0,
@@ -118,7 +126,7 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
       opacity: 1,
       pixelRatio: 1
     };
-    
+
     const sharedResources = await this.loadSharedResources(signal);
     sharedResources.attach(gl);
     const localResources = await this.loadLocalResources(extent, resolution, [width, height], 1, signal);

@@ -1,20 +1,20 @@
 # wind-es
 
-**wind-es** is ... [ArcGIS API for JavaScript](https://developers.arcgis.com/javascript/latest/) ... [custom layer views](https://developers.arcgis.com/javascript/latest/sample-code/custom-gl-visuals/).
-
-## Live demos
-
-- Magnitude/direction wind: https://wind-es.s3.us-west-1.amazonaws.com/demos/winds.html
-- UV ocean currents: https://wind-es.s3.us-west-1.amazonaws.com/demos/currents.html
-- Client-side data: https://wind-es.s3.us-west-1.amazonaws.com/demos/vortices.html
+**wind-es** is a [flow visualization](https://en.wikipedia.org/wiki/Flow_visualization) application built on top of the [ArcGIS API for JavaScript](https://developers.arcgis.com/javascript/latest/) and [custom WebGL layer views](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html).
 
 ![App](screenshot.png)
+
+## See it in action!
+
+- [Magnitude/direction wind](https://wind-es.s3.us-west-1.amazonaws.com/demos/winds.html)
+- [UV ocean currents](https://wind-es.s3.us-west-1.amazonaws.com/demos/currents.html)
+- [Using client-side data](https://wind-es.s3.us-west-1.amazonaws.com/demos/vortices.html)
 
 ## Features
 
 - A custom WebGL layer compatible with `MapView`.
 - Visualize flow using animated lines.
-- Support UV tiled imagery layers and magnitude/direction tiled imagery layers.
+- Support UV and MagDir [imagery tile layers](https://developers.arcgis.com/javascript/latest/sample-code/layers-imagerytilelayer/).
 - Can be used in conjunction with [blend modes and layer effects](https://developers.arcgis.com/javascript/latest/sample-code/intro-blendmode-layer/).
 
 ## Instructions

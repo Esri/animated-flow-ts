@@ -5,13 +5,10 @@ import { LocalResourcesEntry, Resources, SharedResourcesEntry, VisualizationRend
 import { defined } from "./util";
 
 @subclass("wind-es.core.visualization.LayerView2D")
-export abstract class VisualizationLayerView2D<
-  SR extends Resources,
-  LR extends Resources
-> extends BaseLayerViewGL2D {
+export abstract class VisualizationLayerView2D<SR extends Resources, LR extends Resources> extends BaseLayerViewGL2D {
   private _sharedResources: SharedResourcesEntry<SR> | null = null;
   private _localResources: LocalResourcesEntry<LR>[] = [];
-  
+
   @property({
     type: Boolean
   })
@@ -67,9 +64,11 @@ export abstract class VisualizationLayerView2D<
     };
     this._localResources.push(entry);
     defined(this.visualizationStyle);
-    this.visualizationStyle.loadLocalResources(extent, resolution, size, pixelRatio, abortController.signal).then((resources) => {
-      entry.state = { name: "loaded", resources };
-    });
+    this.visualizationStyle
+      .loadLocalResources(extent, resolution, size, pixelRatio, abortController.signal)
+      .then((resources) => {
+        entry.state = { name: "loaded", resources };
+      });
   }
 
   override render(renderParams: any): void {
@@ -124,7 +123,12 @@ export abstract class VisualizationLayerView2D<
       };
 
       defined(this.visualizationStyle);
-      this.visualizationStyle.renderVisualization(gl, visualizationRenderParams, this._sharedResources.state.resources, toRender.state.resources);
+      this.visualizationStyle.renderVisualization(
+        gl,
+        visualizationRenderParams,
+        this._sharedResources.state.resources,
+        toRender.state.resources
+      );
     }
 
     if (this.animate) {

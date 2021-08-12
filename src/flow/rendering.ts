@@ -132,11 +132,7 @@ export class FlowLocalResources implements Resources {
   u_Rotation = mat4.create();
   u_ClipFromScreen = mat4.create();
 
-  constructor(
-    downsample: number,
-    vertexData: Float32Array,
-    indexData: Uint32Array
-  ) {
+  constructor(downsample: number, vertexData: Float32Array, indexData: Uint32Array) {
     this.downsample = downsample;
     this.vertexData = vertexData;
     this.indexData = indexData;

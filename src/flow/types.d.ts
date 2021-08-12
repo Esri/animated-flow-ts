@@ -103,7 +103,7 @@ export type FlowLinesMesh = {
 export type Field = (x: number, y: number) => [number, number];
 
 /**
- * A 2D 
+ * A 2D
  */
 export type FlowData = {
   data: Float32Array;
