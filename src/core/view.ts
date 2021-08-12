@@ -44,6 +44,7 @@
  */
 
 import { property, subclass } from "esri/core/accessorSupport/decorators";
+import Extent from "esri/geometry/Extent";
 import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
 import { attach, detach, VisualizationStyle } from "./rendering";
 import { LocalResourcesEntry, Resources, GlobalResourcesEntry, VisualizationRenderParams } from "./types";
@@ -154,18 +155,39 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     // Abort all local resources that were being loaded.
     for (const localResources of this._localResources) {
       if (localResources.state.name === "loading") {
+        console.log("ABORT!!!"); // TODO: Remove this!
         localResources.state.abortController.abort();
         this._localResources.splice(this._localResources.indexOf(localResources), 1);
       }
     }
 
-    // Capture the current view state information.
+    // Account for map rotation. This is done by rotating the
+    // rectangle of the original extent and computing its bounding
+    // extent. This "rotated" extent is what needs to be loaded.
+    // Fetching the original extent would lead to the corners of a
+    // rotated map not being covered by the new visualization.
     const extent = this.view.extent;
+    const center = extent.center;
+    const extentWidth = extent.xmax - extent.xmin;
+    const extentHeight = extent.ymax - extent.ymin;
+    const aco = Math.abs(Math.cos(Math.PI * this.view.rotation / 180));
+    const asi = Math.abs(Math.sin(Math.PI * this.view.rotation / 180));
+    const rotatedExtentWidth = aco * extentWidth + asi * extentHeight;
+    const rotatedExtentHeight = asi * extentWidth + aco * extentHeight;
+    const rotatedExtent = new Extent({
+      xmin: center.x - rotatedExtentWidth / 2,
+      ymin: center.y - rotatedExtentHeight / 2,
+      xmax: center.x + rotatedExtentWidth / 2,
+      ymax: center.y + rotatedExtentHeight / 2
+    });
+    rotatedExtent.centerAt(center);
+    
+    // Compute the rest of the parameters needed for the load operation.
     const resolution = this.view.resolution;
     const pixelRatio = devicePixelRatio;
     const size: [number, number] = [
-      Math.round((extent.xmax - extent.xmin) / resolution),
-      Math.round((extent.ymax - extent.ymin) / resolution)
+      Math.round((rotatedExtent.xmax - rotatedExtent.xmin) / resolution),
+      Math.round((rotatedExtent.ymax - rotatedExtent.ymin) / resolution)
     ];
 
     // Create and start loading a new local resource object
@@ -173,7 +195,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     const abortController = new AbortController();
     const entry: LocalResourcesEntry<LR> = {
       state: { name: "loading", abortController },
-      extent,
+      extent: rotatedExtent,
       resolution,
       pixelRatio,
       size
@@ -181,7 +203,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     this._localResources.push(entry);
     defined(this.visualizationStyle);
     this.visualizationStyle
-      .loadLocalResources(extent, resolution, size, pixelRatio, abortController.signal)
+      .loadLocalResources(rotatedExtent, resolution, size, pixelRatio, abortController.signal)
       .then((resources) => {
         // Once loaded, store the loaded resource object in the local resource entry.
         entry.state = { name: "loaded", resources };

@@ -106,7 +106,7 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
    * 
    * Useful for generating thumbnails and screenshots.
    *
-   * @param gl The WebGL context to use.
+   * @param gl The WebGL context to use. It must have been created with the `preserveDrawingBuffer` attribute.
    * @param center The geographic center of the image.
    * @param resolution The resolution of the image.
    * @param width The width of the image.
@@ -124,6 +124,7 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
     backgroundColor: string,
     signal: AbortSignal
   ): Promise<HTMLCanvasElement> {
+    // Create an extent of the proper size centered on the given geographical point.
     const extent = new Extent({
       xmin: 0,
       ymin: 0,
@@ -132,6 +133,7 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
     });
     extent.centerAt(center);
 
+    // Build the render params.
     const renderParams: VisualizationRenderParams = {
       size: [width, height],
       translation: [0, 0],
@@ -141,12 +143,20 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
       pixelRatio: 1
     };
 
+    // Load global and local resources.
     const globalResources = await this.loadGlobalResources(signal);
     globalResources.attach(gl);
     const localResources = await this.loadLocalResources(extent, resolution, [width, height], 1, signal);
     localResources.attach(gl);
+
+    // Render the visualization.
     this.renderVisualization(gl, renderParams, globalResources, localResources);
 
+    // Transfer the rendered image to a non-WebGL canvas and return it.
+    // The original, WebGL canvas, is seen as a (possibly off-screen) work
+    // area and it is not what should be added to the page. The element
+    // that is returned from this function can be added to page as a regular
+    // image.
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
