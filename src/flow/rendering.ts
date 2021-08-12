@@ -26,7 +26,7 @@ import { defined, throwIfAborted } from "../core/util";
 import { FlowTracer } from "./meshing";
 import { FlowSource } from "./sources";
 
-export class FlowSharedResources implements Resources {
+export class FlowGlobalResources implements Resources {
   programs: HashMap<{
     program: WebGLProgram;
     uniforms: HashMap<WebGLUniformLocation>;
@@ -186,13 +186,13 @@ export class FlowLocalResources implements Resources {
   }
 }
 
-export class FlowVisualizationStyle extends VisualizationStyle<FlowSharedResources, FlowLocalResources> {
+export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResources, FlowLocalResources> {
   constructor(private source: Awaitable<FlowSource>, private tracer: Awaitable<FlowTracer>, private color: Color) {
     super();
   }
 
-  override async loadSharedResources(): Promise<FlowSharedResources> {
-    return new FlowSharedResources();
+  override async loadGlobalResources(): Promise<FlowGlobalResources> {
+    return new FlowGlobalResources();
   }
 
   override async loadLocalResources(
@@ -220,7 +220,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowSharedResourc
   override renderVisualization(
     gl: WebGLRenderingContext,
     renderParams: VisualizationRenderParams,
-    sharedResources: FlowSharedResources,
+    globalResources: FlowGlobalResources,
     localResources: FlowLocalResources
   ): void {
     defined(localResources.vertexBuffer);
@@ -269,32 +269,32 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowSharedResourc
       1
     ]);
 
-    const solidProgram = sharedResources.programs!["texture"]?.program!;
+    const solidProgram = globalResources.programs!["texture"]?.program!;
     gl.useProgram(solidProgram);
     gl.uniformMatrix4fv(
-      sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!,
+      globalResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!,
       false,
       localResources.u_ScreenFromLocal
     );
     gl.uniformMatrix4fv(
-      sharedResources.programs!["texture"]?.uniforms["u_Rotation"]!,
+      globalResources.programs!["texture"]?.uniforms["u_Rotation"]!,
       false,
       localResources.u_Rotation
     );
     gl.uniformMatrix4fv(
-      sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!,
+      globalResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!,
       false,
       localResources.u_ClipFromScreen
     );
-    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
+    gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
     gl.uniform4f(
-      sharedResources.programs!["texture"]?.uniforms["u_Color"]!,
+      globalResources.programs!["texture"]?.uniforms["u_Color"]!,
       this.color.r / 255.0,
       this.color.g / 255.0,
       this.color.b / 255.0,
       this.color.a * renderParams.opacity
     );
-    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
+    gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

@@ -46,7 +46,7 @@
 import { property, subclass } from "esri/core/accessorSupport/decorators";
 import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
 import { attach, detach, VisualizationStyle } from "./rendering";
-import { LocalResourcesEntry, Resources, SharedResourcesEntry, VisualizationRenderParams } from "./types";
+import { LocalResourcesEntry, Resources, GlobalResourcesEntry, VisualizationRenderParams } from "./types";
 import { defined } from "./util";
 
 /**
@@ -54,43 +54,92 @@ import { defined } from "./util";
  * 
  * A visualization is a visual representation of an extent. Subclasses
  * of `VisualizationLayerView2D` need to specify how individual visualizations
- * are attached, rendered and detached.
+ * are attached, rendered and detached. They do so by overriding method
+ * `VisualizationLayerView2D.createVisualizationStyle()`.
+ * 
+ * `VisualizationLayerView2D` will swap visualizations in and out as needed,
+ * according to an internal strategy, so that the current view extent is
+ * always covered.
+ * 
+ * The only strategy implemented so far is such that visualizations cover the
+ * entire view, and only the visualization corresponding to the most recent
+ * view state is rendered.
+ * 
+ * In the future maybe more strategies will be implemented, such as a "patchwork"
+ * strategy, in which some visualizations only cover part of the screen, but when
+ * stiched together they form a full coverage. There could even be a "tiled"
+ * strategy, in which visualizations are regularly spaced and equally sized.
  */
 @subclass("wind-es.core.visualization.LayerView2D")
-export abstract class VisualizationLayerView2D<SR extends Resources, LR extends Resources> extends BaseLayerViewGL2D {
+export abstract class VisualizationLayerView2D<GR extends Resources, LR extends Resources> extends BaseLayerViewGL2D {
   /**
-   * Shared resources are used by all visualizations. An example of a shared
+   * Global resources are used by all visualizations. An example of a global
    * resource is a shader program, which can be used to render multiple visualizations.
    */
-  private _sharedResources: SharedResourcesEntry<SR> | null = null;
+  private _globalResources: GlobalResourcesEntry<GR> | null = null;
 
   /**
    * Local resources are tied to an extent and are specific for a 
    */
   private _localResources: LocalResourcesEntry<LR>[] = [];
 
+  /**
+   * Whether the visualizations are animated or not.
+   *
+   * Setting this to `true` causes the map to continuously redraw and can
+   * drain the battery of mobile devices more quickly than a static map.
+   */
   @property({
     type: Boolean
   })
   animate = false;
 
-  private visualizationStyle: VisualizationStyle<SR, LR> | null = null;
+  /**
+   * The visualization style used by this layer view.
+   *
+   * The visualization style is initialized when the layer view is
+   * first attached by calling protected abstract method `VisualizationLayerView2D.createVisualizationStyle()`.
+   * Derived classes must provide an implementation for it.
+   */
+  private visualizationStyle: VisualizationStyle<GR, LR> | null = null;
 
-  protected abstract createVisualizationStyle(): VisualizationStyle<SR, LR>;
+  /**
+   * Creates the visualization style for the layer view.
+   * 
+   * Derived classes must implement this method. `VisualizationLayerView2D`
+   * will invoke it only once, when the layer view is first attached.
+   * 
+   * @returns The visualization style which will be adopted by this layer view.
+   */
+  protected abstract createVisualizationStyle(): VisualizationStyle<GR, LR>;
 
+  /**
+   * Attach the layer view.
+   * 
+   * This method is invoked by `MapView` when the layer view is created
+   * and added to the `MapView`. This method is akin to a constructor as
+   * it initializes the newly created layer view.
+   * 
+   * See [BaseLayerViewGL2D.attach()](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html#attach).
+   */
   override attach(): void {
-    if (!this.visualizationStyle) {
-      this.visualizationStyle = this.createVisualizationStyle();
-      this.requestRender();
-    }
+    // Initialize the visualization style.
+    this.visualizationStyle = this.createVisualizationStyle();
 
+    // Create and start loading the global resource object.
     const abortController = new AbortController();
-    const entry: SharedResourcesEntry<SR> = { state: { name: "loading", abortController } };
-    this._sharedResources = entry;
-    this.visualizationStyle.loadSharedResources(abortController.signal).then((resources) => {
+    const entry: GlobalResourcesEntry<GR> = { state: { name: "loading", abortController } };
+    this._globalResources = entry;
+    this.visualizationStyle.loadGlobalResources(abortController.signal).then((resources) => {
+      // Once loaded, store the loaded resource object in the global resource entry.
       entry.state = { name: "loaded", resources };
     });
 
+    // Every time that the view becomes stationary, reload
+    // a visualization for the current view state.
+    // Note that `MapView` is guaranteed to signal this condition
+    // at load time, so that there is no need for a separate
+    // initialization path.
     this.view.watch("stationary", (stationary) => {
       if (stationary) {
         this._loadVisualization();
@@ -98,7 +147,11 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
     });
   }
 
+  /**
+   * Load a visualization for the current view state.
+   */
   private _loadVisualization(): void {
+    // Abort all local resources that were being loaded.
     for (const localResources of this._localResources) {
       if (localResources.state.name === "loading") {
         localResources.state.abortController.abort();
@@ -106,8 +159,7 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
       }
     }
 
-    const abortController = new AbortController();
-
+    // Capture the current view state information.
     const extent = this.view.extent;
     const resolution = this.view.resolution;
     const pixelRatio = devicePixelRatio;
@@ -115,46 +167,78 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
       Math.round((extent.xmax - extent.xmin) / resolution),
       Math.round((extent.ymax - extent.ymin) / resolution)
     ];
+
+    // Create and start loading a new local resource object
+    // specific for the current view state.
+    const abortController = new AbortController();
     const entry: LocalResourcesEntry<LR> = {
       state: { name: "loading", abortController },
       extent,
       resolution,
-      size,
-      pixelRatio
+      pixelRatio,
+      size
     };
     this._localResources.push(entry);
     defined(this.visualizationStyle);
     this.visualizationStyle
       .loadLocalResources(extent, resolution, size, pixelRatio, abortController.signal)
       .then((resources) => {
+        // Once loaded, store the loaded resource object in the local resource entry.
         entry.state = { name: "loaded", resources };
       });
   }
 
+  /**
+   * Render the layer view.
+   * 
+   * This method is invoked by `MapView` when the layer view must be rendered.
+   * 
+   * See [BaseLayerViewGL2D.render()](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html#render).
+   * 
+   * @param renderParams The render parameters.
+   */
   override render(renderParams: any): void {
-    if (!this._sharedResources || this._sharedResources.state.name === "loading") {
+    // If the global resources have not been loaded yet it is necessary
+    // to try again on the next frame.
+    if (!this._globalResources || this._globalResources.state.name === "loading") {
       this.requestRender();
       return;
     }
 
+    // The WebGL context is needed for all rendering operations.
     const gl: WebGLRenderingContext = renderParams.context;
 
-    if (this._sharedResources.state.name === "loaded") {
-      attach(gl, this._sharedResources);
+    // If the global resources have been loaded, but they are not attached
+    // yet, then attach them now.
+    if (this._globalResources.state.name === "loaded") {
+      attach(gl, this._globalResources);
     }
 
-    let toRender: LocalResourcesEntry<LR> | null = null;
+    // The only visualization strategy implemented at the time being
+    // is such that only one visualization per frame is rendered; this
+    // variable holds its local resources.
+    let mostRecentRenderableLocalResources: LocalResourcesEntry<LR> | null = null;
 
+    // The local resources are scanned in reverse order of creation.
+    // Some resource objects in this list will be in a "loading" state,
+    // others will be "loaded" and at most another one could be "attached".
     for (let i = this._localResources.length - 1; i >= 0; i--) {
       const localResources = this._localResources[i];
       defined(localResources);
 
-      if (toRender) {
+      // What to do is determined by whether a renderable local resource
+      // object has already been found or not.
+      if (mostRecentRenderableLocalResources) {
+        // If it has, then any other local resource object before it
+        // must be detached...
         if (localResources.state.name === "attached") {
           detach(gl, localResources);
         }
+
+        // ...and then removed.
         this._localResources.splice(i, 1);
       } else {
+        // If it hasn't, then object that are loading.
         if (localResources.state.name === "loading") {
           this.requestRender();
         } else {
@@ -162,14 +246,14 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
             attach(gl, localResources);
           }
 
-          toRender = localResources;
+          mostRecentRenderableLocalResources = localResources;
         }
       }
     }
 
-    if (this._sharedResources.state.name === "attached" && toRender && toRender.state.name === "attached") {
-      const xMap = toRender.extent.xmin;
-      const yMap = toRender.extent.ymax;
+    if (this._globalResources.state.name === "attached" && mostRecentRenderableLocalResources && mostRecentRenderableLocalResources.state.name === "attached") {
+      const xMap = mostRecentRenderableLocalResources.extent.xmin;
+      const yMap = mostRecentRenderableLocalResources.extent.ymax;
       const translation: [number, number] = [0, 0];
       renderParams.state.toScreen(translation, xMap, yMap);
 
@@ -177,7 +261,7 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
         size: renderParams.state.size,
         translation,
         rotation: (Math.PI * renderParams.state.rotation) / 180,
-        scale: toRender.resolution / renderParams.state.resolution,
+        scale: mostRecentRenderableLocalResources.resolution / renderParams.state.resolution,
         opacity: 1,
         pixelRatio: devicePixelRatio
       };
@@ -186,8 +270,8 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
       this.visualizationStyle.renderVisualization(
         gl,
         visualizationRenderParams,
-        this._sharedResources.state.resources,
-        toRender.state.resources
+        this._globalResources.state.resources,
+        mostRecentRenderableLocalResources.state.resources
       );
     }
 
@@ -196,9 +280,21 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
     }
   }
 
+  /**
+   * Detach the layer view.
+   * 
+   * This method is invoked by `MapView` when the layer view is removed
+   * to the `MapView`. This method is akin to a destructor and is
+   * responsible for cleaning up used resources.
+   * 
+   * See [BaseLayerViewGL2D.detach()](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html#detach).
+   */
   override detach(): void {
+    // The WebGL context is needed to detach the resources.
     const gl: WebGLRenderingContext = this.context;
 
+    // Iterate on the local resources; abort the ones that
+    // were being loaded and detach the ones that were attached.
     for (const localResources of this._localResources) {
       if (localResources.state.name === "loading") {
         localResources.state.abortController.abort();
@@ -207,18 +303,20 @@ export abstract class VisualizationLayerView2D<SR extends Resources, LR extends 
       }
     }
 
+    // Remove all local resource objects.
     this._localResources = [];
 
-    if (this._sharedResources) {
-      if (this._sharedResources.state.name === "loading") {
-        this._sharedResources.state.abortController.abort();
-      } else if (this._sharedResources.state.name === "attached") {
-        detach(gl, this._sharedResources);
+    // If there are global resources, abort their loading or
+    // detach them.
+    if (this._globalResources) {
+      if (this._globalResources.state.name === "loading") {
+        this._globalResources.state.abortController.abort();
+      } else if (this._globalResources.state.name === "attached") {
+        detach(gl, this._globalResources);
       }
 
-      this._sharedResources = null;
+      // Remove the reference to the global resource object.
+      this._globalResources = null;
     }
-
-    this.destroy();
   }
 }

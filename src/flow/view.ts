@@ -20,14 +20,14 @@
 import { subclass } from "esri/core/accessorSupport/decorators";
 import { VisualizationLayerView2D } from "../core/view";
 import { FlowLayer } from "./layer";
-import { FlowLocalResources, FlowSharedResources, FlowVisualizationStyle } from "./rendering";
+import { FlowLocalResources, FlowGlobalResources, FlowVisualizationStyle } from "./rendering";
 import { VisualizationStyle } from "../core/rendering";
 
 @subclass("wind-es.flow.layer.FlowLayerView2D")
-export class FlowLayerView2D extends VisualizationLayerView2D<FlowSharedResources, FlowLocalResources> {
+export class FlowLayerView2D extends VisualizationLayerView2D<FlowGlobalResources, FlowLocalResources> {
   override animate = true;
 
-  createVisualizationStyle(): VisualizationStyle<FlowSharedResources, FlowLocalResources> {
+  createVisualizationStyle(): VisualizationStyle<FlowGlobalResources, FlowLocalResources> {
     const layer = this.layer as FlowLayer;
 
     return new FlowVisualizationStyle(layer.source, layer.tracer, layer.color);

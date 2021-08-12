@@ -19,8 +19,8 @@
  * implemented is the "flow" visualization contained in the `flow` directory.
  *
  * The custom rendering system is designed around the concept of "visualizations".
- * Visualizations are renderable extents. They are comprised of a set of "shared"
- * resources and another one of "local" resources. The shared resources are shared
+ * Visualizations are renderable extents. They are comprised of a set of "global"
+ * resources and another one of "local" resources. The glboal resources are shared
  * by multiple visualizations, while the local resources are extent-specific and
  * hence are used solely by the visualization associated with that specific extent.
  */
@@ -57,17 +57,17 @@ export function detach<R extends Resources>(gl: WebGLRenderingContext, entry: Re
 }
 
 /**
- * Visualization styles define how to load shared and local resources
+ * Visualization styles define how to load global and local resources
  * and how to render them.
  */
-export abstract class VisualizationStyle<SR extends Resources, LR extends Resources> {
+export abstract class VisualizationStyle<GR extends Resources, LR extends Resources> {
   /**
-   * Load the shared resources.
+   * Load the global resources.
    *
    * @param signal An abort signal.
-   * @returns A promise to a shared resource object.
+   * @returns A promise to a global resource object.
    */
-  abstract loadSharedResources(signal: AbortSignal): Promise<SR>;
+  abstract loadGlobalResources(signal: AbortSignal): Promise<GR>;
 
   /**
    * Load the local resources.
@@ -76,7 +76,7 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
    * @param resolution The resolution at which to load the resources.
    * @param pixelRatio The target pixel ratio; this is useful to scale user-specified sizes and lengths.
    * @param signal An abort signal.
-   * @returns A promise to a shared resource object.
+   * @returns A promise to a local resource object.
    */
   abstract loadLocalResources(
     extent: Extent,
@@ -91,13 +91,13 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
    *
    * @param gl The WebGL context.
    * @param renderParams Define where to place the visualization on screen.
-   * @param sharedResources The shared resources shared by all visualizations.
+   * @param globalResources The global resources shared by all visualizations.
    * @param localResources The local resources specific to the visualization being rendered.
    */
   abstract renderVisualization(
     gl: WebGLRenderingContext,
     renderParams: VisualizationRenderParams,
-    sharedResources: SR,
+    globalResources: GR,
     localResources: LR
   ): void;
 
@@ -141,11 +141,11 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
       pixelRatio: 1
     };
 
-    const sharedResources = await this.loadSharedResources(signal);
-    sharedResources.attach(gl);
+    const globalResources = await this.loadGlobalResources(signal);
+    globalResources.attach(gl);
     const localResources = await this.loadLocalResources(extent, resolution, [width, height], 1, signal);
     localResources.attach(gl);
-    this.renderVisualization(gl, renderParams, sharedResources, localResources);
+    this.renderVisualization(gl, renderParams, globalResources, localResources);
 
     const canvas = document.createElement("canvas");
     canvas.width = width;

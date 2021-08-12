@@ -151,12 +151,14 @@ export interface ResourcesEntry<R extends Resources> {
 }
 
 /**
- * Shared resources are just like resources.
+ * Global resouce entries do not extent the base interface.
+ * 
+ * This interface is defined for simmetry.
  */
-export interface SharedResourcesEntry<R extends Resources> extends ResourcesEntry<R> {}
+export interface GlobalResourcesEntry<R extends Resources> extends ResourcesEntry<R> {}
 
 /**
- * Local resources augment resources with an extent and details
+ * Local resource entries need to remember the extent of validity and details
  * about how that extent is mapped to screen space.
  */
 export interface LocalResourcesEntry<R extends Resources> extends ResourcesEntry<R> {
@@ -186,9 +188,7 @@ export interface LocalResourcesEntry<R extends Resources> extends ResourcesEntry
   resolution: number;
 
   /**
-   * The pixel ratio; this information can
-   * be used by concrete classes to decide whether to load hi-res
-   * or lo-res sprites, for instance.
+   * The pixel ratio at which these local resources were loaded.
    */
   pixelRatio: number;
 }

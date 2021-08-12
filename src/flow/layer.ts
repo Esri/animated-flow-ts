@@ -52,8 +52,6 @@ export class FlowLayer extends BaseLayer {
       throw new Error("Only one of 'url' or 'source' parameters can be specified when creating a FlowLayer.");
     }
 
-    // TODO: Support both UV and MagDir.
-
     const useWebWorkers = "useWebWorkers" in params ? params.useWebWorkers : true;
 
     this.source = Promise.resolve(
