@@ -116,7 +116,9 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): FlowLin
   });
 
   for (let i = 0; i < 100 /* TODO: CONFIGURABLE PARAMETER */; i++) {
-    const [vx, vy] = f(x, y);
+    let [vx, vy] = f(x, y);
+    vx *= 0.1 /* TODO: CONFIGURABLE PARAMETER */;
+    vy *= 0.1 /* TODO: CONFIGURABLE PARAMETER */;
     const v = Math.sqrt(vx * vx + vy * vy);
     if (v < MIN_SPEED_THRESHOLD) {
       return line;
@@ -124,8 +126,8 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): FlowLin
     /* TODO: CONFIGURABLE PARAMETER (sub-vertex update rate) */
     const dx = vx / v;
     const dy = vy / v;
-    x += dx * segmentLength * 0.1 /* TODO: CONFIGURABLE PARAMETER */;
-    y += dy * segmentLength * 0.1 /* TODO: CONFIGURABLE PARAMETER */;
+    x += dx * segmentLength;
+    y += dy * segmentLength;
     const dt = segmentLength / v;
     t += dt;
 
