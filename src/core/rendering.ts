@@ -27,7 +27,7 @@
 
 import Extent from "esri/geometry/Extent";
 import { assert, defined } from "./util";
-import { Resources, ResourcesEntry, VisualizationRenderParams } from "./types";
+import { MapUnitsPerPixel, Pixels, Resources, ResourcesEntry, VisualizationRenderParams } from "./types";
 import Point from "esri/geometry/Point";
 
 /**
@@ -80,8 +80,8 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
    */
   abstract loadLocalResources(
     extent: Extent,
-    resolution: number,
-    size: [number, number],
+    resolution: MapUnitsPerPixel,
+    size: [Pixels, Pixels],
     pixelRatio: number,
     signal: AbortSignal
   ): Promise<LR>;
@@ -118,9 +118,9 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
   async createImage(
     gl: WebGLRenderingContext,
     center: Point,
-    resolution: number,
-    width: number,
-    height: number,
+    resolution: MapUnitsPerPixel,
+    width: Pixels,
+    height: Pixels,
     backgroundColor: string,
     signal: AbortSignal
   ): Promise<HTMLCanvasElement> {

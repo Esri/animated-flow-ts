@@ -47,7 +47,7 @@ import { property, subclass } from "esri/core/accessorSupport/decorators";
 import Extent from "esri/geometry/Extent";
 import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
 import { attach, detach, VisualizationStyle } from "./rendering";
-import { LocalResourcesEntry, Resources, GlobalResourcesEntry, VisualizationRenderParams } from "./types";
+import { LocalResourcesEntry, Resources, GlobalResourcesEntry, VisualizationRenderParams, Pixels } from "./types";
 import { defined } from "./util";
 
 /**
@@ -185,7 +185,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     // Compute the rest of the parameters needed for the load operation.
     const resolution = this.view.resolution;
     const pixelRatio = devicePixelRatio;
-    const size: [number, number] = [
+    const size: [Pixels, Pixels] = [
       Math.round((rotatedExtent.xmax - rotatedExtent.xmin) / resolution),
       Math.round((rotatedExtent.ymax - rotatedExtent.ymin) / resolution)
     ];
@@ -278,7 +278,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     if (this._globalResources.state.name === "attached" && mostRecentRenderableLocalResources && mostRecentRenderableLocalResources.state.name === "attached") {
       const xMap = mostRecentRenderableLocalResources.extent.xmin;
       const yMap = mostRecentRenderableLocalResources.extent.ymax;
-      const translation: [number, number] = [0, 0];
+      const translation: [Pixels, Pixels] = [0, 0];
       renderParams.state.toScreen(translation, xMap, yMap);
 
       const visualizationRenderParams: VisualizationRenderParams = {

@@ -17,48 +17,57 @@
  * This module contains simple type definitions used by the `flow` visualization.
  */
 
-/**
- * A pixel block as returned by `ImageryTileLayer.fetchPixels()` into the property `pixelBlock`
- * of the fetched raster data object.
- */
-export type PixelBlock = {
-  /**
-   * The width of the block in pixels.
-   */
-  width: number;
+ export type Cells = number;
+ export type PixelsPerSecond = number;
+ export type PixelsPerCell = number;
 
-  /**
-   * The height of the block in pixels.
-   */
-  height: number;
+// /**
+//  * Method `ImageryTileLayer.fetchPixels()` returns a block of "pixels" into the
+//  * property `pixelBlock` of the fetched raster data object. From the perspective
+//  * of wind-es, the returned data is not really in "pixels" because very often
+//  * for efficiency reason it will be worthed query the service at a lower resolution
+//  * than the screen. For this reason, wind-es regards the result as a matrix of
+//  * "cells" rather than pixels, and instead of the terms "width" and "height" uses
+//  * the terms "columns" and "rows".
+//  */
+// export type CellBlock = {
+//   /**
+//    * The number of columns in the block.
+//    */
+//   columns: Cells;
 
-  /**
-   * The pixel data.
-   *
-   * Pixel data is stored:
-   *
-   * - Linearly;
-   * - One scanline at a time, starting from the top scanline;
-   * - In separated channels.
-   *
-   * The first index into the `pixel` multidimensional array
-   * specifies the channel, while the second index specifies
-   * a scalar pixel value.
-   *
-   * As an example, consider a magnitude/direction raster as
-   * returned by a query to an image server.
-   *
-   * Here are some examples.
-   *
-   * - pixels[0][0] is the first pixel of the magnitude channel;
-   * - pixels[1][0] is the first pixel of the direction channel;
-   * - pixels[0][width - 1] is the last pixel of the first (top)
-   *   scanline of the magnitude channel;
-   * - pixels[0][width * height - 1] is the last pixel of the
-   *   last (bottom) scanline of the magnitude channel.
-   */
-  pixels: number[][];
-};
+//   /**
+//    * The number of rows in the block.
+//    */
+//   rows: Cells;
+
+//   /**
+//    * The cell data.
+//    *
+//    * Cell data is stored:
+//    *
+//    * - Linearly;
+//    * - One scanline at a time, starting from the top scanline;
+//    * - In separated channels.
+//    *
+//    * The first index into the `cells` multidimensional array
+//    * specifies the channel, while the second index specifies
+//    * a scalar cell value.
+//    *
+//    * As an example, consider a MagDir raster as returned by a
+//    * query to an image server.
+//    *
+//    * Here are some examples.
+//    *
+//    * - cells[0][0] is the first cell of the magnitude channel;
+//    * - cells[1][0] is the first cell of the direction channel;
+//    * - cells[0][columns - 1] is the last cell of the first (top)
+//    *   scanline of the magnitude channel;
+//    * - cells[0][columns * rows - 1] is the last cell of the
+//    *   last (bottom) scanline of the magnitude channel.
+//    */
+//   cells: number[][];
+// };
 
 /**
  * A vertex of a flow line, as returned by The `trace()` function in
@@ -68,12 +77,9 @@ export type PixelBlock = {
  */
 export type FlowLineVertex = {
   /**
-   * The position of the vertex.
-   *
-   * Coordinates are expressed in "visualization units"; see module
-   * wind-es/core/visualization for more details.
+   * The position of the vertex, in pixels.
    */
-  position: [number, number];
+  position: [Pixels, Pixels];
 
   /**
    * The timestamp associated to this position, in seconds.
@@ -86,7 +92,7 @@ export type FlowLineVertex = {
    * the polyline, we wait an extended period of time to allow
    * for the trail to fully fade.
    */
-  time: number;
+  time: Seconds;
 };
 
 /**
@@ -112,27 +118,27 @@ export type FlowData = {
    * The speeds are stored interleaved, row major,
    */
   data: Float32Array;
-  columns: number;
-  rows: number;
-  cellSize: number;
+  columns: Cells;
+  rows: Cells;
+  cellSize: PixelsPerCell;
 };
 
 export type TransferableFlowData = {
   buffer: ArrayBuffer;
-  columns: number;
-  rows: number;
-  cellSize: number;
+  columns: Cells;
+  rows: Cells;
+  cellSize: PixelsPerCell;
 };
 
 /**
  * A flow source is a gate
  */
 export interface FlowSource {
-  fetchFlowData(extent: Extent, width: number, height: number, cellSize: number, signal: AbortSignal): Promise<FlowData>;
+  fetchFlowData(extent: Extent, width: Pixels, height: Pixels, cellSize: PixelsPerCell, signal: AbortSignal): Promise<FlowData>;
   destroy(): void;
 }
  
 export interface FlowProcessor {
-  createFlowLinesMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh>;
+  createFlowLinesMesh(flowData: FlowData, smoothing: Cells, signal: AbortSignal): Promise<FlowLinesMesh>;
   destroy(): void;
 }

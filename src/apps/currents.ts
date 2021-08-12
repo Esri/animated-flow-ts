@@ -22,10 +22,11 @@ import MapView from "esri/views/MapView";
 import VectorTileLayer from "esri/layers/VectorTileLayer";
 import { FlowLayer } from "../flow/layer";
 import { VectorFieldFlowSource } from "../flow/sources";
-import { Field } from "../flow/types";
+import { Field, PixelsPerSecond } from "../flow/types";
 import esriConfig from "esri/config";
 import ImageryLayer from "esri/layers/ImageryLayer";
 import GroupLayer from "esri/layers/GroupLayer";
+import { MapUnits } from "../core/types";
 
 esriConfig.workers.loaderConfig = {
   packages: [
@@ -40,7 +41,7 @@ const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
-function createVortex(vortexCenter: [number, number]): Field {
+function createVortex(vortexCenter: [MapUnits, MapUnits]): Field {
   return (x, y) => {
     x -= vortexCenter[0];
     y -= vortexCenter[1];
@@ -53,7 +54,7 @@ const vortex1 = createVortex([-57, 38]);
 const vortex2 = createVortex([-70, 34]);
 const vortex3 = createVortex([-77, 30]);
 
-const currentsVectorField = (x: number, y: number): [number, number] => {
+const currentsVectorField = (x: MapUnits, y: MapUnits): [PixelsPerSecond, PixelsPerSecond] => {
   const v1 = vortex1(x, y);
   const v2 = vortex2(x, y);
   const v3 = vortex3(x, y);

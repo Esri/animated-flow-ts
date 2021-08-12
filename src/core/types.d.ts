@@ -17,6 +17,11 @@
  * This module contains simple type definitions used by the core visualization system.
  */
 
+export type Pixels = number;
+export type Radians = number;
+export type MapUnits = number;
+export type MapUnitsPerPixel = number;
+
 /**
  * A value that can be accessed by using `await`.
  *
@@ -39,14 +44,14 @@ export type VisualizationRenderParams = {
    * Size of the drawing surface.
    *
    * This coincides with the size of the MapView when the device pixel ratio
-   * is 1. For retina displays it is going to be larger than 1.
+   * is 1.
    */
-  size: [number, number];
+  size: [MapUnitsPerPixel, MapUnitsPerPixel];
 
   /**
    * The position on the drawing surface of the upper-left corner of the extent.
    */
-  translation: [number, number];
+  translation: [Pixels, Pixels];
 
   /**
    * The rotation of the visualization in radians.
@@ -54,7 +59,7 @@ export type VisualizationRenderParams = {
    * This is the same as the rotation of the `MapView`
    * but expressed in radians.
    */
-  rotation: number;
+  rotation: Radians;
 
   /**
    * The relative scale at which the visualization mush be rendered.
@@ -78,6 +83,8 @@ export type VisualizationRenderParams = {
 
   /**
    * The pixel ratio of the rendering device.
+   * 
+   * For retina displays it is going to be larger than 1.
    *
    * It is possible that `Resource.pixelRatio` is different from
    * `VisualizationRenderParams.pixelRatio`, for instance because
@@ -175,7 +182,7 @@ export interface LocalResourcesEntry<R extends Resources> extends ResourcesEntry
    * Size is obtained by dividing the with and height of the extent
    * by the resolution.
    */
-  size: [number, number];
+  size: [Pixels, Pixels];
 
   /**
    * The extent associated to the local resources.
@@ -185,7 +192,7 @@ export interface LocalResourcesEntry<R extends Resources> extends ResourcesEntry
   /**
    * The resolution of the local resources.
    */
-  resolution: number;
+  resolution: MapUnitsPerPixel;
 
   /**
    * The pixel ratio at which these local resources were loaded.

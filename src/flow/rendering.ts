@@ -21,9 +21,9 @@ import Color from "esri/Color";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
-import { Awaitable, Resources, VisualizationRenderParams } from "../core/types";
+import { Awaitable, MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
 import { defined, throwIfAborted } from "../core/util";
-import { FlowSource, FlowProcessor } from "./types";
+import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
 
 export class FlowGlobalResources implements Resources {
   programs: HashMap<{
@@ -143,14 +143,14 @@ export class FlowLocalResources implements Resources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
   indexCount = 0;
-  cellSize: number;
+  cellSize: PixelsPerCell;
   vertexBuffer: WebGLBuffer | null = null;
   indexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
   u_Rotation = mat4.create();
   u_ClipFromScreen = mat4.create();
 
-  constructor(cellSize: number, vertexData: Float32Array, indexData: Uint32Array) {
+  constructor(cellSize: PixelsPerCell, vertexData: Float32Array, indexData: Uint32Array) {
     this.cellSize = cellSize;
     this.vertexData = vertexData;
     this.indexData = indexData;
@@ -196,8 +196,8 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
 
   override async loadLocalResources(
     extent: Extent,
-    _resolution: number,
-    size: [number, number],
+    _resolution: MapUnitsPerPixel,
+    size: [Pixels, Pixels],
     _pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLocalResources> {

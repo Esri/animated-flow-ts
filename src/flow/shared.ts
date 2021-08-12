@@ -18,73 +18,73 @@
  */
 
 import { createRand, rest } from "../core/util";
-import { Field, FlowLinesMesh, FlowLineVertex, FlowData } from "./types";
+import { Field, FlowLinesMesh, FlowLineVertex, FlowData, PixelsPerSecond, Cells } from "./types";
 
 const MIN_SPEED_THRESHOLD = 0.001; /* TODO: CONFIGURABLE PARAMETER */
 const MIN_WEIGHT_THRESHOLD = 0.001; /* TODO: CONFIGURABLE PARAMETER */
 
-function smooth(data: Float32Array, width: number, height: number, sigma: number): Float32Array {
+function smooth(data: Float32Array, columns: Cells, rows: Cells, sigma: Cells): Float32Array {
   const horizontal = new Float32Array(data.length);
 
   const halfRadius = Math.round(3 * sigma);
 
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < columns; x++) {
       let totalWeight = 0;
       let s0 = 0;
       let s1 = 0;
 
       for (let d = -halfRadius; d <= halfRadius; d++) {
-        if (x + d < 0 || x + d >= width) {
+        if (x + d < 0 || x + d >= columns) {
           continue;
         }
 
         const weight = Math.exp((-d * d) / (sigma * sigma));
 
         totalWeight += weight;
-        s0 += weight * data[2 * (y * width + (x + d)) + 0]!;
-        s1 += weight * data[2 * (y * width + (x + d)) + 1]!;
+        s0 += weight * data[2 * (y * columns + (x + d)) + 0]!;
+        s1 += weight * data[2 * (y * columns + (x + d)) + 1]!;
       }
 
-      horizontal[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s0 / totalWeight;
-      horizontal[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s1 / totalWeight;
+      horizontal[2 * (y * columns + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s0 / totalWeight;
+      horizontal[2 * (y * columns + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s1 / totalWeight;
     }
   }
 
   const final = new Float32Array(data.length);
 
-  for (let x = 0; x < width; x++) {
-    for (let y = 0; y < height; y++) {
+  for (let x = 0; x < columns; x++) {
+    for (let y = 0; y < rows; y++) {
       let totalWeight = 0;
       let s0 = 0;
       let s1 = 0;
 
       for (let d = -halfRadius; d <= halfRadius; d++) {
-        if (y + d < 0 || y + d >= height) {
+        if (y + d < 0 || y + d >= rows) {
           continue;
         }
 
         const weight = Math.exp((-d * d) / (sigma * sigma));
 
         totalWeight += weight;
-        s0 += weight * horizontal[2 * ((y + d) * width + x) + 0]!;
-        s1 += weight * horizontal[2 * ((y + d) * width + x) + 1]!;
+        s0 += weight * horizontal[2 * ((y + d) * columns + x) + 0]!;
+        s1 += weight * horizontal[2 * ((y + d) * columns + x) + 1]!;
       }
 
-      final[2 * (y * width + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s0 / totalWeight;
-      final[2 * (y * width + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s1 / totalWeight;
+      final[2 * (y * columns + x) + 0] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s0 / totalWeight;
+      final[2 * (y * columns + x) + 1] = totalWeight < MIN_WEIGHT_THRESHOLD ? 0 : s1 / totalWeight;
     }
   }
 
   return final;
 }
 
-function createFlowFieldFromData(flowData: FlowData, smoothing: number): Field {
+function createFlowFieldFromData(flowData: FlowData, smoothing: Cells): Field {
   const data = smooth(flowData.data, flowData.columns, flowData.rows, smoothing);
 
-  const f = (x: number, y: number): [number, number] => {
-    const X = Math.round(x);
-    let Y = Math.round(y);
+  const f = (x: Cells, y: Cells): [PixelsPerSecond, PixelsPerSecond] => {
+    const X: Cells = Math.round(x);
+    let Y: Cells = Math.round(y);
 
     if (X < 0 || X >= flowData.columns) {
       return [0, 0];
@@ -140,13 +140,13 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): FlowLin
   return line;
 }
 
-function getFlowLines(f: Field, W: number, H: number, segmentLength: number): FlowLineVertex[][] {
+function getFlowLines(f: Field, columns: number, rows: number, segmentLength: number): FlowLineVertex[][] {
   const lines: FlowLineVertex[][] = [];
 
   const rand = createRand();
 
   for (let i = 0; i < 4000 /* TODO: CONFIGURABLE PARAMETER */; i++) {
-    const line = trace(f, Math.round(rand() * W), Math.round(rand() * H), segmentLength);
+    const line = trace(f, Math.round(rand() * columns), Math.round(rand() * rows), segmentLength);
     lines.push(line);
   }
 
@@ -155,7 +155,7 @@ function getFlowLines(f: Field, W: number, H: number, segmentLength: number): Fl
 
 export async function createFlowLinesMesh(
   flowData: FlowData,
-  smoothing: number,
+  smoothing: Cells,
   signal: AbortSignal
 ): Promise<FlowLinesMesh> {
   let vertexCount = 0;

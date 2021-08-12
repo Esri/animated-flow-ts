@@ -24,7 +24,7 @@
  */
 
 import { createFlowLinesMesh as createFlowLinesMeshImpl } from "../flow/shared";
-import { TransferableFlowData } from "../flow/types";
+import { Cells, TransferableFlowData } from "../flow/types";
 
 /**
  * Create
@@ -37,7 +37,7 @@ import { TransferableFlowData } from "../flow/types";
  * @returns
  */
 export async function createFlowLinesMesh(
-  data: { flowData: TransferableFlowData; smoothing: number },
+  data: { flowData: TransferableFlowData; smoothing: Cells; },
   options: { signal: AbortSignal }
 ): Promise<{ result: { vertexBuffer: ArrayBuffer; indexBuffer: ArrayBuffer }; transferList: ArrayBuffer[] }> {
   const { vertexData, indexData } = await createFlowLinesMeshImpl(
