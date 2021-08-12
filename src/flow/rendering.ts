@@ -201,10 +201,6 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     _pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLocalResources> {
-    // TODO?
-    extent = extent.clone();
-    extent.expand(1.15); // Increase this? /* TODO: CONFIGURABLE PARAMETER (1.15) */
-
     const cellSize = 1; /* TODO: CONFIGURABLE PARAMETER (Do I even want this? What about smoothing?) */
 
     const [source, processor] = await Promise.all([this.source, this.processor]);
