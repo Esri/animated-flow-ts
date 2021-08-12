@@ -45,7 +45,7 @@ function createVortex(vortexCenter: [number, number]): Field {
     x -= vortexCenter[0];
     y -= vortexCenter[1];
     const d2 = x * x + y * y;
-    return [-y / d2, x / d2];
+    return [-10.0 * y / d2, 10.0 * x / d2];
   };
 }
 
