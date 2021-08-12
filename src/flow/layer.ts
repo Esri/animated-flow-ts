@@ -21,10 +21,10 @@
 import Color from "esri/Color";
 import { property, subclass } from "esri/core/accessorSupport/decorators";
 import Layer from "esri/layers/Layer";
-import { MainFlowTracer, WorkerFlowTracer } from "./meshing";
+import { MainFlowProcessor, WorkerFlowProcessor } from "./processors";
 import { FlowLayerView2D } from "./view";
 import { ImageryTileLayerFlowSource } from "./sources";
-import { FlowSource, FlowTracer } from "./types";
+import { FlowSource, FlowProcessor } from "./types";
 
 /**
  * A layer that supports 2D visualizations of animated flow lines in `MapView`.
@@ -49,12 +49,12 @@ export class FlowLayer extends Layer {
   ownSource: boolean;
 
   /**
-   * A promise to a flow tracer.
+   * A promise to a flow processor.
    * 
    * This is used by `FlowLayerView2D` to convert the retrieved
    * flow data to a mesh of triangles renderable with WebGL.
    */
-  tracer: Promise<FlowTracer>;
+  processor: Promise<FlowProcessor>;
 
   /**
    * The [blend mode](https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-FeatureLayer.html#blendMode)
@@ -108,7 +108,7 @@ export class FlowLayer extends Layer {
     }
     
     const useWebWorkers = "useWebWorkers" in params ? params.useWebWorkers : true;
-    this.tracer = Promise.resolve(useWebWorkers ? new WorkerFlowTracer() : new MainFlowTracer());
+    this.processor = Promise.resolve(useWebWorkers ? new WorkerFlowProcessor() : new MainFlowProcessor());
   }
 
   override createLayerView(view: any): any {
@@ -127,8 +127,8 @@ export class FlowLayer extends Layer {
       });
     }
 
-    this.tracer.then((tracer) => {
-      tracer.destroy();
+    this.processor.then((processor) => {
+      processor.destroy();
     });
     
     super.destroy();

@@ -132,7 +132,7 @@ export interface FlowSource {
   destroy(): void;
 }
  
-export interface FlowTracer {
+export interface FlowProcessor {
   createFlowLinesMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh>;
   destroy(): void;
 }

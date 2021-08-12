@@ -23,7 +23,7 @@ import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
 import { Awaitable, Resources, VisualizationRenderParams } from "../core/types";
 import { defined, throwIfAborted } from "../core/util";
-import { FlowSource, FlowTracer } from "./types";
+import { FlowSource, FlowProcessor } from "./types";
 
 export class FlowGlobalResources implements Resources {
   programs: HashMap<{
@@ -186,7 +186,7 @@ export class FlowLocalResources implements Resources {
 }
 
 export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResources, FlowLocalResources> {
-  constructor(private source: Awaitable<FlowSource>, private tracer: Awaitable<FlowTracer>, private color: Color) {
+  constructor(private source: Awaitable<FlowSource>, private processor: Awaitable<FlowProcessor>, private color: Color) {
     super();
   }
 
@@ -207,12 +207,12 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
 
     const cellSize = 1; /* TODO: CONFIGURABLE PARAMETER (Do I even want this? What about smoothing?) */
 
-    const [source, tracer] = await Promise.all([this.source, this.tracer]);
+    const [source, processor] = await Promise.all([this.source, this.processor]);
 
     throwIfAborted(signal);
 
     const flowData = await source.fetchFlowData(extent, size[0], size[1], cellSize, signal);
-    const { vertexData, indexData } = await tracer.createFlowLinesMesh(flowData, 5, signal);
+    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, 5, signal);
     return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
 

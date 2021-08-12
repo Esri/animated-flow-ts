@@ -12,17 +12,17 @@
 */
 
 /**
- * @module wind-es/flow/meshing
+ * @module wind-es/flow/processors
  *
  * This module...
  */
 
 import { createFlowLinesMesh } from "./shared";
-import { FlowLinesMesh, FlowData, FlowTracer } from "./types";
+import { FlowLinesMesh, FlowData, FlowProcessor } from "./types";
 import * as workers from "esri/core/workers";
 import { throwIfAborted } from "../core/util";
 
-export class MainFlowTracer implements FlowTracer {
+export class MainFlowProcessor implements FlowProcessor {
   async createFlowLinesMesh(
     flowData: FlowData,
     smoothing: number,
@@ -35,7 +35,7 @@ export class MainFlowTracer implements FlowTracer {
   }
 }
 
-export class WorkerFlowTracer implements FlowTracer {
+export class WorkerFlowProcessor implements FlowProcessor {
   private connection = workers.open("wind-es/workers/flow");
 
   async createFlowLinesMesh(
