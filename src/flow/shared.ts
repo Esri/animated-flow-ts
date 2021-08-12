@@ -80,23 +80,23 @@ function smooth(data: Float32Array, width: number, height: number, sigma: number
 }
 
 function createFlowFieldFromData(flowData: FlowData, smoothing: number): Field {
-  const data = smooth(flowData.data, flowData.width, flowData.height, smoothing);
+  const data = smooth(flowData.data, flowData.columns, flowData.rows, smoothing);
 
   const f = (x: number, y: number): [number, number] => {
     const X = Math.round(x);
     let Y = Math.round(y);
 
-    if (X < 0 || X >= flowData.width) {
+    if (X < 0 || X >= flowData.columns) {
       return [0, 0];
     }
 
-    if (Y < 0 || Y >= flowData.height) {
+    if (Y < 0 || Y >= flowData.rows) {
       return [0, 0];
     }
 
-    Y = flowData.height - 1 - Y;
+    Y = flowData.rows - 1 - Y;
 
-    return [data[2 * (Y * flowData.width + X) + 0]!, data[2 * (Y * flowData.width + X) + 1]!];
+    return [data[2 * (Y * flowData.columns + X) + 0]!, data[2 * (Y * flowData.columns + X) + 1]!];
   };
 
   return f;
@@ -160,7 +160,7 @@ export async function createFlowLinesMesh(
   const indexData: number[] = [];
 
   const f = createFlowFieldFromData(flowData, smoothing);
-  const flowLines = getFlowLines(f, flowData.width, flowData.height, 3);
+  const flowLines = getFlowLines(f, flowData.columns, flowData.rows, 3);
   const rand = createRand();
 
   let restTime = performance.now();
@@ -190,8 +190,8 @@ export async function createFlowLinesMesh(
       } = line[i]!;
       const speed = 100 /* TODO! Speed factor! */ / (t1 - t0);
 
-      y0 = flowData.height - 1 - y0;
-      y1 = flowData.height - 1 - y1;
+      y0 = flowData.rows - 1 - y0;
+      y1 = flowData.rows - 1 - y1;
 
       const l = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
       const ex = -(y1 - y0) / l;

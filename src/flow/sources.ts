@@ -19,21 +19,13 @@
 
 import Extent from "esri/geometry/Extent";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
-import { Field, FlowData } from "./types";
+import { Field, FlowData, FlowSource } from "./types";
 
-export abstract class FlowSource {
-  // TODO: Add support for AbortController?
-  abstract fetchFlowData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<FlowData>;
-
-  destroy(): void {}
-}
-
-export class ImageryTileLayerFlowSource extends FlowSource {
+export class ImageryTileLayerFlowSource implements FlowSource {
   private imageryTileLayer: ImageryTileLayer;
   private magnitudeScale: number;
 
   constructor(url: string, magnitudeScale: number) {
-    super();
     this.imageryTileLayer = new ImageryTileLayer({ url });
     this.magnitudeScale = magnitudeScale;
   }
@@ -86,20 +78,19 @@ export class ImageryTileLayerFlowSource extends FlowSource {
 
     return {
       data,
-      width: actualWidth,
-      height: actualHeight,
-      pixelScale
+      columns: actualWidth,
+      rows: actualHeight,
+      gridScale: pixelScale
     };
   }
 
-  override destroy(): void {
+  destroy(): void {
     this.imageryTileLayer.destroy();
   }
 }
 
-export class VectorFieldFlowSource extends FlowSource {
+export class VectorFieldFlowSource implements FlowSource {
   constructor(private mapVectorField: Field) {
-    super();
   }
 
   async fetchFlowData(extent: Extent, width: number, height: number): Promise<FlowData> {
@@ -123,9 +114,12 @@ export class VectorFieldFlowSource extends FlowSource {
 
     return {
       data,
-      width,
-      height,
-      pixelScale
+      columns: width,
+      rows: height,
+      gridScale: pixelScale
     };
+  }
+
+  destroy(): void {
   }
 }

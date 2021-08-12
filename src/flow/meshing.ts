@@ -18,30 +18,27 @@
  */
 
 import { createFlowLinesMesh } from "./shared";
-import { FlowLinesMesh, FlowData } from "./types";
+import { FlowLinesMesh, FlowData, FlowTracer } from "./types";
 import * as workers from "esri/core/workers";
 import { throwIfAborted } from "../core/util";
 
-export abstract class FlowTracer {
-  abstract createFlowLinesMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh>;
-
-  destroy(): void {}
-}
-
-export class MainFlowTracer extends FlowTracer {
-  override async createFlowLinesMesh(
+export class MainFlowTracer implements FlowTracer {
+  async createFlowLinesMesh(
     flowData: FlowData,
     smoothing: number,
     signal: AbortSignal
   ): Promise<FlowLinesMesh> {
     return createFlowLinesMesh(flowData, smoothing, signal);
   }
+
+  destroy(): void {
+  }
 }
 
-export class WorkerFlowTracer extends FlowTracer {
+export class WorkerFlowTracer implements FlowTracer {
   private connection = workers.open("wind-es/workers/flow");
 
-  override async createFlowLinesMesh(
+  async createFlowLinesMesh(
     flowData: FlowData,
     smoothing: number,
     signal: AbortSignal
@@ -71,7 +68,7 @@ export class WorkerFlowTracer extends FlowTracer {
     };
   }
 
-  override async destroy(): Promise<void> {
+  async destroy(): Promise<void> {
     const connection = await this.connection;
     connection.close();
   }

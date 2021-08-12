@@ -23,8 +23,7 @@ import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
 import { Awaitable, Resources, VisualizationRenderParams } from "../core/types";
 import { defined, throwIfAborted } from "../core/util";
-import { FlowTracer } from "./meshing";
-import { FlowSource } from "./sources";
+import { FlowSource, FlowTracer } from "./types";
 
 export class FlowGlobalResources implements Resources {
   programs: HashMap<{

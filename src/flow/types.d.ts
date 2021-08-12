@@ -103,18 +103,36 @@ export type FlowLinesMesh = {
 export type Field = (x: number, y: number) => [number, number];
 
 /**
- * A 2D
+ * A 2D grid of horizontal and vertical speeds in screen space.
  */
 export type FlowData = {
+  /**
+   * Horizontal and vertical speeds.
+   * 
+   * The speeds are stored interleaved, row major,
+   */
   data: Float32Array;
-  width: number;
-  height: number;
-  pixelScale: number;
+  columns: number;
+  rows: number;
+  gridScale: number;
 };
 
 export type TransferableFlowData = {
   buffer: ArrayBuffer;
-  width: number;
-  height: number;
-  pixelScale: number;
+  columns: number;
+  rows: number;
+  gridScale: number;
 };
+
+/**
+ * A flow source is a gate
+ */
+export interface FlowSource {
+  fetchFlowData(extent: Extent, width: number, height: number, signal: AbortSignal): Promise<FlowData>;
+  destroy(): void;
+}
+
+export interface FlowTracer {
+  createFlowLinesMesh(flowData: FlowData, smoothing: number, signal: AbortSignal): Promise<FlowLinesMesh>;
+  destroy(): void;
+}
