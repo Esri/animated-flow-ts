@@ -101,6 +101,20 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
     localResources: LR
   ): void;
 
+  /**
+   * Render a visualization into a HTML canvas.
+   * 
+   * Useful for generating thumbnails and screenshots.
+   *
+   * @param gl The WebGL context to use.
+   * @param center The geographic center of the image.
+   * @param resolution The resolution of the image.
+   * @param width The width of the image.
+   * @param height The height of the image.
+   * @param backgroundColor The bacground color or the image as a CSS color string.
+   * @param signal An abort signal.
+   * @returns A canvas element that contains the rendered visualization.
+   */
   async createImage(
     gl: WebGLRenderingContext,
     center: Point,

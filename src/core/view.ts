@@ -1,12 +1,72 @@
+/*
+  Copyright 2021 Esri
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+/**
+ * @module wind-es/core/view
+ *
+ * This module contains the definition of `VisualizationLayerView2D`, a
+ * a type of 2D layer view that can be used as a higher level base class
+ * for creating custom WebGL layers.
+ * 
+ * Developers can extend the ArcGIS API for JavaScript using custom WebGL code
+ * that will run alongside the basemap and the other layers in `MapView` of
+ * `SceneView`.
+ * 
+ * For `MapView` the extension point is a base class called
+ * [`BaseLayerViewGL2D`](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html).
+ * 
+ * To create a custom WebGL layer, the user normally does the following.
+ * 
+ * - Create a custom layer by subclassing [`Layer`](https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-Layer.html) or some other suitable layer type.
+ *   - Override method `Layer.createLayerView()` to return an instance of the custom layer view.
+ * - Create a custom 2D layer view by subclassing [`BaseLayerViewGL2D`](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html).
+ *   - Override `BaseLayerViewGL2D.attach()`.
+ *   - Override `BaseLayerViewGL2D.render()`.
+ *   - Override `BaseLayerViewGL2D.detach()`.
+ * 
+ * This way of creating custom layers is very powerful, very flexible, but it
+ * is fairly low level; to enhance productivity developers can sometimes
+ * base their custom visualizations using a third party rendering engine such
+ * as deck.gl or Three.js.
+ * 
+ * In wind-es, we introduce `VisualizationLayerView2D` as a more convenient
+ * starting point to create custom WebGL visualizations.
+ */
+
 import { property, subclass } from "esri/core/accessorSupport/decorators";
 import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
 import { attach, detach, VisualizationStyle } from "./rendering";
 import { LocalResourcesEntry, Resources, SharedResourcesEntry, VisualizationRenderParams } from "./types";
 import { defined } from "./util";
 
+/**
+ * A 2D layer view designed around the concept of "visualizations".
+ * 
+ * A visualization is a visual representation of an extent. Subclasses
+ * of `VisualizationLayerView2D` need to specify how individual visualizations
+ * are attached, rendered and detached.
+ */
 @subclass("wind-es.core.visualization.LayerView2D")
 export abstract class VisualizationLayerView2D<SR extends Resources, LR extends Resources> extends BaseLayerViewGL2D {
+  /**
+   * Shared resources are used by all visualizations. An example of a shared
+   * resource is a shader program, which can be used to render multiple visualizations.
+   */
   private _sharedResources: SharedResourcesEntry<SR> | null = null;
+
+  /**
+   * Local resources are tied to an extent and are specific for a 
+   */
   private _localResources: LocalResourcesEntry<LR>[] = [];
 
   @property({

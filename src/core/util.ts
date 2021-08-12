@@ -40,7 +40,9 @@ export function assert(condition: unknown): asserts condition {
 }
 
 /**
- * Create a seeded, pseudo-random number generator.
+ * Create a seeded, pseudo-random Linear Congruential Generator (LCG).
+ * 
+ * For more informations about LCGs, see [Wikipedia](https://en.wikipedia.org/wiki/Linear_congruential_generator).
  *
  * @param seed The seed that determines the sequence of pseudo-random values.
  * @returns A function with no arguments that returns values in the range [0, 1);

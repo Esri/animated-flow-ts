@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/rendering
+ * @module wind-es/flow/view
  *
  * This module...
  */
