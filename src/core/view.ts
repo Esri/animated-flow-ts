@@ -48,7 +48,7 @@ import Extent from "esri/geometry/Extent";
 import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
 import { attach, detach, VisualizationStyle } from "./rendering";
 import { LocalResourcesEntry, Resources, GlobalResourcesEntry, VisualizationRenderParams, Pixels } from "./types";
-import { defined } from "./util";
+import { defined, degreesToRadians } from "./util";
 
 /**
  * A 2D layer view designed around the concept of "visualizations".
@@ -170,8 +170,8 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     const center = extent.center;
     const extentWidth = extent.xmax - extent.xmin;
     const extentHeight = extent.ymax - extent.ymin;
-    const aco = Math.abs(Math.cos(Math.PI * this.view.rotation / 180));
-    const asi = Math.abs(Math.sin(Math.PI * this.view.rotation / 180));
+    const aco = Math.abs(Math.cos(degreesToRadians(this.view.rotation)));
+    const asi = Math.abs(Math.sin(degreesToRadians(this.view.rotation)));
     const rotatedExtentWidth = aco * extentWidth + asi * extentHeight;
     const rotatedExtentHeight = asi * extentWidth + aco * extentHeight;
     const rotatedExtent = new Extent({
@@ -284,7 +284,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
       const visualizationRenderParams: VisualizationRenderParams = {
         size: renderParams.state.size,
         translation,
-        rotation: (Math.PI * renderParams.state.rotation) / 180,
+        rotation: degreesToRadians(renderParams.state.rotation),
         scale: mostRecentRenderableLocalResources.resolution / renderParams.state.resolution,
         opacity: 1,
         pixelRatio: devicePixelRatio

@@ -212,7 +212,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     throwIfAborted(signal);
 
     const flowData = await source.fetchFlowData(extent, size[0], size[1], cellSize, signal);
-    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, 5, signal);
+    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, 30, signal);
     return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
 

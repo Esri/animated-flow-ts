@@ -50,9 +50,13 @@ function createVortex(vortexCenter: [MapUnits, MapUnits]): Field {
   };
 }
 
-const vortex1 = createVortex([-57, 38]);
-const vortex2 = createVortex([-70, 34]);
-const vortex3 = createVortex([-77, 30]);
+// const vortex1 = createVortex([-57, 38]);
+// const vortex2 = createVortex([-70, 34]);
+// const vortex3 = createVortex([-77, 30]);
+
+const vortex1 = createVortex([174.8860, -40.9006]);
+const vortex2 = createVortex([175.8860, -40.9006]);
+const vortex3 = createVortex([173.8860, -41.9006]);
 
 const currentsVectorField = (x: MapUnits, y: MapUnits): [PixelsPerSecond, PixelsPerSecond] => {
   const v1 = vortex1(x, y);
@@ -61,21 +65,22 @@ const currentsVectorField = (x: MapUnits, y: MapUnits): [PixelsPerSecond, Pixels
   return [v1[0] + v2[0] + v3[0], v1[1] + v2[1] + v3[1]];
 };
 
+const temperatureLayer = new ImageryLayer({
+  //url: "https://gis.ngdc.noaa.gov/arcgis/rest/services/PathfinderSST_monthly_averages/ImageServer"
+  url: "https://tiles.arcgis.com/tiles/28amRQMPTiEvaF1p/arcgis/rest/services/AGOL_AquacultureOffshoreInvestigation_SeaSurfaceTemperatureMeanWinterSST/MapServer/0"
+});
+
 const currentsLayer = new FlowLayer({
   source: new VectorFieldFlowSource(currentsVectorField),
-  useWebWorkers: true
+  useWebWorkers: true,
+  blendMode: "destination-in"
 } as any);
-
-const temperatureLayer = new ImageryLayer({
-  url: "https://gis.ngdc.noaa.gov/arcgis/rest/services/PathfinderSST_monthly_averages/ImageServer",
-  blendMode: "multiply"
-});
 
 const groupLayer = new GroupLayer({
   effect: "bloom(1.5, 0.5px, 0.2)"
 });
-groupLayer.add(currentsLayer);
 groupLayer.add(temperatureLayer);
+groupLayer.add(currentsLayer);
 
 const map = new EsriMap({
   layers: [vectorTileLayer, groupLayer]
@@ -84,6 +89,6 @@ const map = new EsriMap({
 new MapView({
   container: "viewDiv",
   map,
-  zoom: 4,
-  center: [-65, 37]
+  zoom: 11,
+  center: [174.8860, -40.9006]
 });

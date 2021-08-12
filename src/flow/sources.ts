@@ -20,6 +20,7 @@
 import Extent from "esri/geometry/Extent";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import { Pixels } from "../core/types";
+import { degreesToRadians } from "../core/util";
 import { Field, FlowData, FlowSource, PixelsPerCell, PixelsPerSecond } from "./types";
 
 export class ImageryTileLayerFlowSource implements FlowSource {
@@ -29,7 +30,6 @@ export class ImageryTileLayerFlowSource implements FlowSource {
     this.imageryTileLayer = new ImageryTileLayer({ url });
   }
 
-  // TODO: Add support for devicePixelRatio?
   async fetchFlowData(extent: Extent, width: Pixels, height: Pixels, cellSize: PixelsPerCell, signal: AbortSignal): Promise<FlowData> {
     const columns = Math.round(width / cellSize);
     const rows = Math.round(height / cellSize);
@@ -42,7 +42,10 @@ export class ImageryTileLayerFlowSource implements FlowSource {
       rows,
       { signal }
     );
-    const rawData: number[][] = rasterData.pixelBlock.pixels;
+    // The returned data is in the "pixels" property of the pixel block
+    // but from the perspective of wind-es those values are per-cell,
+    // not per-pixel; a cell can span multiple pixels.
+    const rawCellData: number[][] = rasterData.pixelBlock.pixels;
     const data = new Float32Array(columns * rows * 2);
 
     for (let i = 0; i < columns * rows; i++) {
@@ -50,15 +53,15 @@ export class ImageryTileLayerFlowSource implements FlowSource {
       let v: PixelsPerSecond;
 
       if (dataType === "vector-magdir") {
-        const mag = rawData[0]![i]!;
-        const dir = (Math.PI * rawData[1]![i]!) / 180;
+        const mag = rawCellData[0]![i]!;
+        const dir = degreesToRadians(rawCellData[1]![i]!);
         const co = Math.cos(dir);
         const si = Math.sin(dir);
         u = co * mag + si * mag;
         v = -si * mag + co * mag;
       } else if (dataType === "vector-uv") {
-        u = rawData[0]![i]!;
-        v = rawData[1]![i]!;
+        u = rawCellData[0]![i]!;
+        v = rawCellData[1]![i]!;
       } else {
         console.error(
           `Unsupported data type "${dataType}"; the ImageryTileLayerFlowSource class only suppors "vector-magdir" and "vector-uv".`

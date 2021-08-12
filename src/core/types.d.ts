@@ -18,6 +18,7 @@
  */
 
 export type Pixels = number;
+export type Degrees = number;
 export type Radians = number;
 export type MapUnits = number;
 export type MapUnitsPerPixel = number;

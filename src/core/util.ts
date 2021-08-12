@@ -11,6 +11,8 @@
   limitations under the License.
 */
 
+import { Degrees, Radians } from "./types";
+
 /**
  * @module wind-es/core/util
  *
@@ -92,4 +94,8 @@ export async function rest(signal: AbortSignal): Promise<void> {
       resolve();
     }, 0);
   });
+}
+
+export function degreesToRadians(degrees: Degrees): Radians {
+  return Math.PI * degrees / 180;
 }
