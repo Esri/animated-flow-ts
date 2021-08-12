@@ -124,8 +124,8 @@ function trace(f: Field, x0: number, y0: number, segmentLength: number): FlowLin
     /* TODO: CONFIGURABLE PARAMETER (sub-vertex update rate) */
     const dx = vx / v;
     const dy = vy / v;
-    x += dx * segmentLength;
-    y += dy * segmentLength;
+    x += dx * segmentLength * 0.1 /* TODO: CONFIGURABLE PARAMETER */;
+    y += dy * segmentLength * 0.1 /* TODO: CONFIGURABLE PARAMETER */;
     const dt = segmentLength / v;
     t += dt;
 
