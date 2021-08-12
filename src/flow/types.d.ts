@@ -130,23 +130,15 @@ export type TransferableFlowData = {
   cellSize: PixelsPerCell;
 };
 
-// export type FlowSourceParams {
-//   cellSize: PixelsPerCell;
-// }
-
 /**
  * A flow source is a gate
  */
 export interface FlowSource {
-  fetchFlowData(extent: Extent, width: Pixels, height: Pixels, cellSize: PixelsPerCell, signal: AbortSignal): Promise<FlowData>;
+  fetchFlowData(extent: Extent, width: Pixels, height: Pixels, signal: AbortSignal): Promise<FlowData>;
   destroy(): void;
 }
 
-// export type FlowProcessorParams {
-//   smoothing: Cells;
-// }
-
 export interface FlowProcessor {
-  createFlowLinesMesh(flowData: FlowData, smoothing: Cells, signal: AbortSignal): Promise<FlowLinesMesh>;
+  createFlowLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<FlowLinesMesh>;
   destroy(): void;
 }

@@ -21,7 +21,7 @@ import Extent from "esri/geometry/Extent";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import { Pixels } from "../core/types";
 import { degreesToRadians } from "../core/util";
-import { Field, FlowData, FlowSource, PixelsPerCell, PixelsPerSecond } from "./types";
+import { Field, FlowData, FlowSource, PixelsPerSecond } from "./types";
 
 export class ImageryTileLayerFlowSource implements FlowSource {
   private imageryTileLayer: ImageryTileLayer;
@@ -30,7 +30,9 @@ export class ImageryTileLayerFlowSource implements FlowSource {
     this.imageryTileLayer = new ImageryTileLayer({ url });
   }
 
-  async fetchFlowData(extent: Extent, width: Pixels, height: Pixels, cellSize: PixelsPerCell, signal: AbortSignal): Promise<FlowData> {
+  async fetchFlowData(extent: Extent, width: Pixels, height: Pixels, signal: AbortSignal): Promise<FlowData> {
+    const cellSize = 1 /* TODO? What about this? */;
+    
     const columns = Math.round(width / cellSize);
     const rows = Math.round(height / cellSize);
 
@@ -91,7 +93,9 @@ export class VectorFieldFlowSource implements FlowSource {
   constructor(private mapVectorField: Field) {
   }
 
-  async fetchFlowData(extent: Extent, width: Pixels, height: Pixels, cellSize: PixelsPerCell): Promise<FlowData> {
+  async fetchFlowData(extent: Extent, width: Pixels, height: Pixels): Promise<FlowData> {
+    const cellSize = 1 /* TODO? What about this? */;
+    
     const columns = Math.round(width / cellSize);
     const rows = Math.round(height / cellSize);
 

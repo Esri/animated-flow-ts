@@ -23,6 +23,7 @@ import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
 import { Awaitable, MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
 import { defined, throwIfAborted } from "../core/util";
+import settings from "./settings";
 import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
 
 export class FlowGlobalResources implements Resources {
@@ -44,7 +45,7 @@ export class FlowGlobalResources implements Resources {
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_Rotation;
       uniform mat4 u_ClipFromScreen;
-      uniform float u_PixelRatio;
+      // uniform float u_PixelRatio;
 
       varying float v_Side;
       varying float v_Time;
@@ -54,7 +55,8 @@ export class FlowGlobalResources implements Resources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) / u_PixelRatio /* Is this right? */; /* TODO: CONFIGURABLE PARAMETER (line width) */
+        // screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) / u_PixelRatio /* Is this right? */;
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * (${(settings.lineWidth / 2).toFixed(3)});
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -80,12 +82,12 @@ export class FlowGlobalResources implements Resources {
 
         gl_FragColor.a *= 1.0 - length(v_Side);
         
-        float t = mod(50.0 * u_Time + v_Random * 2.0 * v_TotalTime, 2.0 * v_TotalTime); /* TODO: CONFIGURABLE PARAMETER (50, 2, looping mode?) */
+        float t = mod(${(settings.speed50).toFixed(3)} * u_Time + v_Random * ${(settings.time2 / 2).toFixed(3)} * v_TotalTime, ${(settings.time2 / 2).toFixed(3)} * v_TotalTime);
 
         if (t < v_Time) {
           gl_FragColor.a *= 0.0;
         } else {
-          gl_FragColor.a *= exp(-0.01 * (t - v_Time)) * (1.0 - exp(-100.0 /* TODO! Factor! */ * v_Speed)); /* TODO: CONFIGURABLE PARAMETER (0.01 and 100) */
+          gl_FragColor.a *= exp(-${(settings.trailDecay).toFixed(3)} * (t - v_Time)) * (1.0 - exp(-${(settings.trailSpeedAttenuationExponent).toFixed(3)} * v_Speed));
         }
 
         gl_FragColor.rgb *= gl_FragColor.a;
@@ -201,14 +203,12 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     _pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLocalResources> {
-    const cellSize = 1; /* TODO: CONFIGURABLE PARAMETER (Do I even want this? What about smoothing?) */
-
     const [source, processor] = await Promise.all([this.source, this.processor]);
 
     throwIfAborted(signal);
 
-    const flowData = await source.fetchFlowData(extent, size[0], size[1], cellSize, signal);
-    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, 30, signal);
+    const flowData = await source.fetchFlowData(extent, size[0], size[1], signal);
+    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, signal);
     return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
 
@@ -281,7 +281,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
       false,
       localResources.u_ClipFromScreen
     );
-    gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
+    // gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
     gl.uniform4f(
       globalResources.programs!["texture"]?.uniforms["u_Color"]!,
       this.color.r / 255.0,

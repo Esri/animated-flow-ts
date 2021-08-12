@@ -18,17 +18,16 @@
  */
 
 import { createFlowLinesMesh } from "./shared";
-import { FlowLinesMesh, FlowData, FlowProcessor, Cells } from "./types";
+import { FlowLinesMesh, FlowData, FlowProcessor } from "./types";
 import * as workers from "esri/core/workers";
 import { throwIfAborted } from "../core/util";
 
 export class MainFlowProcessor implements FlowProcessor {
   async createFlowLinesMesh(
     flowData: FlowData,
-    smoothing: Cells,
     signal: AbortSignal
   ): Promise<FlowLinesMesh> {
-    return createFlowLinesMesh(flowData, smoothing, signal);
+    return createFlowLinesMesh(flowData, signal);
   }
 
   destroy(): void {
@@ -40,7 +39,6 @@ export class WorkerFlowProcessor implements FlowProcessor {
 
   async createFlowLinesMesh(
     flowData: FlowData,
-    smoothing: Cells,
     signal: AbortSignal
   ): Promise<FlowLinesMesh> {
     const connection = await this.connection;
@@ -53,8 +51,7 @@ export class WorkerFlowProcessor implements FlowProcessor {
         flowData: {
           ...flowData,
           buffer: flowData.data.buffer
-        },
-        smoothing
+        }
       },
       {
         transferList: [flowData.data.buffer],

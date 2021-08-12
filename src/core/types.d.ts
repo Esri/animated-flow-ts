@@ -22,6 +22,8 @@ export type Degrees = number;
 export type Radians = number;
 export type MapUnits = number;
 export type MapUnitsPerPixel = number;
+export type Seconds = number;
+export type Milliseconds = number;
 
 /**
  * A value that can be accessed by using `await`.
