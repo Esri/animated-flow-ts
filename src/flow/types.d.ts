@@ -128,7 +128,7 @@ export type TransferableFlowData = {
  * A flow source is a gate
  */
 export interface FlowSource {
-  fetchFlowData(extent: Extent, width: number, height: number, gridScale: number, signal: AbortSignal): Promise<FlowData>;
+  fetchFlowData(extent: Extent, width: number, height: number, cellSize: number, signal: AbortSignal): Promise<FlowData>;
   destroy(): void;
 }
  

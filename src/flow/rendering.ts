@@ -205,13 +205,13 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     extent = extent.clone();
     extent.expand(1.15); // Increase this? /* TODO: CONFIGURABLE PARAMETER (1.15) */
 
-    const gridScale = 1; /* TODO: CONFIGURABLE PARAMETER (Do I even want this? What about smoothing?) */
+    const cellSize = 1; /* TODO: CONFIGURABLE PARAMETER (Do I even want this? What about smoothing?) */
 
     const [source, tracer] = await Promise.all([this.source, this.tracer]);
 
     throwIfAborted(signal);
 
-    const flowData = await source.fetchFlowData(extent, size[0], size[1], gridScale, signal);
+    const flowData = await source.fetchFlowData(extent, size[0], size[1], cellSize, signal);
     const { vertexData, indexData } = await tracer.createFlowLinesMesh(flowData, 5, signal);
     return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
