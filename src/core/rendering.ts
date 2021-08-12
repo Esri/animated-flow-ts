@@ -101,17 +101,7 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
     localResources: LR
   ): void;
 
-  async createImage(center: Point, resolution: number, width: number, height: number, backgroundColor: string, signal: AbortSignal): Promise<HTMLCanvasElement> {
-    const glCanvas = document.createElement("canvas");
-    glCanvas.width = width;
-    glCanvas.height = height;
-    const gl = glCanvas.getContext("webgl", {
-      preserveDrawingBuffer: true
-    });
-    defined(gl);
-    
-    gl.getExtension("OES_element_index_uint");
-
+  async createImage(gl: WebGLRenderingContext, center: Point, resolution: number, width: number, height: number, backgroundColor: string, signal: AbortSignal): Promise<HTMLCanvasElement> {
     const extent = new Extent({
       xmin: 0,
       ymin: 0,
@@ -142,7 +132,7 @@ export abstract class VisualizationStyle<SR extends Resources, LR extends Resour
     defined(ctx);
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, width, height);
-    ctx.drawImage(glCanvas, 0, 0);
+    ctx.drawImage(gl.canvas, 0, 0);
 
     return canvas;
   }
