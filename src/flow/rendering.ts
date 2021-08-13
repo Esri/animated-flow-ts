@@ -45,7 +45,7 @@ export class FlowGlobalResources implements Resources {
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_Rotation;
       uniform mat4 u_ClipFromScreen;
-      // uniform float u_PixelRatio;
+      uniform float u_PixelRatio;
 
       varying float v_Side;
       varying float v_Time;
@@ -55,8 +55,7 @@ export class FlowGlobalResources implements Resources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        // screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) / u_PixelRatio /* Is this right? */;
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * (${(settings.lineWidth / 2).toFixed(3)});
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${(settings.lineWidth / 2).toFixed(3)} / u_PixelRatio;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -283,7 +282,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
       false,
       localResources.u_ClipFromScreen
     );
-    // gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
+    gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
     gl.uniform4f(
       globalResources.programs!["texture"]?.uniforms["u_Color"]!,
       this.color.r / 255.0,

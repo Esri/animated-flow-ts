@@ -161,8 +161,8 @@ export async function createFlowLinesMesh(
   const f = createFlowFieldFromData(flowData);
   const flowLines = getFlowLines(f, flowData.columns, flowData.rows);
 
-  flowLines.length = 1;
-  flowLines[0] = [{ position: [100, 100], time: 0 }, { position: [1100, 100], time: 1000 }];
+  // flowLines.length = 1;
+  // flowLines[0] = [{ position: [100, 100], time: 0 }, { position: [1100, 100], time: 1000 }];
   
   const rand = createRand();
 
@@ -191,10 +191,7 @@ export async function createFlowLinesMesh(
         position: [x1, y1],
         time: t1
       } = line[i]!;
-      const speed = settings.speedFactor / (t1 - t0);
-
-      // y0 = flowData.rows - 1 - y0;
-      // y1 = flowData.rows - 1 - y1;
+      const speed = 1 / (t1 - t0);
 
       const l = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
       const ex = -(y1 - y0) / l;

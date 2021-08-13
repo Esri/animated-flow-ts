@@ -52,7 +52,7 @@ const imageryLayer = new ImageryTileLayer({ url });
 // But then it is also used as data source for the custom `FlowLayer`.
 const windLayer = new FlowLayer({
   url,
-  effect: "bloom(1.5, 0.5px, 0.2)",
+  // effect: "bloom(1.5, 0.5px, 0.2)",
   useWebWorkers: true,
   color: new Color([60, 160, 220, 1])
 } as any);
