@@ -263,9 +263,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
         // ...and then removed.
         this._localResources.splice(i, 1);
       } else {
-        // TODOTODOTODO!
-
-        // If it hasn't, then object that are loading.
+        // TODO: Think about this.
         if (localResources.state.name === "loading") {
           this.requestRender();
         } else {

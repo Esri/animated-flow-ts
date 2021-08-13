@@ -57,10 +57,10 @@ export class ImageryTileLayerFlowSource implements FlowSource {
       if (dataType === "vector-magdir") {
         const mag = rawCellData[0]![i]!;
         const dir = degreesToRadians(rawCellData[1]![i]!);
-        const co = Math.cos(dir);
-        const si = Math.sin(dir);
-        u = co * mag + si * mag;
-        v = -si * mag + co * mag;
+        const co = Math.cos(dir - Math.PI / 2);
+        const si = Math.sin(dir - Math.PI / 2);
+        u = co * mag;
+        v = si * mag;
       } else if (dataType === "vector-uv") {
         u = rawCellData[0]![i]!;
         v = rawCellData[1]![i]!;
