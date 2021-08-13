@@ -3,7 +3,7 @@ import { Cells, PixelsPerCell, PixelsPerSecond } from "./types";
 
 const cellSize: PixelsPerCell = 5;
 const smoothing: Cells = 3;
-const segmentLength: Pixels = 3;
+const segmentLength: Pixels = 1;
 const verticesPerLine = 30;
 const speedScale = 0.1;
 const linesPerVisualization = 3000;
