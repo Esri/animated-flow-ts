@@ -1,9 +1,7 @@
 import { Milliseconds, Pixels } from "../core/types";
 import { Cells, PixelsPerSecond } from "./types";
 
-// What shall I do with the cellSize?
-
-const smoothing: Cells = 30;
+const smoothing: Cells = 10;
 const segmentLength: Pixels = 3;
 const verticesPerLine = 100;
 const speedScale = 0.1;

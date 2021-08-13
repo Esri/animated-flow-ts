@@ -49,6 +49,7 @@ import BaseLayerViewGL2D from "esri/views/2d/layers/BaseLayerViewGL2D";
 import { attach, detach, VisualizationStyle } from "./rendering";
 import { LocalResourcesEntry, Resources, GlobalResourcesEntry, VisualizationRenderParams, Pixels } from "./types";
 import { defined, degreesToRadians } from "./util";
+import settings from "./settings";
 
 /**
  * A 2D layer view designed around the concept of "visualizations".
@@ -181,13 +182,15 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
       ymax: center.y + rotatedExtentHeight / 2
     });
     rotatedExtent.centerAt(center);
+
+    const expandedExtent = rotatedExtent.clone().expand(settings.extentExpandFactor);
     
     // Compute the rest of the parameters needed for the load operation.
     const resolution = this.view.resolution;
     const pixelRatio = devicePixelRatio;
     const size: [Pixels, Pixels] = [
-      Math.round((rotatedExtent.xmax - rotatedExtent.xmin) / resolution),
-      Math.round((rotatedExtent.ymax - rotatedExtent.ymin) / resolution)
+      Math.round((expandedExtent.xmax - expandedExtent.xmin) / resolution),
+      Math.round((expandedExtent.ymax - expandedExtent.ymin) / resolution)
     ];
 
     // Create and start loading a new local resource object
@@ -195,7 +198,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     const abortController = new AbortController();
     const entry: LocalResourcesEntry<LR> = {
       state: { name: "loading", abortController },
-      extent: rotatedExtent,
+      extent: expandedExtent,
       resolution,
       pixelRatio,
       size
@@ -203,7 +206,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     this._localResources.push(entry);
     defined(this.visualizationStyle);
     this.visualizationStyle
-      .loadLocalResources(rotatedExtent, resolution, size, pixelRatio, abortController.signal)
+      .loadLocalResources(expandedExtent, resolution, size, pixelRatio, abortController.signal)
       .then((resources) => {
         // Once loaded, store the loaded resource object in the local resource entry.
         entry.state = { name: "loaded", resources };
