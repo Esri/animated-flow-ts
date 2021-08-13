@@ -11,13 +11,9 @@ const minSpeedThreshold: PixelsPerSecond = 0.001;
 const minWeightThreshold = 0.001;
 const flowProcessingQuanta: Milliseconds = 100;
 const lineWidth = 2;
-// const speed50 = 10;
-// const time2 = 2;
-// const trailDecay = 0.01;
-// const trailSpeedAttenuationExponent = 10000 * 100;
 const trailDuration: number = 1;
 const trailPeriod: number = 3;
-const timeScale = 10;
+const timeScale = 30;
 
 export default {
   fixedCellSize,
@@ -30,10 +26,6 @@ export default {
   minWeightThreshold,
   flowProcessingQuanta,
   lineWidth,
-  // speed50,
-  // time2,
-  // trailDecay,
-  // trailSpeedAttenuationExponent,
   trailDuration,
   trailPeriod,
   timeScale

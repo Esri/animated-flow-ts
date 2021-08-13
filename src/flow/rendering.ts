@@ -81,7 +81,8 @@ export class FlowGlobalResources implements Resources {
 
         gl_FragColor.a *= 1.0 - length(v_Side);
 
-        float t = mod(u_Time, v_TotalTime * ${formatGLSLConstant(settings.trailPeriod)}) - v_Time;
+        float period = v_TotalTime * ${formatGLSLConstant(settings.trailPeriod)};
+        float t = mod(u_Time * ${formatGLSLConstant(settings.timeScale)} + period * v_Random, period) - v_Time;
 
         if (t > 0.0) {
           gl_FragColor.a *= exp(-2.3 * t / (v_TotalTime * ${formatGLSLConstant(settings.trailDuration)}));
