@@ -1,7 +1,7 @@
 import { Milliseconds, Pixels } from "../core/types";
 import { Cells, PixelsPerCell, PixelsPerSecond } from "./types";
 
-const cellSize: PixelsPerCell = 5;
+const fixedCellSize: PixelsPerCell = 5;
 const smoothing: Cells = 3;
 const segmentLength: Pixels = 1;
 const verticesPerLine = 30;
@@ -17,7 +17,7 @@ const trailDecay = 0.01;
 const trailSpeedAttenuationExponent = 10000 * 100;
 
 export default {
-  cellSize,
+  fixedCellSize,
   smoothing,
   segmentLength,
   verticesPerLine,

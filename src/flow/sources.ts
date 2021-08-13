@@ -32,7 +32,7 @@ export class ImageryTileLayerFlowSource implements FlowSource {
   }
 
   async fetchFlowData(extent: Extent, width: Pixels, height: Pixels, signal: AbortSignal): Promise<FlowData> {
-    const cellSize = settings.cellSize;
+    const cellSize = settings.fixedCellSize;
     
     const columns = Math.round(width / cellSize);
     const rows = Math.round(height / cellSize);
@@ -95,7 +95,7 @@ export class VectorFieldFlowSource implements FlowSource {
   }
 
   async fetchFlowData(extent: Extent, width: Pixels, height: Pixels): Promise<FlowData> {
-    const cellSize = settings.cellSize;
+    const cellSize = settings.fixedCellSize;
 
     const columns = Math.round(width / cellSize);
     const rows = Math.round(height / cellSize);

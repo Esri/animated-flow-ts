@@ -98,7 +98,7 @@ function createFlowFieldFromData(flowData: FlowData): Field {
   return f;
 }
 
-function trace(f: Field, x0: number, y0: number): FlowLineVertex[] {
+function trace(f: Field, x0: Cells, y0: Cells): FlowLineVertex[] {
   const line: FlowLineVertex[] = [];
 
   let t = 0;
@@ -135,7 +135,7 @@ function trace(f: Field, x0: number, y0: number): FlowLineVertex[] {
   return line;
 }
 
-function getFlowLines(f: Field, columns: number, rows: number): FlowLineVertex[][] {
+function getFlowLines(f: Field, columns: Cells, rows: Cells): FlowLineVertex[][] {
   const lines: FlowLineVertex[][] = [];
 
   console.log(columns, rows);
@@ -162,7 +162,7 @@ export async function createFlowLinesMesh(
   const flowLines = getFlowLines(f, flowData.columns, flowData.rows);
 
   // flowLines.length = 1;
-  // flowLines[0] = [{ position: [100, 100], time: 0 }, { position: [200, 100], time: 1000 }];
+  // flowLines[0] = [{ position: [0, 0], time: 0 }, { position: [200, 0], time: 1 }];
   
   const rand = createRand();
 
