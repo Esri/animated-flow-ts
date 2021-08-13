@@ -159,8 +159,8 @@ export async function createFlowLinesMesh(
   const f = createFlowFieldFromData(flowData);
   const flowLines = getFlowLines(f, flowData.columns, flowData.rows, flowData.cellSize);
 
-  flowLines.length = 1;
-  flowLines[0] = [{ position: [100, 100], time: 0 }, { position: [1100, 100], time: 1 }];
+  // flowLines.length = 1;
+  // flowLines[0] = [{ position: [100, 100], time: 0 }, { position: [1100, 100], time: 1 }];
   
   const rand = createRand();
 

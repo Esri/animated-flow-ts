@@ -84,7 +84,7 @@ export class FlowGlobalResources implements Resources {
         float t = mod(u_Time, v_TotalTime * ${formatGLSLConstant(settings.trailPeriod)}) - v_Time;
 
         if (t > 0.0) {
-          gl_FragColor.a *= exp(-2.3 * t / ${formatGLSLConstant(settings.trailDuration)});
+          gl_FragColor.a *= exp(-2.3 * t / (v_TotalTime * ${formatGLSLConstant(settings.trailDuration)}));
         } else {
           gl_FragColor.a *= 0.0;
         }
