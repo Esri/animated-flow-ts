@@ -139,6 +139,6 @@ export interface FlowSource {
 }
 
 export interface FlowProcessor {
-  createFlowLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<FlowLinesMesh>;
+  createFlowLinesMesh(flowData: FlowData, pixelRatio: number, signal: AbortSignal): Promise<FlowLinesMesh>;
   destroy(): void;
 }

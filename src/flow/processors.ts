@@ -25,9 +25,10 @@ import { throwIfAborted } from "../core/util";
 export class MainFlowProcessor implements FlowProcessor {
   async createFlowLinesMesh(
     flowData: FlowData,
+    pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLinesMesh> {
-    return createFlowLinesMesh(flowData, signal);
+    return createFlowLinesMesh(flowData, pixelRatio, signal);
   }
 
   destroy(): void {
@@ -39,6 +40,7 @@ export class WorkerFlowProcessor implements FlowProcessor {
 
   async createFlowLinesMesh(
     flowData: FlowData,
+    pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLinesMesh> {
     const connection = await this.connection;
@@ -51,7 +53,8 @@ export class WorkerFlowProcessor implements FlowProcessor {
         flowData: {
           ...flowData,
           buffer: flowData.data.buffer
-        }
+        },
+        pixelRatio
       },
       {
         transferList: [flowData.data.buffer],

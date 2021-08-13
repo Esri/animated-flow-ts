@@ -55,7 +55,7 @@ export class FlowGlobalResources implements Resources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${(settings.lineWidth / 2).toFixed(3)} / u_PixelRatio;
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${(settings.lineWidth / 2).toFixed(3)} * u_PixelRatio;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -201,7 +201,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     extent: Extent,
     _resolution: MapUnitsPerPixel,
     size: [Pixels, Pixels],
-    _pixelRatio: number,
+    pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLocalResources> {
     const [source, processor] = await Promise.all([this.source, this.processor]);
@@ -209,7 +209,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     throwIfAborted(signal);
 
     const flowData = await source.fetchFlowData(extent, size[0], size[1], signal);
-    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, signal);
+    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, pixelRatio, signal);
     return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
 
@@ -244,8 +244,8 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
     mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
-      2 / renderParams.size[0],
-      -2 / renderParams.size[1],
+      2 / (renderParams.size[0] * renderParams.pixelRatio),
+      -2 / (renderParams.size[1] * renderParams.pixelRatio),
       1
     ]);
 
