@@ -1,21 +1,23 @@
 import { Milliseconds, Pixels } from "../core/types";
-import { Cells, PixelsPerSecond } from "./types";
+import { Cells, PixelsPerCell, PixelsPerSecond } from "./types";
 
-const smoothing: Cells = 10;
-const segmentLength: Pixels = 10;
+const cellSize: PixelsPerCell = 5;
+const smoothing: Cells = 3;
+const segmentLength: Pixels = 3;
 const verticesPerLine = 30;
 const speedScale = 0.1;
-const linesPerVisualization = 800;
+const linesPerVisualization = 3000;
 const minSpeedThreshold: PixelsPerSecond = 0.001;
 const minWeightThreshold = 0.001;
 const flowProcessingQuanta: Milliseconds = 100;
 const lineWidth = 2;
-const speed50 = 50;
+const speed50 = 10;
 const time2 = 2;
 const trailDecay = 0.01;
-const trailSpeedAttenuationExponent = 10000;
+const trailSpeedAttenuationExponent = 10000 * 100;
 
 export default {
+  cellSize,
   smoothing,
   segmentLength,
   verticesPerLine,

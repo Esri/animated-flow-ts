@@ -48,6 +48,7 @@ const url =
 // static arrows by the stock vector field renderer that ships
 // with the ArcGIS API for JavaScript.
 const imageryLayer = new ImageryTileLayer({ url });
+console.log(imageryLayer);
 
 // But then it is also used as data source for the custom `FlowLayer`.
 const windLayer = new FlowLayer({
@@ -59,7 +60,8 @@ const windLayer = new FlowLayer({
 
 // Create the map with the three layers defined above.
 const map = new EsriMap({
-  layers: [vectorTileLayer, imageryLayer, windLayer]
+  // layers: [vectorTileLayer, imageryLayer, windLayer]
+  layers: [vectorTileLayer, windLayer]
 });
 
 // Create the map view.

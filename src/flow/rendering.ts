@@ -201,7 +201,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     extent: Extent,
     _resolution: MapUnitsPerPixel,
     size: [Pixels, Pixels],
-    pixelRatio: number,
+    _pixelRatio: number,
     signal: AbortSignal
   ): Promise<FlowLocalResources> {
     const [source, processor] = await Promise.all([this.source, this.processor]);
@@ -209,7 +209,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     throwIfAborted(signal);
 
     const flowData = await source.fetchFlowData(extent, size[0], size[1], signal);
-    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, pixelRatio, signal);
+    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, signal);
     return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
 
@@ -260,8 +260,8 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
     mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
-      renderParams.scale * localResources.cellSize,
-      renderParams.scale * localResources.cellSize,
+      renderParams.scale * renderParams.pixelRatio * localResources.cellSize,
+      renderParams.scale * renderParams.pixelRatio * localResources.cellSize,
       1
     ]);
 

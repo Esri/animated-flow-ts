@@ -92,8 +92,6 @@ function createFlowFieldFromData(flowData: FlowData): Field {
       return [0, 0];
     }
 
-    // Y = flowData.rows - 1 - Y;
-
     return [data[2 * (Y * flowData.columns + X) + 0]!, data[2 * (Y * flowData.columns + X) + 1]!];
   };
 
@@ -140,6 +138,8 @@ function trace(f: Field, x0: number, y0: number): FlowLineVertex[] {
 function getFlowLines(f: Field, columns: number, rows: number): FlowLineVertex[][] {
   const lines: FlowLineVertex[][] = [];
 
+  console.log(columns, rows);
+
   const rand = createRand();
 
   for (let i = 0; i < settings.linesPerVisualization; i++) {
@@ -152,7 +152,6 @@ function getFlowLines(f: Field, columns: number, rows: number): FlowLineVertex[]
 
 export async function createFlowLinesMesh(
   flowData: FlowData,
-  pixelRatio: number,
   signal: AbortSignal
 ): Promise<FlowLinesMesh> {
   let vertexCount = 0;
@@ -199,8 +198,8 @@ export async function createFlowLinesMesh(
       const ey = (x1 - x0) / l;
 
       vertexData.push(
-        x0 * pixelRatio,
-        y0 * pixelRatio,
+        x0,
+        y0,
         ex,
         ey,
         -1,
@@ -208,8 +207,8 @@ export async function createFlowLinesMesh(
         totalTime,
         speed,
         random,
-        x0 * pixelRatio,
-        y0 * pixelRatio,
+        x0,
+        y0,
         -ex,
         -ey,
         +1,
@@ -217,8 +216,8 @@ export async function createFlowLinesMesh(
         totalTime,
         speed,
         random,
-        x1 * pixelRatio,
-        y1 * pixelRatio,
+        x1,
+        y1,
         ex,
         ey,
         -1,
@@ -226,8 +225,8 @@ export async function createFlowLinesMesh(
         totalTime,
         speed,
         random,
-        x1 * pixelRatio,
-        y1 * pixelRatio,
+        x1,
+        y1,
         -ex,
         -ey,
         +1,

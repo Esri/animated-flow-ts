@@ -37,7 +37,7 @@ import { TransferableFlowData } from "../flow/types";
  * @returns
  */
 export async function createFlowLinesMesh(
-  data: { flowData: TransferableFlowData; pixelRatio: number; },
+  data: { flowData: TransferableFlowData; },
   options: { signal: AbortSignal }
 ): Promise<{ result: { vertexBuffer: ArrayBuffer; indexBuffer: ArrayBuffer }; transferList: ArrayBuffer[] }> {
   const { vertexData, indexData } = await createFlowLinesMeshImpl(
@@ -45,7 +45,6 @@ export async function createFlowLinesMesh(
       ...data.flowData,
       data: new Float32Array(data.flowData.buffer)
     },
-    data.pixelRatio,
     options.signal
   );
 
