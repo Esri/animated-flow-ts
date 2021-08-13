@@ -46,7 +46,6 @@ export class FlowGlobalResources implements Resources {
       uniform mat4 u_Rotation;
       uniform mat4 u_ClipFromScreen;
       uniform float u_PixelRatio;
-      uniform float u_CellSize;
 
       varying float v_Side;
       varying float v_Time;
@@ -55,7 +54,7 @@ export class FlowGlobalResources implements Resources {
       varying float v_Random;
       
       void main(void) {
-        vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position * u_CellSize, 0.0, 1.0);
+        vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
         screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${(settings.lineWidth / 2).toFixed(3)} * u_PixelRatio;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
@@ -131,7 +130,6 @@ export class FlowGlobalResources implements Resources {
           u_Rotation: gl.getUniformLocation(program, "u_Rotation")!,
           u_ClipFromScreen: gl.getUniformLocation(program, "u_ClipFromScreen")!,
           u_PixelRatio: gl.getUniformLocation(program, "u_PixelRatio")!,
-          u_CellSize: gl.getUniformLocation(program, "u_CellSize")!,
           u_Color: gl.getUniformLocation(program, "u_Color")!,
           u_Time: gl.getUniformLocation(program, "u_Time")!
         }
@@ -285,7 +283,6 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
       localResources.u_ClipFromScreen
     );
     gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
-    gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_CellSize"]!, localResources.cellSize);
     gl.uniform4f(
       globalResources.programs!["texture"]?.uniforms["u_Color"]!,
       this.color.r / 255.0,

@@ -98,7 +98,7 @@ function createFlowFieldFromData(flowData: FlowData): Field {
   return f;
 }
 
-function trace(f: Field, x0: Cells, y0: Cells): FlowLineVertex[] {
+function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): FlowLineVertex[] {
   const line: FlowLineVertex[] = [];
 
   let t = 0;
@@ -107,7 +107,7 @@ function trace(f: Field, x0: Cells, y0: Cells): FlowLineVertex[] {
   let y = y0;
 
   line.push({
-    position: [x, y],
+    position: [x * cellSize, y * cellSize],
     time: t
   });
 
@@ -127,7 +127,7 @@ function trace(f: Field, x0: Cells, y0: Cells): FlowLineVertex[] {
     t += dt;
 
     line.push({
-      position: [x, y],
+      position: [x * cellSize, y * cellSize],
       time: t
     });
   }
@@ -135,15 +135,13 @@ function trace(f: Field, x0: Cells, y0: Cells): FlowLineVertex[] {
   return line;
 }
 
-function getFlowLines(f: Field, columns: Cells, rows: Cells): FlowLineVertex[][] {
+function getFlowLines(f: Field, columns: Cells, rows: Cells, cellSize: number): FlowLineVertex[][] {
   const lines: FlowLineVertex[][] = [];
-
-  console.log(columns, rows);
-
+  
   const rand = createRand();
 
   for (let i = 0; i < settings.linesPerVisualization; i++) {
-    const line = trace(f, Math.round(rand() * columns), Math.round(rand() * rows));
+    const line = trace(f, Math.round(rand() * columns), Math.round(rand() * rows), cellSize);
     lines.push(line);
   }
 
@@ -159,7 +157,7 @@ export async function createFlowLinesMesh(
   const indexData: number[] = [];
 
   const f = createFlowFieldFromData(flowData);
-  const flowLines = getFlowLines(f, flowData.columns, flowData.rows);
+  const flowLines = getFlowLines(f, flowData.columns, flowData.rows, flowData.cellSize);
 
   // flowLines.length = 1;
   // flowLines[0] = [{ position: [0, 0], time: 0 }, { position: [200, 0], time: 1 }];
@@ -172,10 +170,8 @@ export async function createFlowLinesMesh(
     const currentTime = performance.now();
 
     if (currentTime - restTime > settings.flowProcessingQuanta) {
-      console.log("Resting...");
       restTime = currentTime;
       await rest(signal);
-      console.log("Done resting!");
     }
 
     const random = rand();
