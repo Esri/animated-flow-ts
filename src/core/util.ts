@@ -99,3 +99,7 @@ export async function rest(signal: AbortSignal): Promise<void> {
 export function degreesToRadians(degrees: Degrees): Radians {
   return Math.PI * degrees / 180;
 }
+
+export function formatGLSLConstant(x: number): string {
+  return x.toFixed(3);
+}

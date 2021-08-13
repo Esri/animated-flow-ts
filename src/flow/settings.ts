@@ -1,4 +1,4 @@
-import { Milliseconds, Pixels } from "../core/types";
+import { Milliseconds, Pixels, Seconds } from "../core/types";
 import { Cells, PixelsPerCell, PixelsPerSecond } from "./types";
 
 const fixedCellSize: PixelsPerCell = 5;
@@ -11,10 +11,13 @@ const minSpeedThreshold: PixelsPerSecond = 0.001;
 const minWeightThreshold = 0.001;
 const flowProcessingQuanta: Milliseconds = 100;
 const lineWidth = 2;
-const speed50 = 10;
-const time2 = 2;
-const trailDecay = 0.01;
-const trailSpeedAttenuationExponent = 10000 * 100;
+// const speed50 = 10;
+// const time2 = 2;
+// const trailDecay = 0.01;
+// const trailSpeedAttenuationExponent = 10000 * 100;
+const trailDuration: Seconds = 10;
+const trailPeriod: Seconds = 3;
+const timeScale = 10;
 
 export default {
   fixedCellSize,
@@ -27,8 +30,11 @@ export default {
   minWeightThreshold,
   flowProcessingQuanta,
   lineWidth,
-  speed50,
-  time2,
-  trailDecay,
-  trailSpeedAttenuationExponent
+  // speed50,
+  // time2,
+  // trailDecay,
+  // trailSpeedAttenuationExponent,
+  trailDuration,
+  trailPeriod,
+  timeScale
 };

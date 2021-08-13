@@ -22,7 +22,7 @@ import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
 import { Awaitable, MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
-import { defined, throwIfAborted } from "../core/util";
+import { defined, formatGLSLConstant, throwIfAborted } from "../core/util";
 import settings from "./settings";
 import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
 
@@ -55,7 +55,7 @@ export class FlowGlobalResources implements Resources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${(settings.lineWidth / 2).toFixed(3)} * u_PixelRatio;
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${formatGLSLConstant(settings.lineWidth / 2)} * u_PixelRatio;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -80,19 +80,27 @@ export class FlowGlobalResources implements Resources {
         gl_FragColor = u_Color;
 
         gl_FragColor.a *= 1.0 - length(v_Side);
-        
-        // float t = mod(${(settings.speed50).toFixed(3)} * u_Time + v_Random * ${(settings.time2 / 2).toFixed(3)} * v_TotalTime, ${(settings.time2 / 2).toFixed(3)} * v_TotalTime);
 
-        // if (t < v_Time) {
-        //   gl_FragColor.a *= 0.0;
-        // } else {
-        //   gl_FragColor.a *= exp(-${(settings.trailDecay).toFixed(3)} * (t - v_Time)) * (1.0 - exp(-${(settings.trailSpeedAttenuationExponent).toFixed(3)} * v_Speed));
-        // }
+        float t = mod(u_Time, v_TotalTime * ${formatGLSLConstant(settings.trailPeriod)}) - v_Time;
+
+        if (t > 0.0) {
+          gl_FragColor.a *= exp(-2.3 * t / ${formatGLSLConstant(settings.trailDuration)});
+        } else {
+          gl_FragColor.a *= 0.0;
+        }
 
         gl_FragColor.rgb *= gl_FragColor.a;
 
         // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
       }`;
+
+    // float t = mod(${(settings.speed50).toFixed(3)} * u_Time + v_Random * ${(settings.time2 / 2).toFixed(3)} * v_TotalTime, ${(settings.time2 / 2).toFixed(3)} * v_TotalTime);
+
+    // if (t < v_Time) {
+    //   gl_FragColor.a *= 0.0;
+    // } else {
+    //   gl_FragColor.a *= exp(-${(settings.trailDecay).toFixed(3)} * (t - v_Time)) * (1.0 - exp(-${(settings.trailSpeedAttenuationExponent).toFixed(3)} * v_Speed));
+    // }
 
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     defined(vertexShader);
