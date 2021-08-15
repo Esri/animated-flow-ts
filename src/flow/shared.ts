@@ -80,7 +80,7 @@ function smooth(data: Float32Array, columns: Cells, rows: Cells, sigma: Cells): 
 function createFlowFieldFromData(flowData: FlowData): Field {
   const data = smooth(flowData.data, flowData.columns, flowData.rows, settings.smoothing);
 
-  const f = (x: Cells, y: Cells): [PixelsPerSecond, PixelsPerSecond] => {
+  const field = (x: Cells, y: Cells): [PixelsPerSecond, PixelsPerSecond] => {
     const X: Cells = Math.round(x);
     let Y: Cells = Math.round(y);
 
@@ -95,18 +95,17 @@ function createFlowFieldFromData(flowData: FlowData): Field {
     return [data[2 * (Y * flowData.columns + X) + 0]!, data[2 * (Y * flowData.columns + X) + 1]!];
   };
 
-  return f;
+  return field;
 }
 
 function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): FlowLineVertex[] {
-  const line: FlowLineVertex[] = [];
-
-  let t = 0;
+  const lineVertices: FlowLineVertex[] = [];
 
   let x = x0;
   let y = y0;
+  let t = 0;
 
-  line.push({
+  lineVertices.push({
     position: [x * cellSize, y * cellSize],
     time: t
   });
@@ -117,7 +116,7 @@ function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): FlowLineVertex
     vy *= settings.speedScale;
     const v = Math.sqrt(vx * vx + vy * vy);
     if (v < settings.minSpeedThreshold) {
-      return line;
+      return lineVertices;
     }
     const dx = vx / v;
     const dy = vy / v;
@@ -126,13 +125,13 @@ function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): FlowLineVertex
     const dt = settings.segmentLength / v;
     t += dt;
 
-    line.push({
+    lineVertices.push({
       position: [x * cellSize, y * cellSize],
       time: t
     });
   }
 
-  return line;
+  return lineVertices;
 }
 
 function getFlowLines(f: Field, columns: Cells, rows: Cells, cellSize: number): FlowLineVertex[][] {

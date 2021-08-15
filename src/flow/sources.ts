@@ -64,7 +64,7 @@ export class ImageryTileLayerFlowSource implements FlowSource {
         v = si * mag;
       } else if (dataType === "vector-uv") {
         u = rawCellData[0]![i]!;
-        v = rawCellData[1]![i]!;
+        v = -rawCellData[1]![i]!;
       } else {
         console.error(
           `Unsupported data type "${dataType}"; the ImageryTileLayerFlowSource class only suppors "vector-magdir" and "vector-uv".`
@@ -90,6 +90,8 @@ export class ImageryTileLayerFlowSource implements FlowSource {
   }
 }
 
+// TODO: Some speeds may be pixel per seconds; others cells per second.
+
 export class VectorFieldFlowSource implements FlowSource {
   constructor(private mapVectorField: Field) {
   }
@@ -99,7 +101,6 @@ export class VectorFieldFlowSource implements FlowSource {
 
     const columns = Math.round(width / cellSize);
     const rows = Math.round(height / cellSize);
-
     const data = new Float32Array(columns * rows * 2);
 
     for (let i = 0; i < rows; i++) {
@@ -110,8 +111,8 @@ export class VectorFieldFlowSource implements FlowSource {
         const x = j * cellSize;
         const xMap = extent.xmin + (extent.xmax - extent.xmin) * (x / width);
         const [u, v] = this.mapVectorField(xMap, yMap);
-        data[2 * (i * columns + j) + 0] = u;
-        data[2 * (i * columns + j) + 1] = v;
+        data[2 * (i * columns + j) + 0] = u; // I need to divice by cell size?
+        data[2 * (i * columns + j) + 1] = v; // I need to divice by cell size?
       }
     }
 
