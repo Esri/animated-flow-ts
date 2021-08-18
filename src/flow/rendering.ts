@@ -1,19 +1,38 @@
-import { subclass } from "@arcgis/core/core/accessorSupport/decorators";
-import Extent from "@arcgis/core/geometry/Extent";
-import { mat4 } from "gl-matrix";
-import { VisualizationLayerView2D, VisualizationRenderParams, LocalResources, SharedResources } from "../visualization";
-import { defined } from "../util";
-import BaseLayer from "@arcgis/core/layers/Layer";
-import { MainWindTracer, WindTracer, WorkerWindTracer } from "./wind-meshing";
-import { ImageryTileLayerWindSource, WindSource } from "./wind-sources";
+/*
+  Copyright 2021 Esri
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 
-class WindSharedResources extends SharedResources {
+/**
+ * @module wind-es/flow/rendering
+ *
+ * This module...
+ */
+
+import Color from "esri/Color";
+import Extent from "esri/geometry/Extent";
+import { mat4 } from "gl-matrix";
+import { VisualizationStyle } from "../core/rendering";
+import { Awaitable, MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
+import { defined, formatGLSLConstant, throwIfAborted } from "../core/util";
+import settings from "./settings";
+import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
+
+export class FlowGlobalResources implements Resources {
   programs: HashMap<{
     program: WebGLProgram;
-    uniforms: HashMap<WebGLUniformLocation>
+    uniforms: HashMap<WebGLUniformLocation>;
   }> | null = null;
 
-  override attach(gl: WebGLRenderingContext): void {
+  attach(gl: WebGLRenderingContext): void {
     const vertexSource = `
       attribute vec2 a_Position;
       attribute vec2 a_Extrude;
@@ -26,6 +45,7 @@ class WindSharedResources extends SharedResources {
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_Rotation;
       uniform mat4 u_ClipFromScreen;
+      uniform float u_PixelRatio;
 
       varying float v_Side;
       varying float v_Time;
@@ -35,7 +55,7 @@ class WindSharedResources extends SharedResources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0); // TODO: Add support for devicePixelRatio?
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${formatGLSLConstant(settings.lineWidth / 2)} * u_PixelRatio;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -43,11 +63,11 @@ class WindSharedResources extends SharedResources {
         v_Speed = a_Speed;
         v_Random = a_Random;
       }`;
-      
+
     const fragmentSource = `
       precision mediump float;
 
-      uniform float u_Opacity;
+      uniform vec4 u_Color;
       uniform float u_Time;
       
       varying float v_Side;
@@ -57,21 +77,32 @@ class WindSharedResources extends SharedResources {
       varying float v_Random;
 
       void main(void) {
-        gl_FragColor = vec4(60.0 / 255.0, 160.0 / 255.0, 220.0 / 255.0, 1.0);
+        gl_FragColor = u_Color;
 
-        gl_FragColor.a *= u_Opacity * (1.0 - length(v_Side));
-        
-        float t = mod(50.0 * u_Time + v_Random * 2.0 * v_TotalTime, 2.0 * v_TotalTime);
+        gl_FragColor.a *= 1.0 - length(v_Side);
 
-        if (t < v_Time) {
-          gl_FragColor.a *= 0.0;
+        float period = v_TotalTime * ${formatGLSLConstant(settings.trailPeriod)};
+        float t = mod(u_Time * ${formatGLSLConstant(settings.timeScale)} + period * v_Random, period) - v_Time;
+
+        if (t > 0.0) {
+          gl_FragColor.a *= exp(-2.3 * t / (v_TotalTime * ${formatGLSLConstant(settings.trailDuration)}));
         } else {
-          gl_FragColor.a *= exp(-0.01 * (t - v_Time)) * (1.0 - exp(-100.0 /* TODO! Factor! */ * v_Speed));
+          gl_FragColor.a *= 0.0;
         }
 
         gl_FragColor.rgb *= gl_FragColor.a;
+
+        // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
       }`;
-      
+
+    // float t = mod(${(settings.speed50).toFixed(3)} * u_Time + v_Random * ${(settings.time2 / 2).toFixed(3)} * v_TotalTime, ${(settings.time2 / 2).toFixed(3)} * v_TotalTime);
+
+    // if (t < v_Time) {
+    //   gl_FragColor.a *= 0.0;
+    // } else {
+    //   gl_FragColor.a *= exp(-${(settings.trailDecay).toFixed(3)} * (t - v_Time)) * (1.0 - exp(-${(settings.trailSpeedAttenuationExponent).toFixed(3)} * v_Speed));
+    // }
+
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     defined(vertexShader);
     gl.shaderSource(vertexShader, vertexSource);
@@ -80,7 +111,7 @@ class WindSharedResources extends SharedResources {
     defined(fragmentShader);
     gl.shaderSource(fragmentShader, fragmentSource);
     gl.compileShader(fragmentShader);
-    
+
     const program = gl.createProgram();
     defined(program);
     gl.attachShader(program, vertexShader);
@@ -99,7 +130,7 @@ class WindSharedResources extends SharedResources {
     console.log(gl.getShaderInfoLog(vertexShader));
     console.log(gl.getShaderInfoLog(fragmentShader));
     console.log(gl.getProgramInfoLog(program));
-    
+
     this.programs = {
       texture: {
         program,
@@ -107,39 +138,38 @@ class WindSharedResources extends SharedResources {
           u_ScreenFromLocal: gl.getUniformLocation(program, "u_ScreenFromLocal")!,
           u_Rotation: gl.getUniformLocation(program, "u_Rotation")!,
           u_ClipFromScreen: gl.getUniformLocation(program, "u_ClipFromScreen")!,
-          u_Opacity: gl.getUniformLocation(program, "u_Opacity")!,
+          u_PixelRatio: gl.getUniformLocation(program, "u_PixelRatio")!,
+          u_Color: gl.getUniformLocation(program, "u_Color")!,
           u_Time: gl.getUniformLocation(program, "u_Time")!
         }
       }
     };
   }
 
-  override detach(gl: WebGLRenderingContext): void {
+  detach(gl: WebGLRenderingContext): void {
     gl.deleteProgram(this.programs!["solid"]?.program!);
   }
 }
 
-class WindLocalResources extends LocalResources {
+export class FlowLocalResources implements Resources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
-  downsample: number;
+  indexCount = 0;
+  cellSize: PixelsPerCell;
   vertexBuffer: WebGLBuffer | null = null;
   indexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
   u_Rotation = mat4.create();
   u_ClipFromScreen = mat4.create();
-  indexCount = 0;
 
-  constructor(extent: Extent, resolution: number, downsample: number, vertexData: Float32Array, indexData: Uint32Array) {
-    super(extent, resolution);
-
-    this.downsample = downsample;
+  constructor(cellSize: PixelsPerCell, vertexData: Float32Array, indexData: Uint32Array) {
+    this.cellSize = cellSize;
     this.vertexData = vertexData;
     this.indexData = indexData;
     this.indexCount = indexData.length;
   }
 
-  override attach(gl: WebGLRenderingContext): void {
+  attach(gl: WebGLRenderingContext): void {
     defined(this.vertexData);
     defined(this.indexData);
 
@@ -161,38 +191,43 @@ class WindLocalResources extends LocalResources {
     this.indexBuffer = indexBuffer;
   }
 
-  override detach(gl: WebGLRenderingContext): void {
+  detach(gl: WebGLRenderingContext): void {
     gl.deleteBuffer(this.vertexBuffer);
     gl.deleteBuffer(this.indexBuffer);
   }
 }
 
-@subclass("wind-es.wind.WindLayerView2D")
-class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, WindLocalResources> {
-  override animate = true;
-
-  override async loadSharedResources(): Promise<WindSharedResources> {
-    return new WindSharedResources();
+export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResources, FlowLocalResources> {
+  constructor(private source: Awaitable<FlowSource>, private processor: Awaitable<FlowProcessor>, private color: Color) {
+    super();
   }
 
-  override async loadLocalResources(extent: Extent, resolution: number, signal: AbortSignal): Promise<WindLocalResources> {
-    // TODO?
-    extent = extent.clone();
-    extent.expand(1.15); // Increase this?
-
-    const width = Math.round((extent.xmax - extent.xmin) / resolution);
-    const height = Math.round((extent.ymax - extent.ymin) / resolution);
-
-    const layer = this.layer as WindLayer;
-
-    const downsample = 1;
-
-    const windData = await (await layer.source).fetchWindData(extent, width / downsample, height / downsample, signal);
-    const { vertexData, indexData } = await (await layer.tracer).createWindMesh(windData, 5);
-    return new WindLocalResources(extent, resolution, downsample, vertexData, indexData);
+  override async loadGlobalResources(): Promise<FlowGlobalResources> {
+    return new FlowGlobalResources();
   }
 
-  override renderVisualization(gl: WebGLRenderingContext, renderParams: VisualizationRenderParams, sharedResources: WindSharedResources, localResources: WindLocalResources): void {
+  override async loadLocalResources(
+    extent: Extent,
+    _resolution: MapUnitsPerPixel,
+    size: [Pixels, Pixels],
+    _pixelRatio: number,
+    signal: AbortSignal
+  ): Promise<FlowLocalResources> {
+    const [source, processor] = await Promise.all([this.source, this.processor]);
+
+    throwIfAborted(signal);
+
+    const flowData = await source.fetchFlowData(extent, size[0], size[1], signal);
+    const { vertexData, indexData } = await processor.createFlowLinesMesh(flowData, signal);
+    return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
+  }
+
+  override renderVisualization(
+    gl: WebGLRenderingContext,
+    renderParams: VisualizationRenderParams,
+    globalResources: FlowGlobalResources,
+    localResources: FlowLocalResources
+  ): void {
     defined(localResources.vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 36, 0);
@@ -217,64 +252,58 @@ class WindLayerView2D extends VisualizationLayerView2D<WindSharedResources, Wind
 
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
-    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [2 / renderParams.size[0], -2 / renderParams.size[1], 1]);
+    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
+      2 / (renderParams.size[0] * renderParams.pixelRatio),
+      -2 / (renderParams.size[1] * renderParams.pixelRatio),
+      1
+    ]);
 
     mat4.identity(localResources.u_Rotation);
     mat4.rotateZ(localResources.u_Rotation, localResources.u_Rotation, renderParams.rotation);
 
     mat4.identity(localResources.u_ScreenFromLocal);
-    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.translation[0], renderParams.translation[1], 1]);
+    mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
+      renderParams.translation[0],
+      renderParams.translation[1],
+      1
+    ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
-    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [renderParams.scale * localResources.downsample, renderParams.scale * localResources.downsample, 1]);
+    mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
+      renderParams.scale * renderParams.pixelRatio,
+      renderParams.scale * renderParams.pixelRatio,
+      1
+    ]);
 
-    const solidProgram = sharedResources.programs!["texture"]?.program!;
+    const solidProgram = globalResources.programs!["texture"]?.program!;
     gl.useProgram(solidProgram);
-    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
-    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_Rotation"]!, false, localResources.u_Rotation);
-    gl.uniformMatrix4fv(sharedResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
-    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Opacity"]!, renderParams.opacity);
-    gl.uniform1f(sharedResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
+    gl.uniformMatrix4fv(
+      globalResources.programs!["texture"]?.uniforms["u_ScreenFromLocal"]!,
+      false,
+      localResources.u_ScreenFromLocal
+    );
+    gl.uniformMatrix4fv(
+      globalResources.programs!["texture"]?.uniforms["u_Rotation"]!,
+      false,
+      localResources.u_Rotation
+    );
+    gl.uniformMatrix4fv(
+      globalResources.programs!["texture"]?.uniforms["u_ClipFromScreen"]!,
+      false,
+      localResources.u_ClipFromScreen
+    );
+    gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_PixelRatio"]!, renderParams.pixelRatio);
+    gl.uniform4f(
+      globalResources.programs!["texture"]?.uniforms["u_Color"]!,
+      this.color.r / 255.0,
+      this.color.g / 255.0,
+      this.color.b / 255.0,
+      this.color.a * renderParams.opacity
+    );
+    gl.uniform1f(globalResources.programs!["texture"]?.uniforms["u_Time"]!, performance.now() / 1000.0);
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
     gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
-  }
-}
-
-@subclass("wind-es.wind.WindLayer")
-export class WindLayer extends BaseLayer {
-  source: Promise<WindSource>;
-  tracer: Promise<WindTracer>;
-
-  constructor(params: any) {
-    super(params);
-
-    if (params.url && params.source) {
-      throw new Error("Only one of 'url' or 'source' parameters can be specified when creating a WindLayer.");
-    }
-
-    // TODO: Support both UV and MagDir.
-
-    const useWebWorkers = ("useWebWorkers" in params) ? params.useWebWorkers : true;
-
-    this.source = Promise.resolve(params.url ? new ImageryTileLayerWindSource(params.url, 0.1 /* TODO: Configure? */) : params.source);
-    this.tracer = Promise.resolve(useWebWorkers ? new WorkerWindTracer() : new MainWindTracer());
-  }
-
-  override createLayerView(view: any): any {
-    if (view.type === "2d") {
-      return new WindLayerView2D({
-        view: view,
-        layer: this
-      } as any);
-    }
-  }
-
-  override destroy(): void {
-    super.destroy();
-    // TODO: Abort?
-    this.source.then((source) => source.destroy());
-    this.tracer.then((tracer) => tracer.destroy());
   }
 }
