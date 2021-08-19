@@ -19,7 +19,7 @@
 
 import { createRand, rest } from "../core/util";
 import settings from "./settings";
-import { Field, FlowLinesMesh, FlowLineVertex, FlowData, PixelsPerSecond, Cells } from "./types";
+import { Field, StreamLinesMesh, StreamLineVertex, FlowData, Cells, CellsPerSecond } from "./types";
 
 function smooth(data: Float32Array, columns: Cells, rows: Cells, sigma: Cells): Float32Array {
   const horizontal = new Float32Array(data.length);
@@ -80,7 +80,7 @@ function smooth(data: Float32Array, columns: Cells, rows: Cells, sigma: Cells): 
 function createFlowFieldFromData(flowData: FlowData): Field {
   const data = smooth(flowData.data, flowData.columns, flowData.rows, settings.smoothing);
 
-  const field = (x: Cells, y: Cells): [PixelsPerSecond, PixelsPerSecond] => {
+  const field = (x: Cells, y: Cells): [CellsPerSecond, CellsPerSecond] => {
     const X: Cells = Math.round(x);
     let Y: Cells = Math.round(y);
 
@@ -98,8 +98,8 @@ function createFlowFieldFromData(flowData: FlowData): Field {
   return field;
 }
 
-function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): FlowLineVertex[] {
-  const lineVertices: FlowLineVertex[] = [];
+function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): StreamLineVertex[] {
+  const lineVertices: StreamLineVertex[] = [];
 
   let x = x0;
   let y = y0;
@@ -134,8 +134,8 @@ function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): FlowLineVertex
   return lineVertices;
 }
 
-function getFlowLines(f: Field, columns: Cells, rows: Cells, cellSize: number): FlowLineVertex[][] {
-  const lines: FlowLineVertex[][] = [];
+function getStreamLines(f: Field, columns: Cells, rows: Cells, cellSize: number): StreamLineVertex[][] {
+  const lines: StreamLineVertex[][] = [];
   
   const rand = createRand();
 
@@ -147,25 +147,25 @@ function getFlowLines(f: Field, columns: Cells, rows: Cells, cellSize: number): 
   return lines;
 }
 
-export async function createFlowLinesMesh(
+export async function createStreamLinesMesh(
   flowData: FlowData,
   signal: AbortSignal
-): Promise<FlowLinesMesh> {
+): Promise<StreamLinesMesh> {
   let vertexCount = 0;
   const vertexData: number[] = [];
   const indexData: number[] = [];
 
   const f = createFlowFieldFromData(flowData);
-  const flowLines = getFlowLines(f, flowData.columns, flowData.rows, flowData.cellSize);
+  const streamLines = getStreamLines(f, flowData.columns, flowData.rows, flowData.cellSize);
 
-  // flowLines.length = 1;
-  // flowLines[0] = [{ position: [100, 100], time: 0 }, { position: [1100, 100], time: 1 }];
+  // streamLines.length = 1;
+  // streamLines[0] = [{ position: [100, 100], time: 0 }, { position: [1100, 100], time: 1 }];
   
   const rand = createRand();
 
   let restTime = performance.now();
 
-  for (const line of flowLines) {
+  for (const line of streamLines) {
     const currentTime = performance.now();
 
     if (currentTime - restTime > settings.flowProcessingQuanta) {

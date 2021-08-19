@@ -18,6 +18,7 @@
  */
 
  export type Cells = number;
+ export type CellsPerSecond = number;
  export type PixelsPerSecond = number;
  export type PixelsPerCell = number;
 
@@ -75,7 +76,7 @@
  *
  * A flow line is a polyline where each vertex is timestamped in seconds.
  */
-export type FlowLineVertex = {
+export type StreamLineVertex = {
   /**
    * The position of the vertex, in pixels.
    */
@@ -96,9 +97,9 @@ export type FlowLineVertex = {
 };
 
 /**
- * The mesh data as returned by createFlowLinesMesh...
+ * The mesh data as returned by createStreamLinesMesh...
  */
-export type FlowLinesMesh = {
+export type StreamLinesMesh = {
   vertexData: Float32Array;
   indexData: Uint32Array;
 };
@@ -139,6 +140,6 @@ export interface FlowSource {
 }
 
 export interface FlowProcessor {
-  createFlowLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<FlowLinesMesh>;
+  createStreamLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<StreamLinesMesh>;
   destroy(): void;
 }

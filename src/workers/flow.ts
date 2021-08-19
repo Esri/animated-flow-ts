@@ -23,24 +23,24 @@
  * that ships as part of the ArcGIS API for JavaScript.
  */
 
-import { createFlowLinesMesh as createFlowLinesMeshImpl } from "../flow/shared";
+import { createStreamLinesMesh as createStreamLinesMeshImpl } from "../flow/shared";
 import { TransferableFlowData } from "../flow/types";
 
 /**
  * Create
  *
- * It is a wrapper around `wind-es.flow.shared.createFlowLinesMesh` that
+ * It is a wrapper around `wind-es.flow.shared.createStreamLinesMesh` that
  * takes care of marshalling and unmarshalling the parameters.
  *
  * @param data
  * @param options
  * @returns
  */
-export async function createFlowLinesMesh(
+export async function createStreamLinesMesh(
   data: { flowData: TransferableFlowData; },
   options: { signal: AbortSignal }
 ): Promise<{ result: { vertexBuffer: ArrayBuffer; indexBuffer: ArrayBuffer }; transferList: ArrayBuffer[] }> {
-  const { vertexData, indexData } = await createFlowLinesMeshImpl(
+  const { vertexData, indexData } = await createStreamLinesMeshImpl(
     {
       ...data.flowData,
       data: new Float32Array(data.flowData.buffer)

@@ -17,17 +17,17 @@
  * This module...
  */
 
-import { createFlowLinesMesh } from "./shared";
-import { FlowLinesMesh, FlowData, FlowProcessor } from "./types";
+import { createStreamLinesMesh } from "./shared";
+import { StreamLinesMesh, FlowData, FlowProcessor } from "./types";
 import * as workers from "esri/core/workers";
 import { throwIfAborted } from "../core/util";
 
 export class MainFlowProcessor implements FlowProcessor {
-  async createFlowLinesMesh(
+  async createStreamLinesMesh(
     flowData: FlowData,
     signal: AbortSignal
-  ): Promise<FlowLinesMesh> {
-    return createFlowLinesMesh(flowData, signal);
+  ): Promise<StreamLinesMesh> {
+    return createStreamLinesMesh(flowData, signal);
   }
 
   destroy(): void {
@@ -37,16 +37,16 @@ export class MainFlowProcessor implements FlowProcessor {
 export class WorkerFlowProcessor implements FlowProcessor {
   private connection = workers.open("wind-es/workers/flow");
 
-  async createFlowLinesMesh(
+  async createStreamLinesMesh(
     flowData: FlowData,
     signal: AbortSignal
-  ): Promise<FlowLinesMesh> {
+  ): Promise<StreamLinesMesh> {
     const connection = await this.connection;
 
     throwIfAborted(signal);
 
     const result = await connection.invoke(
-      "createFlowLinesMesh",
+      "createStreamLinesMesh",
       {
         flowData: {
           ...flowData,
