@@ -41,17 +41,15 @@ const vectorTileLayer = new VectorTileLayer({
 });
 
 // The URL of an imagery tile layer.
-// const url =
-//   "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer";
+const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer";
 
-const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_uv/ImageServer";
+// There is also the UV version of the same data.
+// const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_uv/ImageServer";
 
 // First, it is added as a layer in the map, and visualized as
 // static arrows by the stock vector field renderer that ships
 // with the ArcGIS API for JavaScript.
-// const imageryLayer = new ImageryTileLayer({ url, renderer: { type: "raster-stretch", stretchType: "min-max" }, opacity: 0.8 });
-
-const imageryLayer2 = new ImageryTileLayer({ url, opacity: 0.8 });
+const imageryLayer = new ImageryTileLayer({ url, opacity: 0.8 });
 
 // But then it is also used as data source for the custom `FlowLayer`.
 const windLayer = new FlowLayer({
@@ -65,7 +63,7 @@ console.log(windLayer);
 
 // Create the map with the three layers defined above.
 const map = new EsriMap({
-  layers: [vectorTileLayer, imageryLayer2, windLayer]
+  layers: [vectorTileLayer, imageryLayer, windLayer]
 });
 
 // Create the map view.
