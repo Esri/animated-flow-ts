@@ -14,7 +14,7 @@
 /**
  * @module animated-flow-ts/flow/sources
  *
- * This module...
+ * This module defines classes responsible for loading flow data into the `FlowLayer`.
  */
 
 import Extent from "esri/geometry/Extent";
@@ -109,8 +109,8 @@ export class VectorFieldFlowSource implements FlowSource {
         const x = j * cellSize;
         const xMap = extent.xmin + (extent.xmax - extent.xmin) * (x / width);
         const [u, v] = this.mapVectorField(xMap, yMap);
-        data[2 * (i * columns + j) + 0] = u; // I need to divice by cell size?
-        data[2 * (i * columns + j) + 1] = v; // I need to divice by cell size?
+        data[2 * (i * columns + j) + 0] = u;
+        data[2 * (i * columns + j) + 1] = v;
       }
     }
 

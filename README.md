@@ -14,7 +14,7 @@
 
 - A custom WebGL layer compatible with `MapView`.
 - Visualize flow using animated lines.
-- Support UV and MagDir [imagery tile layers](https://developers.arcgis.com/javascript/latest/sample-code/layers-imagerytilelayer/).
+- Support for UV and MagDir [imagery tile layers](https://developers.arcgis.com/javascript/latest/sample-code/layers-imagerytilelayer/).
 - Can be used in conjunction with [blend modes and layer effects](https://developers.arcgis.com/javascript/latest/sample-code/intro-blendmode-layer/).
 
 ## Instructions

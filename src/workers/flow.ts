@@ -27,14 +27,14 @@ import { createStreamLinesMesh as createStreamLinesMeshImpl } from "../flow/shar
 import { TransferableFlowData } from "../flow/types";
 
 /**
- * Create a mesh of streamlines on the main process.
+ * Create a mesh of streamlines on the worker process.
  *
  * It is a wrapper around `animated-flow-ts.flow.shared.createStreamLinesMesh` that
  * takes care of marshalling and unmarshalling the parameters.
  *
- * @param data
- * @param options
- * @returns
+ * @param data The flow data.
+ * @param options The options containing the abort signal.
+ * @returns A promise to a transferable mesh.
  */
 export async function createStreamLinesMesh(
   data: { flowData: TransferableFlowData; },
