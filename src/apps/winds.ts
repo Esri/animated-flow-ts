@@ -41,7 +41,7 @@ const vectorTileLayer = new VectorTileLayer({
 });
 
 // The URL of an imagery tile layer.
-const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer";
+const url = "https://tiledimageservices.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/NLDAS2011_daily_wind_magdir/ImageServer";
 
 // First, it is added as a layer in the map, and visualized as
 // static arrows by the stock vector field renderer that ships

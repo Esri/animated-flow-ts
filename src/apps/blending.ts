@@ -49,7 +49,7 @@ const temperatureLayer = new FeatureLayer({
 
 // The `FlowLayer` uses an imagery tile layer as data source.
 const windLayer = new FlowLayer({
-  url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_uv/ImageServer",
+  url: "https://tiledimageservices.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/NLDAS2011_daily_wind_uv/ImageServer",
   useWebWorkers: true,
   blendMode: "destination-in"
 } as any);
