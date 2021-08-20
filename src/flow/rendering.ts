@@ -125,10 +125,6 @@ export class FlowGlobalResources implements Resources {
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
 
-    console.log(gl.getShaderInfoLog(vertexShader));
-    console.log(gl.getShaderInfoLog(fragmentShader));
-    console.log(gl.getProgramInfoLog(program));
-
     this.programs = {
       texture: {
         program,

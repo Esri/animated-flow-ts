@@ -56,8 +56,6 @@ const windLayer = new FlowLayer({
   color: new Color([60, 160, 220, 1])
 } as any);
 
-console.log(windLayer);
-
 // Create the map with the three layers defined above.
 const map = new EsriMap({
   layers: [vectorTileLayer, imageryLayer, windLayer]
