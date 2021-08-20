@@ -14,7 +14,8 @@
 /**
  * @module animated-flow-ts/flow/rendering
  *
- * This module...
+ * This module defines the GPU resources needed by the flow visualization,
+ * and the rendering algorith that renders them.
  */
 
 import Color from "esri/Color";
@@ -94,14 +95,6 @@ export class FlowGlobalResources implements Resources {
 
         // gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
       }`;
-
-    // float t = mod(${(settings.speed50).toFixed(3)} * u_Time + v_Random * ${(settings.time2 / 2).toFixed(3)} * v_TotalTime, ${(settings.time2 / 2).toFixed(3)} * v_TotalTime);
-
-    // if (t < v_Time) {
-    //   gl_FragColor.a *= 0.0;
-    // } else {
-    //   gl_FragColor.a *= exp(-${(settings.trailDecay).toFixed(3)} * (t - v_Time)) * (1.0 - exp(-${(settings.trailSpeedAttenuationExponent).toFixed(3)} * v_Speed));
-    // }
 
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     defined(vertexShader);

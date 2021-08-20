@@ -14,7 +14,8 @@
 /**
  * @module animated-flow-ts/flow/shared
  *
- * This module...
+ * This module contains particle simulation and mesh generation code
+ * that can be used both on the worker and the main process.
  */
 
 import { createRand, rest } from "../core/util";
@@ -157,10 +158,6 @@ export async function createStreamLinesMesh(
 
   const f = createFlowFieldFromData(flowData);
   const streamLines = getStreamLines(f, flowData.columns, flowData.rows, flowData.cellSize);
-
-  // streamLines.length = 1;
-  // streamLines[0] = [{ position: [100, 100], time: 0 }, { position: [1100, 100], time: 1 }];
-  
   const rand = createRand();
 
   let restTime = performance.now();

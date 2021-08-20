@@ -22,54 +22,6 @@
  export type PixelsPerSecond = number;
  export type PixelsPerCell = number;
 
-// /**
-//  * Method `ImageryTileLayer.fetchPixels()` returns a block of "pixels" into the
-//  * property `pixelBlock` of the fetched raster data object. From the perspective
-//  * of animated-flow-ts, the returned data is not really in "pixels" because very often
-//  * for efficiency reason it will be worthed query the service at a lower resolution
-//  * than the screen. For this reason, animated-flow-ts regards the result as a matrix of
-//  * "cells" rather than pixels, and instead of the terms "width" and "height" uses
-//  * the terms "columns" and "rows".
-//  */
-// export type CellBlock = {
-//   /**
-//    * The number of columns in the block.
-//    */
-//   columns: Cells;
-
-//   /**
-//    * The number of rows in the block.
-//    */
-//   rows: Cells;
-
-//   /**
-//    * The cell data.
-//    *
-//    * Cell data is stored:
-//    *
-//    * - Linearly;
-//    * - One scanline at a time, starting from the top scanline;
-//    * - In separated channels.
-//    *
-//    * The first index into the `cells` multidimensional array
-//    * specifies the channel, while the second index specifies
-//    * a scalar cell value.
-//    *
-//    * As an example, consider a MagDir raster as returned by a
-//    * query to an image server.
-//    *
-//    * Here are some examples.
-//    *
-//    * - cells[0][0] is the first cell of the magnitude channel;
-//    * - cells[1][0] is the first cell of the direction channel;
-//    * - cells[0][columns - 1] is the last cell of the first (top)
-//    *   scanline of the magnitude channel;
-//    * - cells[0][columns * rows - 1] is the last cell of the
-//    *   last (bottom) scanline of the magnitude channel.
-//    */
-//   cells: number[][];
-// };
-
 /**
  * A vertex of a flow line, as returned by The `trace()` function in
  * module `animated-flow-ts/flow/shared.
@@ -132,13 +84,17 @@ export type TransferableFlowData = {
 };
 
 /**
- * A flow source is a gate
+ * A flow source defines how the flow data is loaded into the `FlowLayer`.
  */
 export interface FlowSource {
   fetchFlowData(extent: Extent, width: Pixels, height: Pixels, signal: AbortSignal): Promise<FlowData>;
   destroy(): void;
 }
 
+/**
+ * A flow processor defines how the flow data is used to generate streamlines
+ * that are subsequently transformed into a triangle mesh.
+ */
 export interface FlowProcessor {
   createStreamLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<StreamLinesMesh>;
   destroy(): void;

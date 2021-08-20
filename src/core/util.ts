@@ -11,13 +11,13 @@
   limitations under the License.
 */
 
-import { Degrees, Radians } from "./types";
-
 /**
  * @module animated-flow-ts/core/util
  *
  * This module contains utilities of general interest.
  */
+
+import { Degrees, Radians } from "./types";
 
 /**
  * Raise a runtime exception if a value is `null` or `undefined`.

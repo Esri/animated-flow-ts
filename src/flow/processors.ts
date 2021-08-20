@@ -13,8 +13,6 @@
 
 /**
  * @module animated-flow-ts/flow/processors
- *
- * This module...
  */
 
 import { createStreamLinesMesh } from "./shared";

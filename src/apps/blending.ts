@@ -14,7 +14,8 @@
 /**
  * @module animated-flow-ts/apps/winds
  *
- * An app that uses real magnitude/direction wind data from an imagery tile layer.
+ * An app that uses real UV wind data from an imagery tile layer and combines
+ * using blend modes with another layer.
  */
 
 import EsriMap from "esri/Map";
@@ -40,21 +41,21 @@ const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
-// The URL of an imagery tile layer.
-const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_uv/ImageServer";
-
+// TODO: This should be a "temperature" layer.
 const temperatureLayer = new FeatureLayer({
   url: "https://services.arcgis.com/DO4gTjwJVIJ7O9Ca/arcgis/rest/services/Unacast_Latest_Available__Visitation_and_Distance_/FeatureServer",
   effect: "blur(10px)"
 });
 
-// But then it is also used as data source for the custom `FlowLayer`.
+// The `FlowLayer` uses an imagery tile layer as data source.
 const windLayer = new FlowLayer({
-  url,
+  url: "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_uv/ImageServer",
   useWebWorkers: true,
   blendMode: "destination-in"
 } as any);
 
+// We create a group layer to combine temperature and wind in a single visualization
+// where the temperature drives the color of the streamlines.
 const groupLayer = new GroupLayer({
   effect: "bloom(1.5, 0.5px, 0.2)"
 });

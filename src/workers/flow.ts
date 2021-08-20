@@ -27,7 +27,7 @@ import { createStreamLinesMesh as createStreamLinesMeshImpl } from "../flow/shar
 import { TransferableFlowData } from "../flow/types";
 
 /**
- * Create
+ * Create a mesh of streamlines on the main process.
  *
  * It is a wrapper around `animated-flow-ts.flow.shared.createStreamLinesMesh` that
  * takes care of marshalling and unmarshalling the parameters.

@@ -14,7 +14,7 @@
 /**
  * @module animated-flow-ts/flow/view
  *
- * This module...
+ * This module defines `FlowLayerView2D`.
  */
 
 import { subclass } from "esri/core/accessorSupport/decorators";

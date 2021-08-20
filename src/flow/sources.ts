@@ -90,8 +90,6 @@ export class ImageryTileLayerFlowSource implements FlowSource {
   }
 }
 
-// TODO: Some speeds may be pixel per seconds; others cells per second.
-
 export class VectorFieldFlowSource implements FlowSource {
   constructor(private mapVectorField: Field) {
   }

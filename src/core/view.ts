@@ -81,7 +81,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
   private _globalResources: GlobalResourcesEntry<GR> | null = null;
 
   /**
-   * Local resources are tied to an extent and are specific for a 
+   * Local resources are tied to an extent and are specific for a given visualization.
    */
   private _localResources: LocalResourcesEntry<LR>[] = [];
 
@@ -156,7 +156,6 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     // Abort all local resources that were being loaded.
     for (const localResources of this._localResources) {
       if (localResources.state.name === "loading") {
-        console.log("ABORT!!!"); // TODO: Remove this!
         localResources.state.abortController.abort();
         this._localResources.splice(this._localResources.indexOf(localResources), 1);
       }
@@ -263,7 +262,6 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
         // ...and then removed.
         this._localResources.splice(i, 1);
       } else {
-        // TODO: Think about this.
         if (localResources.state.name === "loading") {
           this.requestRender();
         } else {
