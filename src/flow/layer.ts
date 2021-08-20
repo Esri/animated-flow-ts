@@ -92,6 +92,15 @@ export class FlowLayer extends Layer {
   })
   color = new Color([255, 255, 255, 1]);
 
+  /**
+   * Constructs a new `FlowLayer`.
+   * 
+   * It supports both UV and MagDir imagery tile layers, and client-side
+   * flow sources such as `VectorFieldFlowSource`.
+   *
+   * @param params A `url` string or `source` object to fetch the data from,
+   * and optionally the `useWebWorkers` flag if worker support is desired.
+   */
   constructor(params: any) {
     super(params);
 
@@ -111,6 +120,12 @@ export class FlowLayer extends Layer {
     this.processor = Promise.resolve(useWebWorkers ? new WorkerFlowProcessor() : new MainFlowProcessor());
   }
 
+  /**
+   * Creates the layer view for this layer.
+   *
+   * @param view `The MapView`.
+   * @returns An instance of `FlowLayerView2D`.
+   */
   override createLayerView(view: any): any {
     if (view.type === "2d") {
       return new FlowLayerView2D({
@@ -120,6 +135,9 @@ export class FlowLayer extends Layer {
     }
   }
 
+  /**
+   * Destroy the layer.
+   */
   override destroy(): void {
     if (this.ownSource) {
       this.source.then((source) => {

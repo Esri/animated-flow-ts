@@ -27,6 +27,11 @@ import { defined, formatGLSLConstant, throwIfAborted } from "../core/util";
 import settings from "./settings";
 import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
 
+/**
+ * These are the WebGL resources that are independent on the extent.
+ * 
+ * Currently, this is simply the shader program.
+ */
 export class FlowGlobalResources implements Resources {
   programs: HashMap<{
     program: WebGLProgram;
@@ -144,6 +149,11 @@ export class FlowGlobalResources implements Resources {
   }
 }
 
+/**
+ * These are the WebGL resources that are dependent on the extent.
+ * 
+ * Currently, this is simply the triangle mesh with all the streamlines.
+ */
 export class FlowLocalResources implements Resources {
   vertexData: Float32Array | null;
   indexData: Uint32Array | null;
@@ -190,15 +200,40 @@ export class FlowLocalResources implements Resources {
   }
 }
 
+/**
+ * 
+ */
 export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResources, FlowLocalResources> {
   constructor(private source: Awaitable<FlowSource>, private processor: Awaitable<FlowProcessor>, private color: Color) {
     super();
   }
 
+  /**
+   * Loads the global resources.
+   * 
+   * Note that this function only loads the required data, if any;
+   * the actual WebGL resources are created when `FlowGlobalResources.attach()`
+   * is called.
+   * 
+   * This function is called only once in the lifetime of `FlowLayer`.
+   * 
+   * @returns A promise to the global resources.
+   */
   override async loadGlobalResources(): Promise<FlowGlobalResources> {
     return new FlowGlobalResources();
   }
 
+  /**
+   * Loads the local resources.
+   * 
+   * Note that this function only loads the required data, if any;
+   * the actual WebGL resources are created when `FlowLocalResources.attach()`
+   * is called.
+   * 
+   * This function is called every time that the current extent changes.
+   * 
+   * @returns A promise to the global resources.
+   */
   override async loadLocalResources(
     extent: Extent,
     _resolution: MapUnitsPerPixel,
@@ -215,6 +250,16 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     return new FlowLocalResources(flowData.cellSize, vertexData, indexData);
   }
 
+  /**
+   * Render the flow streamlines visualization.
+   * 
+   * @param gl The target WebGL context.
+   * @param renderParams The render parameters that specify the size and scale of the visualization.
+   * If the current extent has not changed after the last time that the local resource were reloaded,
+   * the render parameters will be such that the local resources are mapped to the entire `MapView`.
+   * @param globalResources The global resources.
+   * @param localResources The local resources.
+   */
   override renderVisualization(
     gl: WebGLRenderingContext,
     renderParams: VisualizationRenderParams,

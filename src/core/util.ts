@@ -96,10 +96,25 @@ export async function rest(signal: AbortSignal): Promise<void> {
   });
 }
 
+/**
+ * Convert an angle from degrees to radians.
+ *
+ * @param degrees The angle in degrees.
+ * @returns The angle in radians.
+ */
 export function degreesToRadians(degrees: Degrees): Radians {
   return Math.PI * degrees / 180;
 }
 
+/**
+ * Formats a numeric value so that it is a valid GLSL floating point constant.
+ *
+ * It basically makes sure that it has a digit separator even when the fractional
+ * part is 0.
+ *
+ * @param x The value to format.
+ * @returns A string that represents that value in GLSL.
+ */
 export function formatGLSLConstant(x: number): string {
   return x.toFixed(3);
 }

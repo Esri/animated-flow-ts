@@ -37,10 +37,12 @@ esriConfig.workers.loaderConfig = {
   ]
 };
 
+// A vector tile layer is used as basemap.
 const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
+// A vortex vector field.
 function createVortex(vortexCenter: [MapUnits, MapUnits]): Field {
   return (x, y) => {
     x -= vortexCenter[0];
@@ -50,6 +52,7 @@ function createVortex(vortexCenter: [MapUnits, MapUnits]): Field {
   };
 }
 
+// We create 3 vortices over the US.
 const vortex1 = createVortex([-98, 39]);
 const vortex2 = createVortex([-98 + 20, 39]);
 const vortex3 = createVortex([-98 - 10, 39 - 10]);
@@ -58,9 +61,12 @@ const windVectorField = (x: MapUnits, y: MapUnits): [PixelsPerSecond, PixelsPerS
   const v1 = vortex1(x, y);
   const v2 = vortex2(x, y);
   const v3 = vortex3(x, y);
+
+  // The three vortex velocity fields can be simply added together.
   return [v1[0] + v2[0] + v3[0], v1[1] + v2[1] + v3[1]];
 };
 
+// The `FlowLayer` uses the analytic velocity field as data source.
 const windLayer = new FlowLayer({
   source: new VectorFieldFlowSource(windVectorField),
   effect: "bloom(1.5, 0.5px, 0.2)",
@@ -68,10 +74,12 @@ const windLayer = new FlowLayer({
   color: new Color([60, 220, 160, 1])
 } as any);
 
+// Create the map with the three layers defined above.
 const map = new EsriMap({
   layers: [vectorTileLayer, windLayer]
 });
 
+// Create the map view.
 new MapView({
   container: "viewDiv",
   map,

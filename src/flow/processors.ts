@@ -13,6 +13,9 @@
 
 /**
  * @module animated-flow-ts/flow/processors
+ * 
+ * This module defines classes that convert the `FlowData` returned
+ * from a flow source to a triangle mesh.
  */
 
 import { createStreamLinesMesh } from "./shared";
@@ -20,6 +23,9 @@ import { StreamLinesMesh, FlowData, FlowProcessor } from "./types";
 import * as workers from "esri/core/workers";
 import { throwIfAborted } from "../core/util";
 
+/**
+ * Processor that runs the computation on the main process.
+ */
 export class MainFlowProcessor implements FlowProcessor {
   async createStreamLinesMesh(
     flowData: FlowData,
@@ -32,6 +38,9 @@ export class MainFlowProcessor implements FlowProcessor {
   }
 }
 
+/**
+ * Processor that runs the computation on the worker process.
+ */
 export class WorkerFlowProcessor implements FlowProcessor {
   private connection = workers.open("animated-flow-ts/workers/flow");
 

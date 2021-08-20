@@ -24,6 +24,9 @@ import { degreesToRadians } from "../core/util";
 import settings from "./settings";
 import { Field, FlowData, FlowSource, PixelsPerSecond } from "./types";
 
+/**
+ * A flow source that fetches the data from a UV or MagDir imagery tile layer.
+ */
 export class ImageryTileLayerFlowSource implements FlowSource {
   private imageryTileLayer: ImageryTileLayer;
 
@@ -90,6 +93,9 @@ export class ImageryTileLayerFlowSource implements FlowSource {
   }
 }
 
+/**
+ * A flow source that uses a client-side velocity field defined in map units.
+ */
 export class VectorFieldFlowSource implements FlowSource {
   constructor(private mapVectorField: Field) {
   }

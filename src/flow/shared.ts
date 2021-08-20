@@ -20,8 +20,17 @@
 
 import { createRand, rest } from "../core/util";
 import settings from "./settings";
-import { Field, StreamLinesMesh, StreamLineVertex, FlowData, Cells, CellsPerSecond } from "./types";
+import { Field, StreamLinesMesh, StreamLineVertex, FlowData, Cells, CellsPerSecond, PixelsPerCell } from "./types";
 
+/**
+ * Smooths a discretized UV velocity field  with a Gaussain kernel.
+ * 
+ * @param data The data to smooth as a 2-channel, interleaved, row-major table.
+ * @param columns The number of columns.
+ * @param rows The number of rows.
+ * @param sigma The standard deviation of the smoothing kernel.
+ * @returns A smoothed table.
+ */
 function smooth(data: Float32Array, columns: Cells, rows: Cells, sigma: Cells): Float32Array {
   const horizontal = new Float32Array(data.length);
 
@@ -78,6 +87,15 @@ function smooth(data: Float32Array, columns: Cells, rows: Cells, sigma: Cells): 
   return final;
 }
 
+/**
+ * Wrap a tabulated velocity field into a function.
+ * 
+ * This function simply returns the value of the correct cell,
+ * but a better approach would be to use bilinear interpolation. 
+ *
+ * @param flowData The input velocity field data.
+ * @returns A function that maps (x, y) to the correct cell.
+ */
 function createFlowFieldFromData(flowData: FlowData): Field {
   const data = smooth(flowData.data, flowData.columns, flowData.rows, settings.smoothing);
 
@@ -99,7 +117,16 @@ function createFlowFieldFromData(flowData: FlowData): Field {
   return field;
 }
 
-function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): StreamLineVertex[] {
+/**
+ * Simulates a particle through a velocity field.
+ * 
+ * @param f The velocity field as a function.
+ * @param x0 The starting x coordinate of the particle.
+ * @param y0  The starting y coordinate of the particle.
+ * @param cellSize The size of a cell in pixels.
+ * @returns An array of timestamped vertices.
+ */
+function trace(f: Field, x0: Cells, y0: Cells, cellSize: PixelsPerCell): StreamLineVertex[] {
   const lineVertices: StreamLineVertex[] = [];
 
   let x = x0;
@@ -135,7 +162,16 @@ function trace(f: Field, x0: Cells, y0: Cells, cellSize: number): StreamLineVert
   return lineVertices;
 }
 
-function getStreamLines(f: Field, columns: Cells, rows: Cells, cellSize: number): StreamLineVertex[][] {
+/**
+ * Creates the stream lines for a velocity field.
+ *
+ * @param f The velocity field.
+ * @param columns The number of columns in the field.
+ * @param rows The number of rows in the field.
+ * @param cellSize The size of a cell in pixels.
+ * @returns An array of lines with timestamped vertices.
+ */
+function getStreamLines(f: Field, columns: Cells, rows: Cells, cellSize: PixelsPerCell): StreamLineVertex[][] {
   const lines: StreamLineVertex[][] = [];
   
   const rand = createRand();
@@ -148,6 +184,13 @@ function getStreamLines(f: Field, columns: Cells, rows: Cells, cellSize: number)
   return lines;
 }
 
+/**
+ * Create a triangle mesh that encodes the streamlines for a given velocity field.
+ * 
+ * @param flowData The velocity field.
+ * @param signal The abort signal.
+ * @returns A promise to a triangle mesh.
+ */
 export async function createStreamLinesMesh(
   flowData: FlowData,
   signal: AbortSignal
@@ -156,6 +199,8 @@ export async function createStreamLinesMesh(
   const vertexData: number[] = [];
   const indexData: number[] = [];
 
+  // It would make sense to also make `createFlowFieldFromData()` and
+  // `getStreamLines()` abortable and pass the signal down to them.
   const f = createFlowFieldFromData(flowData);
   const streamLines = getStreamLines(f, flowData.columns, flowData.rows, flowData.cellSize);
   const rand = createRand();
