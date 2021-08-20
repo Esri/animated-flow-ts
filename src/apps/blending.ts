@@ -41,7 +41,9 @@ const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
-// TODO: This should be a "temperature" layer.
+// This is completely unrelated to wind, but it looks cool.
+// It would make more sense to have a temperature of humidity
+// layer.
 const temperatureLayer = new FeatureLayer({
   url: "https://services.arcgis.com/DO4gTjwJVIJ7O9Ca/arcgis/rest/services/Unacast_Latest_Available__Visitation_and_Distance_/FeatureServer",
   effect: "blur(10px)"
