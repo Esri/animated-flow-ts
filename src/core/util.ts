@@ -14,7 +14,7 @@
 import { Degrees, Radians } from "./types";
 
 /**
- * @module wind-es/core/util
+ * @module animated-flow-ts/core/util
  *
  * This module contains utilities of general interest.
  */

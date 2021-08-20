@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/core/types
+ * @module animated-flow-ts/core/types
  *
  * This module contains simple type definitions used by the core visualization system.
  */
@@ -39,7 +39,7 @@ export type Awaitable<T> = T | Promise<T>;
  * with the underlying basemap.
  *
  * When a visualization is rendered, a `VisualizationRenderParams`
- * object is passed to the `wind-es.core.visualization.LayerView2D.renderVisualization()`
+ * object is passed to the `animated-flow-ts.core.visualization.LayerView2D.renderVisualization()`
  * that defines its position, orientation and scale.
  */
 export type VisualizationRenderParams = {

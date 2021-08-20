@@ -1,6 +1,6 @@
-# wind-es
+# animated-flow-ts
 
-**wind-es** is a [flow visualization](https://en.wikipedia.org/wiki/Flow_visualization) application built on top of the [ArcGIS API for JavaScript](https://developers.arcgis.com/javascript/latest/) and [custom WebGL layer views](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html).
+**animated-flow-ts** is a [flow visualization](https://en.wikipedia.org/wiki/Flow_visualization) application built on top of the [ArcGIS API for JavaScript](https://developers.arcgis.com/javascript/latest/) and [custom WebGL layer views](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html).
 
 ![App](screenshot.png)
 
@@ -53,4 +53,4 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-A copy of the license is available in the repository's [LICENSE.txt](https://devtopia.esri.com/dari8942/wind-es/blob/main/LICENSE.txt) file.
+A copy of the license is available in the repository's [LICENSE.txt](https://devtopia.esri.com/dari8942/animated-flow-ts/blob/main/LICENSE.txt) file.

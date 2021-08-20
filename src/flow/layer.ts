@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/layer
+ * @module animated-flow-ts/flow/layer
  *
  * This module contains the definition of `FlowLayer`, a layer type
  * that supports animated visualization of flow in `MapView`.
@@ -29,7 +29,7 @@ import { FlowSource, FlowProcessor } from "./types";
 /**
  * A layer that supports 2D visualizations of animated flow lines in `MapView`.
  */
-@subclass("wind-es.flow.layer.FlowLayer")
+@subclass("animated-flow-ts.flow.layer.FlowLayer")
 export class FlowLayer extends Layer {
   /**
    * A promise to a flow source.

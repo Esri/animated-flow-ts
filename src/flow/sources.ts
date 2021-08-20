@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/sources
+ * @module animated-flow-ts/flow/sources
  *
  * This module...
  */
@@ -46,7 +46,7 @@ export class ImageryTileLayerFlowSource implements FlowSource {
       { signal }
     );
     // The returned data is in the "pixels" property of the pixel block
-    // but from the perspective of wind-es those values are per-cell,
+    // but from the perspective of animated-flow-ts those values are per-cell,
     // not per-pixel; a cell can span multiple pixels.
     const rawCellData: number[][] = rasterData.pixelBlock.pixels;
     const data = new Float32Array(columns * rows * 2);

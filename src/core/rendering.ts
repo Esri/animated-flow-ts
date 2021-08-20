@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/core/rendering
+ * @module animated-flow-ts/core/rendering
  *
  * This module introduces abstract rendering classes and functionality that are shared
  * by concrete layer and layer view types. So far the only concrete visualization

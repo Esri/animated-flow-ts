@@ -12,22 +12,20 @@
 */
 
 /**
- * @module animated-flow-ts/apps/vortices
+ * @module animated-flow-ts/apps/winds
  *
- * An app that defines a vector field analytically in map units
- * and uses it to drive a flow visualization.
+ * An app that uses real magnitude/direction wind data from an imagery tile layer.
  */
 
 import EsriMap from "esri/Map";
 import MapView from "esri/views/MapView";
 import VectorTileLayer from "esri/layers/VectorTileLayer";
 import { FlowLayer } from "../flow/layer";
-import { VectorFieldFlowSource } from "../flow/sources";
-import { Field, PixelsPerSecond } from "../flow/types";
 import esriConfig from "esri/config";
-import Color from "esri/Color";
-import { MapUnits } from "../core/types";
+import GroupLayer from "esri/layers/GroupLayer";
+import FeatureLayer from "esri/layers/FeatureLayer";
 
+// Tell the worker frameworks the location of the modules.
 esriConfig.workers.loaderConfig = {
   packages: [
     {
@@ -37,41 +35,38 @@ esriConfig.workers.loaderConfig = {
   ]
 };
 
+// A vector tile layer is used as basemap.
 const vectorTileLayer = new VectorTileLayer({
   url: "https://www.arcgis.com/sharing/rest/content/items/55253142ea534123882314f0d880ddab/resources/styles/root.json"
 });
 
-function createVortex(vortexCenter: [MapUnits, MapUnits]): Field {
-  return (x, y) => {
-    x -= vortexCenter[0];
-    y -= vortexCenter[1];
-    const d2 = x * x + y * y;
-    return [-10.0 * y / d2, -10.0 * x / d2];
-  };
-}
+// The URL of an imagery tile layer.
+const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_uv/ImageServer";
 
-const vortex1 = createVortex([-98, 39]);
-const vortex2 = createVortex([-98 + 20, 39]);
-const vortex3 = createVortex([-98 - 10, 39 - 10]);
-
-const windVectorField = (x: MapUnits, y: MapUnits): [PixelsPerSecond, PixelsPerSecond] => {
-  const v1 = vortex1(x, y);
-  const v2 = vortex2(x, y);
-  const v3 = vortex3(x, y);
-  return [v1[0] + v2[0] + v3[0], v1[1] + v2[1] + v3[1]];
-};
-
-const windLayer = new FlowLayer({
-  source: new VectorFieldFlowSource(windVectorField),
-  effect: "bloom(1.5, 0.5px, 0.2)",
-  useWebWorkers: true,
-  color: new Color([60, 220, 160, 1])
-} as any);
-
-const map = new EsriMap({
-  layers: [vectorTileLayer, windLayer]
+const temperatureLayer = new FeatureLayer({
+  url: "https://services.arcgis.com/DO4gTjwJVIJ7O9Ca/arcgis/rest/services/Unacast_Latest_Available__Visitation_and_Distance_/FeatureServer",
+  effect: "blur(10px)"
 });
 
+// But then it is also used as data source for the custom `FlowLayer`.
+const windLayer = new FlowLayer({
+  url,
+  useWebWorkers: true,
+  blendMode: "destination-in"
+} as any);
+
+const groupLayer = new GroupLayer({
+  effect: "bloom(1.5, 0.5px, 0.2)"
+});
+groupLayer.add(temperatureLayer);
+groupLayer.add(windLayer);
+
+// Create the map with the three layers defined above.
+const map = new EsriMap({
+  layers: [vectorTileLayer, groupLayer]
+});
+
+// Create the map view.
 new MapView({
   container: "viewDiv",
   map,

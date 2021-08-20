@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/core/view
+ * @module animated-flow-ts/core/view
  *
  * This module contains the definition of `VisualizationLayerView2D`, a
  * a type of 2D layer view that can be used as a higher level base class
@@ -39,7 +39,7 @@
  * base their custom visualizations using a third party rendering engine such
  * as deck.gl or Three.js.
  * 
- * In wind-es, we introduce `VisualizationLayerView2D` as a more convenient
+ * In animated-flow-ts, we introduce `VisualizationLayerView2D` as a more convenient
  * starting point to create custom WebGL visualizations.
  */
 
@@ -72,7 +72,7 @@ import settings from "./settings";
  * stiched together they form a full coverage. There could even be a "tiled"
  * strategy, in which visualizations are regularly spaced and equally sized.
  */
-@subclass("wind-es.core.visualization.LayerView2D")
+@subclass("animated-flow-ts.core.visualization.LayerView2D")
 export abstract class VisualizationLayerView2D<GR extends Resources, LR extends Resources> extends BaseLayerViewGL2D {
   /**
    * Global resources are used by all visualizations. An example of a global

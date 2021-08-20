@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/types
+ * @module animated-flow-ts/flow/types
  *
  * This module contains simple type definitions used by the `flow` visualization.
  */
@@ -25,9 +25,9 @@
 // /**
 //  * Method `ImageryTileLayer.fetchPixels()` returns a block of "pixels" into the
 //  * property `pixelBlock` of the fetched raster data object. From the perspective
-//  * of wind-es, the returned data is not really in "pixels" because very often
+//  * of animated-flow-ts, the returned data is not really in "pixels" because very often
 //  * for efficiency reason it will be worthed query the service at a lower resolution
-//  * than the screen. For this reason, wind-es regards the result as a matrix of
+//  * than the screen. For this reason, animated-flow-ts regards the result as a matrix of
 //  * "cells" rather than pixels, and instead of the terms "width" and "height" uses
 //  * the terms "columns" and "rows".
 //  */
@@ -72,7 +72,7 @@
 
 /**
  * A vertex of a flow line, as returned by The `trace()` function in
- * module `wind-es/flow/shared.
+ * module `animated-flow-ts/flow/shared.
  *
  * A flow line is a polyline where each vertex is timestamped in seconds.
  */

@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/shared
+ * @module animated-flow-ts/flow/shared
  *
  * This module...
  */

@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/apps/winds
+ * @module animated-flow-ts/apps/winds
  *
  * An app that uses real magnitude/direction wind data from an imagery tile layer.
  */
@@ -29,7 +29,7 @@ import Color from "esri/Color";
 esriConfig.workers.loaderConfig = {
   packages: [
     {
-      name: "wind-es",
+      name: "animated-flow-ts",
       location: location.origin + "/demos/js"
     }
   ]
@@ -42,9 +42,6 @@ const vectorTileLayer = new VectorTileLayer({
 
 // The URL of an imagery tile layer.
 const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_magdir/ImageServer";
-
-// There is also the UV version of the same data.
-// const url = "https://tiledimageservicesdev.arcgis.com/03e6LFX6hxm1ywlK/arcgis/rest/services/NLCAS2011_daily_wind_uv/ImageServer";
 
 // First, it is added as a layer in the map, and visualized as
 // static arrows by the stock vector field renderer that ships

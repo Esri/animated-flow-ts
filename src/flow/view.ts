@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/view
+ * @module animated-flow-ts/flow/view
  *
  * This module...
  */
@@ -23,7 +23,7 @@ import { FlowLayer } from "./layer";
 import { FlowLocalResources, FlowGlobalResources, FlowVisualizationStyle } from "./rendering";
 import { VisualizationStyle } from "../core/rendering";
 
-@subclass("wind-es.flow.layer.FlowLayerView2D")
+@subclass("animated-flow-ts.flow.layer.FlowLayerView2D")
 export class FlowLayerView2D extends VisualizationLayerView2D<FlowGlobalResources, FlowLocalResources> {
   override animate = true;
 

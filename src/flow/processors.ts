@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/processors
+ * @module animated-flow-ts/flow/processors
  *
  * This module...
  */
@@ -35,7 +35,7 @@ export class MainFlowProcessor implements FlowProcessor {
 }
 
 export class WorkerFlowProcessor implements FlowProcessor {
-  private connection = workers.open("wind-es/workers/flow");
+  private connection = workers.open("animated-flow-ts/workers/flow");
 
   async createStreamLinesMesh(
     flowData: FlowData,

@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/flow/rendering
+ * @module animated-flow-ts/flow/rendering
  *
  * This module...
  */

@@ -12,7 +12,7 @@
 */
 
 /**
- * @module wind-es/workers/flow
+ * @module animated-flow-ts/workers/flow
  *
  * A worker module that implements tracing the wind particles and
  * triangulating the resulting flow lines.
@@ -29,7 +29,7 @@ import { TransferableFlowData } from "../flow/types";
 /**
  * Create
  *
- * It is a wrapper around `wind-es.flow.shared.createStreamLinesMesh` that
+ * It is a wrapper around `animated-flow-ts.flow.shared.createStreamLinesMesh` that
  * takes care of marshalling and unmarshalling the parameters.
  *
  * @param data
