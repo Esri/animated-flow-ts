@@ -4,12 +4,33 @@ import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "
 import { defined, throwIfAborted } from "../core/util";
 
 export class GlobalResources implements Resources {
+  vertexBuffer: WebGLBuffer | null = null;
+  indexBuffer: WebGLBuffer | null = null;
   programs: HashMap<{
     program: WebGLProgram;
     uniforms: HashMap<WebGLUniformLocation>;
   }> | null = null;
 
   attach(gl: WebGLRenderingContext): void {
+    const vertexBuffer = gl.createBuffer();
+    defined(vertexBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5
+    ]), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    const indexBuffer = gl.createBuffer();
+    defined(indexBuffer);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint8Array([
+      0, 1, 2, 1, 3, 2
+    ]), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+    this.vertexBuffer = vertexBuffer;
+    this.indexBuffer = indexBuffer;
+
     const vertexSource = `
       attribute vec2 a_Position;
       
@@ -56,6 +77,8 @@ export class GlobalResources implements Resources {
 
   detach(gl: WebGLRenderingContext): void {
     gl.deleteProgram(this.programs!["solid"]?.program!);
+    gl.deleteBuffer(this.vertexBuffer);
+    gl.deleteBuffer(this.indexBuffer);
   }
 }
 
@@ -118,7 +141,7 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
   ): Promise<LocalResources> {
     throwIfAborted(signal);
 
-    const vertexData = new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.0, 0.5]);
+    const vertexData = new Float32Array([-0.1, -0.1, 0.1, -0.1, 0, 0.1]);
     const indexData = new Uint32Array([0, 1, 2]);
 
     return new LocalResources(vertexData, indexData);
@@ -131,18 +154,20 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
     localResources: LocalResources
   ): void {
     defined(localResources.vertexBuffer);
-    gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.enableVertexAttribArray(0);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, localResources.indexBuffer);
-
+    defined(globalResources.vertexBuffer);
+    
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.disable(gl.CULL_FACE);
 
     const solidProgram = globalResources.programs!["solid"]?.program!;
     gl.useProgram(solidProgram);
-
+    
+    gl.bindBuffer(gl.ARRAY_BUFFER, globalResources.vertexBuffer);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.enableVertexAttribArray(0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, globalResources.indexBuffer);
     gl.uniform4f(
       globalResources.programs!["solid"]?.uniforms["u_Color"]!,
       1,
@@ -150,10 +175,20 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
       0,
       1
     );
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
 
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
+    gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 8, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.enableVertexAttribArray(0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, localResources.indexBuffer);
+    gl.uniform4f(
+      globalResources.programs!["solid"]?.uniforms["u_Color"]!,
+      0,
+      0,
+      1,
+      1
+    );
     gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
   }
 }
