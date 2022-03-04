@@ -182,8 +182,9 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     });
     rotatedExtent.centerAt(center);
 
-    const expandedExtent = rotatedExtent.clone().expand(settings.extentExpandFactor);
-    
+    let expandedExtent = rotatedExtent.clone().expand(settings.extentExpandFactor);
+    expandedExtent = extent.clone();
+
     // Compute the rest of the parameters needed for the load operation.
     const resolution = this.view.resolution;
     const pixelRatio = devicePixelRatio;

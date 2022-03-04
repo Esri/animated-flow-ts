@@ -10,9 +10,7 @@ export class DevSummit2022LayerView2D extends VisualizationLayerView2D<GlobalRes
 
   createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
     const layer = this.layer as DevSummit2022Layer;
-
     console.log(layer);
-
     return new DevSummit2022VisualizationStyle();
   }
 }
