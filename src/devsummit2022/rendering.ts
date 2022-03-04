@@ -119,7 +119,7 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
     throwIfAborted(signal);
 
     const vertexData = new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.0, 0.5]);
-    const indexData = new Uint32Array([0, 1, 2, 1, 3, 2]);
+    const indexData = new Uint32Array([0, 1, 2]);
 
     return new LocalResources(vertexData, indexData);
   }
