@@ -18,8 +18,8 @@ export class GlobalResources implements Resources {
       attribute vec3 a_Color;
 
       uniform mat4 u_ScreenFromLocal;
-      uniform mat4 u_Rotation;
       uniform mat4 u_ClipFromScreen;
+      uniform float u_Size;
 
       varying vec2 v_Texcoord;
       varying vec2 v_Offset;
@@ -29,7 +29,7 @@ export class GlobalResources implements Resources {
       void main(void) {
         vec2 pos = a_Position;
         vec4 anchor = u_ScreenFromLocal * vec4(pos, 0.0, 1.0);
-        vec4 screen = anchor + vec4(a_Offset * 40.0, 0.0, 0.0);
+        vec4 screen = anchor + vec4(a_Offset * u_Size, 0.0, 0.0);
         vec4 clip = u_ClipFromScreen * screen;
         gl_Position = clip;
         v_Texcoord = (clip.xy + 1.0) / 2.0;
@@ -77,9 +77,9 @@ export class GlobalResources implements Resources {
 
     this.program = program;
     this.uniforms["u_ScreenFromLocal"] = gl.getUniformLocation(program, "u_ScreenFromLocal")!;
-    this.uniforms["u_Rotation"] = gl.getUniformLocation(program, "u_Rotation")!;
     this.uniforms["u_ClipFromScreen"] = gl.getUniformLocation(program, "u_ClipFromScreen")!;
     this.uniforms["u_Time"] = gl.getUniformLocation(program, "u_Time")!;
+    this.uniforms["u_Size"] = gl.getUniformLocation(program, "u_Size")!;
   }
 
   detach(gl: WebGLRenderingContext): void {
@@ -94,7 +94,6 @@ export class LocalResources implements Resources {
   vertexBuffer: WebGLBuffer | null = null;
   indexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
-  u_Rotation = mat4.create();
   u_ClipFromScreen = mat4.create();
 
   constructor(vertexData: Float32Array, indexData: Uint32Array) {
@@ -215,6 +214,9 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
     globalResources: GlobalResources,
     localResources: LocalResources
   ): void {
+    // console.log(JSON.stringify(renderParams));
+
+
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
     mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
@@ -222,9 +224,6 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
       -2 / (renderParams.size[1] * renderParams.pixelRatio),
       1
     ]);
-
-    mat4.identity(localResources.u_Rotation);
-    mat4.rotateZ(localResources.u_Rotation, localResources.u_Rotation, renderParams.rotation);
 
     mat4.identity(localResources.u_ScreenFromLocal);
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
@@ -246,11 +245,6 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
       localResources.u_ScreenFromLocal
     );
     gl.uniformMatrix4fv(
-      globalResources.uniforms["u_Rotation"]!,
-      false,
-      localResources.u_Rotation
-    );
-    gl.uniformMatrix4fv(
       globalResources.uniforms["u_ClipFromScreen"]!,
       false,
       localResources.u_ClipFromScreen
@@ -268,6 +262,11 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
     gl.uniform1f(
       globalResources.uniforms["u_Time"]!,
       performance.now() / 1000
+    );
+
+    gl.uniform1f(
+      globalResources.uniforms["u_Size"]!,
+      40 * renderParams.pixelRatio
     );
 
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
