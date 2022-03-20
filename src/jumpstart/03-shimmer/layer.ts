@@ -1,9 +1,9 @@
 import { property, subclass } from "esri/core/accessorSupport/decorators";
 import Layer from "esri/layers/Layer";
-import { DevSummit2022LayerView2D } from "./view";
+import { ShimmerLayerView2D } from "./view";
 
-@subclass("animated-flow-ts.flow.layer.FlowLayer")
-export class DevSummit2022Layer extends Layer {
+@subclass("animated-flow-ts.jumstart.03-shimmer.layer.ShimmerLayer")
+export class ShimmerLayer extends Layer {
   @property()
   featureUrl: string = "";
 
@@ -12,7 +12,7 @@ export class DevSummit2022Layer extends Layer {
 
   override createLayerView(view: any): any {
     if (view.type === "2d") {
-      return new DevSummit2022LayerView2D({
+      return new ShimmerLayerView2D({
         view,
         layer: this
       } as any);

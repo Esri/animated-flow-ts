@@ -2,9 +2,9 @@ import Extent from "esri/geometry/Extent";
 import Point from "esri/geometry/Point";
 import FeatureLayer from "esri/layers/FeatureLayer";
 import { mat4 } from "gl-matrix";
-import { VisualizationStyle } from "../core/rendering";
-import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
-import { defined } from "../core/util";
+import { VisualizationStyle } from "../../core/rendering";
+import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
+import { defined } from "../../core/util";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -130,15 +130,11 @@ export class LocalResources implements Resources {
   }
 }
 
-export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalResources, LocalResources> {
+export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResources, LocalResources> {
   private _featureLayer = new FeatureLayer({
     url: "https://services.arcgis.com/AgwDJMQH12AGieWa/arcgis/rest/services/global_power_plant_database_June_2018/FeatureServer"
   });
   
-  constructor() {
-    super();
-  }
-
   override async loadGlobalResources(): Promise<GlobalResources> {
     return new GlobalResources();
   }
@@ -200,8 +196,6 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
       );
       count++;
     }
-
-
 
     return new LocalResources(new Float32Array(vertexData), new Uint32Array(indexData));
   }
