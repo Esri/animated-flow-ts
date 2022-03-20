@@ -4,7 +4,7 @@ import FeatureLayer from "esri/layers/FeatureLayer";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
 import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
-import { defined, throwIfAborted } from "../core/util";
+import { defined } from "../core/util";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -150,13 +150,11 @@ export class DevSummit2022VisualizationStyle extends VisualizationStyle<GlobalRe
     _pixelRatio: number,
     signal: AbortSignal
   ): Promise<LocalResources> {
-    throwIfAborted(signal);
-
-    await this._featureLayer.load();
+    await this._featureLayer.load(signal);
 
     const query = this._featureLayer.createQuery();
     query.geometry = extent;
-    const featureSet = await this._featureLayer.queryFeatures(query);
+    const featureSet = await this._featureLayer.queryFeatures(query, { signal });
     const vertexData: number[] = [];
     const indexData: number[] = [];
     let count = 0;
