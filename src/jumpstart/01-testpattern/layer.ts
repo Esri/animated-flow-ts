@@ -13,4 +13,3 @@ export class TestPatternLayer extends Layer {
     }
   }
 }
- 

@@ -21,7 +21,6 @@ export class GlobalResources implements Resources {
       uniform mat4 u_ClipFromScreen;
       uniform float u_Size;
 
-      varying vec2 v_Texcoord;
       varying vec2 v_Offset;
       varying float v_Random;
       varying vec3 v_Color;
@@ -32,7 +31,6 @@ export class GlobalResources implements Resources {
         vec4 screen = anchor + vec4(a_Offset * u_Size, 0.0, 0.0);
         vec4 clip = u_ClipFromScreen * screen;
         gl_Position = clip;
-        v_Texcoord = (clip.xy + 1.0) / 2.0;
         v_Offset = a_Offset;
         v_Random = a_Random;
         v_Color = a_Color;

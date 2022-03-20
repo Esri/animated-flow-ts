@@ -19,4 +19,3 @@ export class ShimmerLayer extends Layer {
     }
   }
 }
- 
