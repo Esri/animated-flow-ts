@@ -69,13 +69,13 @@ export class LocalResources implements Resources {
   u_ClipFromScreen = mat4.create();
   texture: WebGLTexture | null = null;
 
-  constructor(private _extent: Extent, private _size: [number, number]) {
+  constructor(private _extent: Extent, public size: [number, number]) {
   }
 
   attach(gl: WebGLRenderingContext): void {
     const image = document.createElement("canvas");
-    image.width = this._size[0];
-    image.height = this._size[1];
+    image.width = this.size[0];
+    image.height = this.size[1];
     const ctx = image.getContext("2d")!;
 
     ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
@@ -203,7 +203,7 @@ export class TestPatternVisualizationStyle extends VisualizationStyle<GlobalReso
 
     gl.uniform2fv(
       globalResources.uniforms["u_Size"]!,
-      renderParams.size
+      localResources.size
     );
 
     gl.activeTexture(gl.TEXTURE0);
