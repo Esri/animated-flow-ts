@@ -5,7 +5,7 @@ import { VisualizationStyle } from "../../core/rendering";
 
 @subclass("animated-flow-ts.jumpstart.01-testpattern.view.FancyRasterLayerView2D")
 export class FancyRasterLayerView2D extends VisualizationLayerView2D<GlobalResources, LocalResources> {
-  override animate = false;
+  override animate = true;
 
   createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
     return new FancyRasterVisualizationStyle();

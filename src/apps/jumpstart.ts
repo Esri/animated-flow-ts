@@ -6,12 +6,16 @@ import { FancyRasterLayer } from "../jumpstart/02-fancyraster/layer";
 import { ShimmerLayer } from "../jumpstart/03-shimmer/layer";
 
 const testPatternLayer = new TestPatternLayer({ title: "01 - Test pattern" } as any);
-const fancyRasterLayer = new FancyRasterLayer({ title: "02 - Fancy raster" } as any);
+const fancyRasterLayer = new FancyRasterLayer({ title: "02 - Fancy raster", effect: "bloom(1.0, 1px, 0)" } as any);
 const shimmerLayer = new ShimmerLayer({ title: "03 - Shimmering power plants" } as any);
 
 const map = new EsriMap({
   basemap: "dark-gray",
-  layers: [fancyRasterLayer, shimmerLayer, testPatternLayer]
+  layers: [
+    fancyRasterLayer,
+    shimmerLayer,
+    testPatternLayer
+  ]
 });
 
 const view = new MapView({

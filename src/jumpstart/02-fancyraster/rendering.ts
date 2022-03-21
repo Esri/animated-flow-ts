@@ -31,9 +31,13 @@ export class GlobalResources implements Resources {
       precision mediump float;
       varying vec2 v_Texcoord;
       uniform sampler2D u_Texture;
+      uniform float u_Time;
       void main(void) {
-        gl_FragColor = vec4(v_Texcoord, 0.0, 1.0);
-        gl_FragColor = texture2D(u_Texture, v_Texcoord);
+        float h = texture2D(u_Texture, v_Texcoord).r;
+
+        float intensity = 0.5 + 0.5 * sin(h * 20.0 + u_Time);;
+
+        gl_FragColor = vec4(0.2, 0.4, 1.0, intensity * h);
         gl_FragColor.rgb *= gl_FragColor.a;
       }`);
     gl.compileShader(fragmentShader);
@@ -50,6 +54,7 @@ export class GlobalResources implements Resources {
     this.uniforms["u_ScreenFromLocal"] = gl.getUniformLocation(program, "u_ScreenFromLocal")!;
     this.uniforms["u_ClipFromScreen"] = gl.getUniformLocation(program, "u_ClipFromScreen")!;
     this.uniforms["u_Size"] = gl.getUniformLocation(program, "u_Size")!;
+    this.uniforms["u_Time"] = gl.getUniformLocation(program, "u_Time")!;
     this.uniforms["u_Texture"] = gl.getUniformLocation(program, "u_Texture")!;
 
     const vertexBuffer = gl.createBuffer();
@@ -126,8 +131,6 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
     if (result) {
       const { pixelBlock } = result;
 
-      console.log(pixelBlock);
-
       let max = 0;
       let min = 1000000;
 
@@ -202,6 +205,11 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
     gl.uniform2fv(
       globalResources.uniforms["u_Size"]!,
       localResources.size
+    );
+
+    gl.uniform1f(
+      globalResources.uniforms["u_Time"]!,
+      performance.now() / 1000
     );
 
     gl.activeTexture(gl.TEXTURE0);
