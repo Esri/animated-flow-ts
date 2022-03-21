@@ -166,14 +166,18 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
       "Cogeneration": [1, 0.2, 0.7],
       "Geothermal": [0.5, 1, 0.2],
       "Nuclear": [0.5, 0.8, 1],
-      "Other": [1, 1, 1],
       "Wave and Tidal": [0.4, 0.9, 1.0],
+      "Petcoke": [0.3, 0.3, 0.3],
+      "Other": [1, 1, 1],
     };
 
     for (const feature of featureSet.features) {
       const rnd = Math.random();
 
-      const [r, g, b] = fuelMap[(feature.attributes || {}).fuel1 || "Other"];
+      const key = (feature.attributes || {}).fuel1 || "Other";
+      const color = fuelMap[key];
+      console.log(key, color);
+      const [r, g, b] = color;
 
       const point = feature.geometry as Point;
       const x = size[0] * (point.x - extent.xmin) / (extent.xmax - extent.xmin);
