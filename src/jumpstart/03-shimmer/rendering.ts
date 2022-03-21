@@ -176,7 +176,6 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
 
       const key = (feature.attributes || {}).fuel1 || "Other";
       const color = fuelMap[key];
-      console.log(key, color);
       const [r, g, b] = color;
 
       const point = feature.geometry as Point;
