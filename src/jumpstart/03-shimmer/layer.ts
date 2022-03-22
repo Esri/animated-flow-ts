@@ -2,7 +2,7 @@ import { property, subclass } from "esri/core/accessorSupport/decorators";
 import Layer from "esri/layers/Layer";
 import { ShimmerLayerView2D } from "./view";
 
-@subclass("animated-flow-ts.jumstart.03-shimmer.layer.ShimmerLayer")
+@subclass("animated-flow-ts.jumpstart.03-shimmer.layer.ShimmerLayer")
 export class ShimmerLayer extends Layer {
   @property()
   featureUrl: string = "";

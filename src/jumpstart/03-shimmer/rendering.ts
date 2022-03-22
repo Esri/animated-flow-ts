@@ -4,7 +4,6 @@ import FeatureLayer from "esri/layers/FeatureLayer";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../../core/rendering";
 import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
-import { defined } from "../../core/util";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -52,20 +51,14 @@ export class GlobalResources implements Resources {
         gl_FragColor.rgb *= gl_FragColor.a;
       }`;
 
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-    defined(vertexShader);
+    const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
     gl.shaderSource(vertexShader, vertexSource);
     gl.compileShader(vertexShader);
-    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-    defined(fragmentShader);
+    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
     gl.shaderSource(fragmentShader, fragmentSource);
     gl.compileShader(fragmentShader);
 
-    console.log(gl.getShaderInfoLog(vertexShader));
-    console.log(gl.getShaderInfoLog(fragmentShader));
-
-    const program = gl.createProgram();
-    defined(program);
+    const program = gl.createProgram()!;
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.bindAttribLocation(program, 0, "a_Position");
@@ -101,17 +94,12 @@ export class LocalResources implements Resources {
   }
 
   attach(gl: WebGLRenderingContext): void {
-    defined(this.vertexData);
-    defined(this.indexData);
-
     const vertexBuffer = gl.createBuffer();
-    defined(vertexBuffer);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.vertexData, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     const indexBuffer = gl.createBuffer();
-    defined(indexBuffer);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indexData, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
@@ -211,9 +199,6 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
     globalResources: GlobalResources,
     localResources: LocalResources
   ): void {
-    // console.log(JSON.stringify(renderParams));
-
-
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
     mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
@@ -247,11 +232,8 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
       localResources.u_ClipFromScreen
     );
 
-    defined(localResources.vertexBuffer);
-    
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE);
-    // gl.disable(gl.CULL_FACE);
 
     const solidProgram = globalResources.program;
     gl.useProgram(solidProgram);

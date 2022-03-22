@@ -2,7 +2,6 @@ import { Extent } from "esri/geometry";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../../core/rendering";
 import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
-import { defined } from "../../core/util";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -94,32 +93,7 @@ export class LocalResources implements Resources {
     ctx.fillText(`xmax: ${this._extent.xmax}`, image.width / 2, image.height / 2 - 20);
     ctx.fillText(`ymin: ${this._extent.ymin}`, image.width / 2, image.height / 2 + 20);
     ctx.fillText(`ymax: ${this._extent.ymax}`, image.width / 2, image.height / 2 + 60);
-
-    // ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-    // ctx.fillRect(10, 10, image.width - 20, image.height - 20);
-    // ctx.font = "35px monospace";
-    // ctx.textBaseline = "middle";
-    // ctx.textAlign = "center";
-
-    // ctx.lineWidth = 40;
-    // ctx.beginPath();
-    // ctx.moveTo(0, image.height - 150);
-    // ctx.lineTo(0, image.height);
-    // ctx.lineTo(150, image.height);
-    // ctx.moveTo(image.width - 150, image.height);
-    // ctx.lineTo(image.width, image.height);
-    // ctx.lineTo(image.width, image.height - 150);
-    // ctx.moveTo(0, 150);
-    // ctx.lineTo(0, 0);
-    // ctx.lineTo(150, 0);
-    // ctx.moveTo(image.width - 150, 0);
-    // ctx.lineTo(image.width, 0);
-    // ctx.lineTo(image.width, 150);
-    // ctx.stroke();
-    // ctx.lineWidth = 2;
-    // ctx.setLineDash([2, 2]);
-    // ctx.strokeRect(10, 10, image.width - 20, image.height - 20);
-
+    
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -138,10 +112,6 @@ export class LocalResources implements Resources {
 }
 
 export class TestPatternVisualizationStyle extends VisualizationStyle<GlobalResources, LocalResources> {
-  constructor() {
-    super();
-  }
-
   override async loadGlobalResources(): Promise<GlobalResources> {
     return new GlobalResources();
   }
@@ -192,8 +162,6 @@ export class TestPatternVisualizationStyle extends VisualizationStyle<GlobalReso
       false,
       localResources.u_ClipFromScreen
     );
-
-    defined(globalResources.vertexBuffer);
     
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

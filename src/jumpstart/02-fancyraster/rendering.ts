@@ -3,7 +3,6 @@ import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../../core/rendering";
 import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
-import { defined } from "../../core/util";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -193,8 +192,6 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
       false,
       localResources.u_ClipFromScreen
     );
-
-    defined(globalResources.vertexBuffer);
     
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

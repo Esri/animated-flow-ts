@@ -4,7 +4,7 @@ import { LocalResources, GlobalResources, FancyRasterVisualizationStyle } from "
 import { VisualizationStyle } from "../../core/rendering";
 import { FancyRasterLayer } from "./layer";
 
-@subclass("animated-flow-ts.jumpstart.01-testpattern.view.FancyRasterLayerView2D")
+@subclass("animated-flow-ts.jumpstart.02-fancyraster.view.FancyRasterLayerView2D")
 export class FancyRasterLayerView2D extends VisualizationLayerView2D<GlobalResources, LocalResources> {
   override animate = true;
 
