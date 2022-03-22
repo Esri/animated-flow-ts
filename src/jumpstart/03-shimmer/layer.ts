@@ -7,9 +7,6 @@ export class ShimmerLayer extends Layer {
   @property()
   featureUrl: string = "";
 
-  @property()
-  rasterUrl: string = "";
-
   override createLayerView(view: any): any {
     if (view.type === "2d") {
       return new ShimmerLayerView2D({

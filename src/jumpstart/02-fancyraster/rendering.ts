@@ -103,8 +103,12 @@ export class LocalResources implements Resources {
 }
 
 export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalResources, LocalResources> {
-  constructor() {
+  private _imageryTileLayer: ImageryTileLayer;
+
+  constructor(url: string) {
     super();
+
+    this._imageryTileLayer = new ImageryTileLayer({ url });
   }
 
   override async loadGlobalResources(): Promise<GlobalResources> {
@@ -118,15 +122,11 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
     __: number,
     signal: AbortSignal
   ): Promise<LocalResources> {
-    const elevation = new ImageryTileLayer({
-      url: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
-    });
-
-    await elevation.load();
+    await this._imageryTileLayer.load();
 
     const image = new ImageData(size[0], size[1]);
 
-    const result = await elevation.fetchPixels(extent, size[0], size[1], { signal });
+    const result = await this._imageryTileLayer.fetchPixels(extent, size[0], size[1], { signal });
 
     if (result) {
       const { pixelBlock } = result;

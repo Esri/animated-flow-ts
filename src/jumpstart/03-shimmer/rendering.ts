@@ -129,9 +129,13 @@ export class LocalResources implements Resources {
 }
 
 export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResources, LocalResources> {
-  private _featureLayer = new FeatureLayer({
-    url: "https://services.arcgis.com/AgwDJMQH12AGieWa/arcgis/rest/services/global_power_plant_database_June_2018/FeatureServer"
-  });
+  private _featureLayer: FeatureLayer;
+
+  constructor(url: string) {
+    super();
+    
+    this._featureLayer = new FeatureLayer({ url });
+  }
   
   override async loadGlobalResources(): Promise<GlobalResources> {
     return new GlobalResources();
