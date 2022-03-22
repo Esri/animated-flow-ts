@@ -16,13 +16,13 @@ export class GlobalResources implements Resources {
       attribute vec2 a_Position;
       attribute vec2 a_Offset;
       attribute float a_Random;
-      attribute vec3 a_Color;
+      attribute vec4 a_Color;
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_ClipFromScreen;
       uniform float u_Size;
       varying vec2 v_Offset;
       varying float v_Random;
-      varying vec3 v_Color;
+      varying vec4 v_Color;
       void main(void) {
         vec2 pos = a_Position;
         vec4 anchor = u_ScreenFromLocal * vec4(pos, 0.0, 1.0);
@@ -40,10 +40,10 @@ export class GlobalResources implements Resources {
       uniform float u_Time;
       varying vec2 v_Offset;
       varying float v_Random;
-      varying vec3 v_Color;
+      varying vec4 v_Color;
       void main(void) {
         float intensity = exp(-(16.0 + 8.0 * sin(u_Time + 6.2830 * v_Random)) * length(v_Offset));
-        gl_FragColor = vec4(v_Color, intensity);
+        gl_FragColor = vec4(v_Color.rgb, v_Color.a * intensity);
         gl_FragColor.rgb *= gl_FragColor.a;
       }`);
     gl.compileShader(fragmentShader);
@@ -113,7 +113,7 @@ export class LocalResources implements Resources {
 export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResources, LocalResources> {
   private _featureLayer: FeatureLayer;
 
-  constructor(url: string) {
+  constructor(url: string, private _fieldName: string, private _colorMap: HashMap<[number, number, number, number]>, private _defaultColor: [number, number, number, number]) {
     super();
     
     this._featureLayer = new FeatureLayer({ url });
@@ -139,39 +139,21 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
     const indexData: number[] = [];
     let count = 0;
 
-    const fuelMap: any = {
-      "Wind": [0, 0.5, 1],
-      "Solar": [1, 1, 0],
-      "Hydro": [0.2, 0.3, 0.5],
-      "Gas": [1, 1, 0],
-      "Oil": [1, 0, 0],
-      "Coal": [1, 0.5, 0],
-      "Storage": [0.7, 0.2, 0.1],
-      "Waste": [0, 1, 0],
-      "Biomass": [1, 0, 1],
-      "Cogeneration": [1, 0.2, 0.7],
-      "Geothermal": [0.5, 1, 0.2],
-      "Nuclear": [0.5, 0.8, 1],
-      "Wave and Tidal": [0.4, 0.9, 1.0],
-      "Petcoke": [0.3, 0.3, 0.3],
-      "Other": [1, 1, 1],
-    };
-
     for (const feature of featureSet.features) {
       const rnd = Math.random();
 
-      const key = (feature.attributes || {}).fuel1 || "Other";
-      const color = fuelMap[key];
-      const [r, g, b] = color;
+      const key = (feature.attributes || {})[this._fieldName];
+      const color = (key && this._colorMap[key]) || this._defaultColor;
+      const [r, g, b, a] = color;
 
       const point = feature.geometry as Point;
       const x = size[0] * (point.x - extent.xmin) / (extent.xmax - extent.xmin);
       const y = size[1] * (1 - (point.y - extent.ymin) / (extent.ymax - extent.ymin));
       vertexData.push(
-        x, y, -0.5, -0.5, rnd, r, g, b,
-        x, y,  0.5, -0.5, rnd, r, g, b,
-        x, y, -0.5,  0.5, rnd, r, g, b,
-        x, y,  0.5,  0.5, rnd, r, g, b
+        x, y, -0.5, -0.5, rnd, r, g, b, a,
+        x, y,  0.5, -0.5, rnd, r, g, b, a,
+        x, y, -0.5,  0.5, rnd, r, g, b, a,
+        x, y,  0.5,  0.5, rnd, r, g, b, a
       );
       indexData.push(
         count * 4 + 0,
@@ -246,10 +228,10 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
 
     // Bind the markers mesh.
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 32, 0);
-    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 32, 8);
-    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 32, 16);
-    gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 32, 20);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 36, 0);
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 36, 8);
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 36, 16);
+    gl.vertexAttribPointer(3, 4, gl.FLOAT, false, 36, 20);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.enableVertexAttribArray(0);
     gl.enableVertexAttribArray(1);

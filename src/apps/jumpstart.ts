@@ -1,3 +1,4 @@
+import Color from "esri/Color";
 import EsriMap from "esri/Map";
 import MapView from "esri/views/MapView";
 import LayerList from "esri/widgets/LayerList";
@@ -16,7 +17,17 @@ const fancyRasterLayer = new FancyRasterLayer({
 
 const shimmerLayer = new ShimmerLayer({
   title: "03 - Shimmering power plants",
-  featureUrl: "https://services.arcgis.com/AgwDJMQH12AGieWa/arcgis/rest/services/global_power_plant_database_June_2018/FeatureServer"
+  featureUrl: "https://services.arcgis.com/AgwDJMQH12AGieWa/arcgis/rest/services/global_power_plant_database_June_2018/FeatureServer",
+  fieldName: "fuel1",
+  colorMap: {
+    "Wind": Color.fromString("red"),
+    "Solar": Color.fromString("orange"),
+    "Hydro": Color.fromString("yellow"),
+    "Gas": Color.fromString("green"),
+    "Oil": Color.fromString("blue"),
+    "Coal": Color.fromString("purple"),
+    "Storage": Color.fromString("pink")
+  }
 } as any);
 
 const map = new EsriMap({
