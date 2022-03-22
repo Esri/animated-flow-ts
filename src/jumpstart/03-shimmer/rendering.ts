@@ -10,20 +10,19 @@ export class GlobalResources implements Resources {
   uniforms: HashMap<WebGLUniformLocation> = {};
 
   attach(gl: WebGLRenderingContext): void {
-    const vertexSource = `
+    // Compile the shaders.
+    const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
+    gl.shaderSource(vertexShader, `
       attribute vec2 a_Position;
       attribute vec2 a_Offset;
       attribute float a_Random;
       attribute vec3 a_Color;
-
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_ClipFromScreen;
       uniform float u_Size;
-
       varying vec2 v_Offset;
       varying float v_Random;
       varying vec3 v_Color;
-
       void main(void) {
         vec2 pos = a_Position;
         vec4 anchor = u_ScreenFromLocal * vec4(pos, 0.0, 1.0);
@@ -33,35 +32,30 @@ export class GlobalResources implements Resources {
         v_Offset = a_Offset;
         v_Random = a_Random;
         v_Color = a_Color;
-      }`;
-
-    const fragmentSource = `
+      }`);
+    gl.compileShader(vertexShader);
+    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+    gl.shaderSource(fragmentShader, `
       precision mediump float;
-
       uniform float u_Time;
-
       varying vec2 v_Offset;
       varying float v_Random;
       varying vec3 v_Color;
-
       void main(void) {
         float intensity = exp(-(16.0 + 8.0 * sin(u_Time + 6.2830 * v_Random)) * length(v_Offset));
-
         gl_FragColor = vec4(v_Color, intensity);
         gl_FragColor.rgb *= gl_FragColor.a;
-      }`;
-
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-    gl.shaderSource(vertexShader, vertexSource);
-    gl.compileShader(vertexShader);
-    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(fragmentShader, fragmentSource);
+      }`);
     gl.compileShader(fragmentShader);
 
+    // Link the program.
     const program = gl.createProgram()!;
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
     gl.bindAttribLocation(program, 0, "a_Position");
+    gl.bindAttribLocation(program, 1, "a_Offset");
+    gl.bindAttribLocation(program, 2, "a_Random");
+    gl.bindAttribLocation(program, 3, "a_Color");
     gl.linkProgram(program);
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
