@@ -123,13 +123,16 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
   ): Promise<LocalResources> {
     await this._imageryTileLayer.load();
 
+    // Create a blank image data.
     const image = new ImageData(size[0], size[1]);
 
+    // Fetch data from the imagery layer.
     const result = await this._imageryTileLayer.fetchPixels(extent, size[0], size[1], { signal });
 
     if (result) {
+      // If fetching is successful, find the minimum and maximum values
+      // in the data raster.
       const { pixelBlock } = result;
-
       let max = 0;
       let min = 1000000;
 
@@ -140,6 +143,8 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
         }
       }
 
+      // Convert the data to a 8-bit RGBA image. Map the minimum value to
+      // black and the maximum value to red.
       for (let y = 0; y < pixelBlock.height; y++) {
         for (let x = 0; x < pixelBlock.width; x++) {
           const h = (pixelBlock.pixels[0][y * size[0] + x] - min) / (max - min);
