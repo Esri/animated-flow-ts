@@ -65,12 +65,11 @@ export class GlobalResources implements Resources {
     gl.linkProgram(program);
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
-
-    this.program = program;
     this.uniforms["u_ScreenFromLocal"] = gl.getUniformLocation(program, "u_ScreenFromLocal")!;
     this.uniforms["u_ClipFromScreen"] = gl.getUniformLocation(program, "u_ClipFromScreen")!;
     this.uniforms["u_Time"] = gl.getUniformLocation(program, "u_Time")!;
     this.uniforms["u_Size"] = gl.getUniformLocation(program, "u_Size")!;
+    this.program = program;
   }
 
   detach(gl: WebGLRenderingContext): void {
@@ -94,20 +93,21 @@ export class LocalResources implements Resources {
   }
 
   attach(gl: WebGLRenderingContext): void {
+    // Upload the markers mesh data to the GPU.
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.vertexData, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
     const indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indexData, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-
-    this.vertexData = null;
-    this.indexData = null;
     this.vertexBuffer = vertexBuffer;
     this.indexBuffer = indexBuffer;
+
+    // Make sure that the CPU data is garbage collected.
+    this.vertexData = null;
+    this.indexData = null;
   }
 
   detach(gl: WebGLRenderingContext): void {
@@ -199,14 +199,9 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
     globalResources: GlobalResources,
     localResources: LocalResources
   ): void {
-    mat4.identity(localResources.u_ClipFromScreen);
-    mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
-    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
-      2 / (renderParams.size[0] * renderParams.pixelRatio),
-      -2 / (renderParams.size[1] * renderParams.pixelRatio),
-      1
-    ]);
-
+    // Compute the `u_ScreenFromLocal` matrix. This matrix converts from local
+    // pixel-like coordinates to actual screen positions. It scales, rotates and
+    // translates by the amounts dictated by the render parameters.
     mat4.identity(localResources.u_ScreenFromLocal);
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
       renderParams.translation[0],
@@ -220,6 +215,17 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
       1
     ]);
 
+    // Compute the `u_ClipFromScreen` matrix. This matrix converts from screen
+    // coordinates in pixels to clip coordinates in the range [-1, +1].
+    mat4.identity(localResources.u_ClipFromScreen);
+    mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
+    mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
+      2 / (renderParams.size[0] * renderParams.pixelRatio),
+      -2 / (renderParams.size[1] * renderParams.pixelRatio),
+      1
+    ]);
+
+    // Bind the shader program and updates the uniforms.
     gl.useProgram(globalResources.program);
     gl.uniformMatrix4fv(
       globalResources.uniforms["u_ScreenFromLocal"]!,
@@ -231,23 +237,20 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
       false,
       localResources.u_ClipFromScreen
     );
-
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE);
-
-    const solidProgram = globalResources.program;
-    gl.useProgram(solidProgram);
-
     gl.uniform1f(
       globalResources.uniforms["u_Time"]!,
       performance.now() / 1000
     );
-
     gl.uniform1f(
       globalResources.uniforms["u_Size"]!,
       40 * renderParams.pixelRatio
     );
 
+    // Enable additive blending.
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+
+    // Bind the markers mesh.
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 32, 0);
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 32, 8);
@@ -259,6 +262,8 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
     gl.enableVertexAttribArray(2);
     gl.enableVertexAttribArray(3);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, localResources.indexBuffer);
+
+    // Draw the markers.
     gl.drawElements(gl.TRIANGLES, localResources.indexCount, gl.UNSIGNED_INT, 0);
   }
 }
