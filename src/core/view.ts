@@ -178,12 +178,13 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
       xmin: center.x - rotatedExtentWidth / 2,
       ymin: center.y - rotatedExtentHeight / 2,
       xmax: center.x + rotatedExtentWidth / 2,
-      ymax: center.y + rotatedExtentHeight / 2
+      ymax: center.y + rotatedExtentHeight / 2,
+      spatialReference: extent.spatialReference
     });
     rotatedExtent.centerAt(center);
 
     const expandedExtent = rotatedExtent.clone().expand(settings.extentExpandFactor);
-    
+
     // Compute the rest of the parameters needed for the load operation.
     const resolution = this.view.resolution;
     const pixelRatio = devicePixelRatio;
