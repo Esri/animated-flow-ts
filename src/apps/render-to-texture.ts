@@ -174,12 +174,12 @@ async function main(): Promise<void> {
     // Compute view matrix.
     mat4.identity(u_View);
     mat4.translate(u_View, u_View, [0, 0, -3]);
-    mat4.rotateY(u_View, u_View, 0.1 * performance.now() / 1000);
-    
+    mat4.rotateY(u_View, u_View, (0.1 * performance.now()) / 1000);
+
     // Compute projection matrix.
     mat4.identity(u_Project);
     mat4.perspective(u_Project, 1, gl.drawingBufferWidth / gl.drawingBufferHeight, 0.1, 100);
-    
+
     // Set program and update uniforms.
     gl.useProgram(program);
     gl.activeTexture(gl.TEXTURE0);
@@ -187,7 +187,7 @@ async function main(): Promise<void> {
     gl.uniform1i(loc_Texture, 0);
     gl.uniformMatrix4fv(loc_View, false, u_View);
     gl.uniformMatrix4fv(loc_Project, false, u_Project);
-    
+
     // Configure vertex state.
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.vertexAttribPointer(0, 2, gl.BYTE, false, 4, 0);
