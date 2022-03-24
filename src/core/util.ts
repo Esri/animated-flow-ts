@@ -43,7 +43,7 @@ export function assert(condition: unknown): asserts condition {
 
 /**
  * Create a seeded, pseudo-random Linear Congruential Generator (LCG).
- * 
+ *
  * For more informations about LCGs, see [Wikipedia](https://en.wikipedia.org/wiki/Linear_congruential_generator).
  *
  * @param seed The seed that determines the sequence of pseudo-random values.
@@ -103,7 +103,7 @@ export async function rest(signal: AbortSignal): Promise<void> {
  * @returns The angle in radians.
  */
 export function degreesToRadians(degrees: Degrees): Radians {
-  return Math.PI * degrees / 180;
+  return (Math.PI * degrees) / 180;
 }
 
 /**

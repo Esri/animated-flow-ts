@@ -37,7 +37,7 @@ import { TransferableFlowData } from "../flow/types";
  * @returns A promise to a transferable mesh.
  */
 export async function createStreamLinesMesh(
-  data: { flowData: TransferableFlowData; },
+  data: { flowData: TransferableFlowData },
   options: { signal: AbortSignal }
 ): Promise<{ result: { vertexBuffer: ArrayBuffer; indexBuffer: ArrayBuffer }; transferList: ArrayBuffer[] }> {
   const { vertexData, indexData } = await createStreamLinesMeshImpl(

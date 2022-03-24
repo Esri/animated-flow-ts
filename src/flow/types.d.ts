@@ -17,10 +17,10 @@
  * This module contains simple type definitions used by the `flow` visualization.
  */
 
- export type Cells = number;
- export type CellsPerSecond = number;
- export type PixelsPerSecond = number;
- export type PixelsPerCell = number;
+export type Cells = number;
+export type CellsPerSecond = number;
+export type PixelsPerSecond = number;
+export type PixelsPerCell = number;
 
 /**
  * A vertex of a flow line, as returned by The `trace()` function in
@@ -67,7 +67,7 @@ export type Field = (x: number, y: number) => [number, number];
 export type FlowData = {
   /**
    * Horizontal and vertical speeds.
-   * 
+   *
    * The speeds are stored interleaved, row major,
    */
   data: Float32Array;

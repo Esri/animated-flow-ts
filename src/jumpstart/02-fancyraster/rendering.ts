@@ -2,7 +2,7 @@ import { Extent } from "esri/geometry";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../../core/rendering";
-import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
+import { Pixels, Resources, VisualizationRenderParams } from "../../core/types";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -12,7 +12,9 @@ export class GlobalResources implements Resources {
   attach(gl: WebGLRenderingContext): void {
     // Compile the shaders.
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-    gl.shaderSource(vertexShader, `
+    gl.shaderSource(
+      vertexShader,
+      `
       attribute vec2 a_Position;
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_ClipFromScreen;
@@ -24,10 +26,13 @@ export class GlobalResources implements Resources {
         vec4 clip = u_ClipFromScreen * screen;
         gl_Position = clip;
         v_Texcoord = vec2(a_Position.x, 1.0 - a_Position.y);
-      }`);
+      }`
+    );
     gl.compileShader(vertexShader);
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(fragmentShader, `
+    gl.shaderSource(
+      fragmentShader,
+      `
       precision mediump float;
       varying vec2 v_Texcoord;
       uniform sampler2D u_Texture;
@@ -37,7 +42,8 @@ export class GlobalResources implements Resources {
         float intensity = 0.5 + 0.5 * sin(h * 20.0 + u_Time);;
         gl_FragColor = vec4(0.2, 0.4, 1.0, intensity * h);
         gl_FragColor.rgb *= gl_FragColor.a;
-      }`);
+      }`
+    );
     gl.compileShader(fragmentShader);
 
     // Link the program.
@@ -116,7 +122,6 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
 
   override async loadLocalResources(
     extent: Extent,
-    _: MapUnitsPerPixel,
     size: [Pixels, Pixels],
     __: number,
     signal: AbortSignal
@@ -172,12 +177,12 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
       renderParams.translation[0],
       renderParams.translation[1],
-      1
+      0
     ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
     mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
-      renderParams.scale * renderParams.pixelRatio,
-      renderParams.scale * renderParams.pixelRatio,
+      renderParams.scale,
+      renderParams.scale,
       1
     ]);
 
@@ -186,31 +191,17 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
     mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
-      2 / (renderParams.size[0] * renderParams.pixelRatio),
-      -2 / (renderParams.size[1] * renderParams.pixelRatio),
+      2 / renderParams.size[0],
+      -2 / renderParams.size[1],
       1
     ]);
 
     // Bind the shader program and updates the uniforms.
     gl.useProgram(globalResources.program);
-    gl.uniformMatrix4fv(
-      globalResources.uniforms["u_ScreenFromLocal"]!,
-      false,
-      localResources.u_ScreenFromLocal
-    );
-    gl.uniformMatrix4fv(
-      globalResources.uniforms["u_ClipFromScreen"]!,
-      false,
-      localResources.u_ClipFromScreen
-    );
-    gl.uniform2fv(
-      globalResources.uniforms["u_Size"]!,
-      localResources.size
-    );
-    gl.uniform1f(
-      globalResources.uniforms["u_Time"]!,
-      performance.now() / 1000
-    );
+    gl.uniformMatrix4fv(globalResources.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
+    gl.uniformMatrix4fv(globalResources.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
+    gl.uniform2fv(globalResources.uniforms["u_Size"]!, localResources.size);
+    gl.uniform1f(globalResources.uniforms["u_Time"]!, performance.now() / 1000);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, localResources.texture);
     gl.uniform1i(globalResources.uniforms["u_Texture"]!, 0);

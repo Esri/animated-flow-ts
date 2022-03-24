@@ -73,14 +73,13 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
    * Load the local resources.
    *
    * @param extent The extent to load.
-   * @param resolution The resolution at which to load the resources.
+   * @param size The conventional size in pixels of the loaded resources.
    * @param pixelRatio The target pixel ratio; this is useful to scale user-specified sizes and lengths.
    * @param signal An abort signal.
    * @returns A promise to a local resource object.
    */
   abstract loadLocalResources(
     extent: Extent,
-    resolution: MapUnitsPerPixel,
     size: [Pixels, Pixels],
     pixelRatio: number,
     signal: AbortSignal
@@ -103,7 +102,7 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
 
   /**
    * Render a visualization into a HTML canvas.
-   * 
+   *
    * Useful for generating thumbnails and screenshots.
    *
    * @param gl The WebGL context to use. It must have been created with the `preserveDrawingBuffer` attribute.
@@ -146,7 +145,7 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
     // Load global and local resources.
     const globalResources = await this.loadGlobalResources(signal);
     globalResources.attach(gl);
-    const localResources = await this.loadLocalResources(extent, resolution, [width, height], 1, signal);
+    const localResources = await this.loadLocalResources(extent, [width, height], 1, signal);
     localResources.attach(gl);
 
     // Render the visualization.

@@ -22,14 +22,14 @@ import Color from "esri/Color";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
-import { Awaitable, MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
+import { Awaitable, Pixels, Resources, VisualizationRenderParams } from "../core/types";
 import { defined, formatGLSLConstant, throwIfAborted } from "../core/util";
 import settings from "./settings";
 import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
 
 /**
  * These are the WebGL resources that are independent on the extent.
- * 
+ *
  * Currently, this is simply the shader program.
  */
 export class FlowGlobalResources implements Resources {
@@ -61,7 +61,9 @@ export class FlowGlobalResources implements Resources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${formatGLSLConstant(settings.lineWidth / 2)} * u_PixelRatio;
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${formatGLSLConstant(
+          settings.lineWidth / 2
+        )} * u_PixelRatio;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -147,7 +149,7 @@ export class FlowGlobalResources implements Resources {
 
 /**
  * These are the WebGL resources that are dependent on the extent.
- * 
+ *
  * Currently, this is simply the triangle mesh with all the streamlines.
  */
 export class FlowLocalResources implements Resources {
@@ -197,22 +199,26 @@ export class FlowLocalResources implements Resources {
 }
 
 /**
- * 
+ *
  */
 export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResources, FlowLocalResources> {
-  constructor(private source: Awaitable<FlowSource>, private processor: Awaitable<FlowProcessor>, private color: Color) {
+  constructor(
+    private source: Awaitable<FlowSource>,
+    private processor: Awaitable<FlowProcessor>,
+    private color: Color
+  ) {
     super();
   }
 
   /**
    * Loads the global resources.
-   * 
+   *
    * Note that this function only loads the required data, if any;
    * the actual WebGL resources are created when `FlowGlobalResources.attach()`
    * is called.
-   * 
+   *
    * This function is called only once in the lifetime of `FlowLayer`.
-   * 
+   *
    * @returns A promise to the global resources.
    */
   override async loadGlobalResources(): Promise<FlowGlobalResources> {
@@ -221,18 +227,17 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
 
   /**
    * Loads the local resources.
-   * 
+   *
    * Note that this function only loads the required data, if any;
    * the actual WebGL resources are created when `FlowLocalResources.attach()`
    * is called.
-   * 
+   *
    * This function is called every time that the current extent changes.
-   * 
+   *
    * @returns A promise to the global resources.
    */
   override async loadLocalResources(
     extent: Extent,
-    _resolution: MapUnitsPerPixel,
     size: [Pixels, Pixels],
     _pixelRatio: number,
     signal: AbortSignal
@@ -248,7 +253,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
 
   /**
    * Render the flow streamlines visualization.
-   * 
+   *
    * @param gl The target WebGL context.
    * @param renderParams The render parameters that specify the size and scale of the visualization.
    * If the current extent has not changed after the last time that the local resource were reloaded,
@@ -287,8 +292,8 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
     mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
-      2 / (renderParams.size[0] * renderParams.pixelRatio),
-      -2 / (renderParams.size[1] * renderParams.pixelRatio),
+      2 / renderParams.size[0],
+      -2 / renderParams.size[1],
       1
     ]);
 
@@ -299,12 +304,12 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
       renderParams.translation[0],
       renderParams.translation[1],
-      1
+      0
     ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
     mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
-      renderParams.scale * renderParams.pixelRatio,
-      renderParams.scale * renderParams.pixelRatio,
+      renderParams.scale,
+      renderParams.scale,
       1
     ]);
 

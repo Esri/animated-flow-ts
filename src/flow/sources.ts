@@ -36,18 +36,13 @@ export class ImageryTileLayerFlowSource implements FlowSource {
 
   async fetchFlowData(extent: Extent, width: Pixels, height: Pixels, signal: AbortSignal): Promise<FlowData> {
     const cellSize = settings.fixedCellSize;
-    
+
     const columns = Math.round(width / cellSize);
     const rows = Math.round(height / cellSize);
 
     await this.imageryTileLayer.load(signal);
     const dataType = this.imageryTileLayer.rasterInfo.dataType;
-    const rasterData = await this.imageryTileLayer.fetchPixels(
-      extent,
-      columns,
-      rows,
-      { signal }
-    );
+    const rasterData = await this.imageryTileLayer.fetchPixels(extent, columns, rows, { signal });
     // The returned data is in the "pixels" property of the pixel block
     // but from the perspective of animated-flow-ts those values are per-cell,
     // not per-pixel; a cell can span multiple pixels.
@@ -97,8 +92,7 @@ export class ImageryTileLayerFlowSource implements FlowSource {
  * A flow source that uses a client-side velocity field defined in map units.
  */
 export class VectorFieldFlowSource implements FlowSource {
-  constructor(private mapVectorField: Field) {
-  }
+  constructor(private mapVectorField: Field) {}
 
   async fetchFlowData(extent: Extent, width: Pixels, height: Pixels): Promise<FlowData> {
     const cellSize = settings.fixedCellSize;
@@ -128,6 +122,5 @@ export class VectorFieldFlowSource implements FlowSource {
     };
   }
 
-  destroy(): void {
-  }
+  destroy(): void {}
 }

@@ -13,7 +13,7 @@
 
 /**
  * @module animated-flow-ts/flow/processors
- * 
+ *
  * This module defines classes that convert the `FlowData` returned
  * from a flow source to a triangle mesh.
  */
@@ -27,15 +27,11 @@ import { throwIfAborted } from "../core/util";
  * Processor that runs the computation on the main process.
  */
 export class MainFlowProcessor implements FlowProcessor {
-  async createStreamLinesMesh(
-    flowData: FlowData,
-    signal: AbortSignal
-  ): Promise<StreamLinesMesh> {
+  async createStreamLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<StreamLinesMesh> {
     return createStreamLinesMesh(flowData, signal);
   }
 
-  destroy(): void {
-  }
+  destroy(): void {}
 }
 
 /**
@@ -44,10 +40,7 @@ export class MainFlowProcessor implements FlowProcessor {
 export class WorkerFlowProcessor implements FlowProcessor {
   private connection = workers.open("animated-flow-ts/workers/flow");
 
-  async createStreamLinesMesh(
-    flowData: FlowData,
-    signal: AbortSignal
-  ): Promise<StreamLinesMesh> {
+  async createStreamLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<StreamLinesMesh> {
     const connection = await this.connection;
 
     throwIfAborted(signal);

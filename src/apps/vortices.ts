@@ -48,7 +48,7 @@ function createVortex(vortexCenter: [MapUnits, MapUnits]): Field {
     x -= vortexCenter[0];
     y -= vortexCenter[1];
     const d2 = x * x + y * y;
-    return [-10.0 * y / d2, -10.0 * x / d2];
+    return [(-10.0 * y) / d2, (-10.0 * x) / d2];
   };
 }
 

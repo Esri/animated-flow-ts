@@ -17,28 +17,28 @@
  * This module contains the definition of `VisualizationLayerView2D`, a
  * a type of 2D layer view that can be used as a higher level base class
  * for creating custom WebGL layers.
- * 
+ *
  * Developers can extend the ArcGIS API for JavaScript using custom WebGL code
  * that will run alongside the basemap and the other layers in `MapView` of
  * `SceneView`.
- * 
+ *
  * For `MapView` the extension point is a base class called
  * [`BaseLayerViewGL2D`](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html).
- * 
+ *
  * To create a custom WebGL layer, the user normally does the following.
- * 
+ *
  * - Create a custom layer by subclassing [`Layer`](https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-Layer.html) or some other suitable layer type.
  *   - Override method `Layer.createLayerView()` to return an instance of the custom layer view.
  * - Create a custom 2D layer view by subclassing [`BaseLayerViewGL2D`](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html).
  *   - Override `BaseLayerViewGL2D.attach()`.
  *   - Override `BaseLayerViewGL2D.render()`.
  *   - Override `BaseLayerViewGL2D.detach()`.
- * 
+ *
  * This way of creating custom layers is very powerful, very flexible, but it
  * is fairly low level; to enhance productivity developers can sometimes
  * base their custom visualizations using a third party rendering engine such
  * as deck.gl or Three.js.
- * 
+ *
  * In animated-flow-ts, we introduce `VisualizationLayerView2D` as a more convenient
  * starting point to create custom WebGL visualizations.
  */
@@ -53,20 +53,20 @@ import settings from "./settings";
 
 /**
  * A 2D layer view designed around the concept of "visualizations".
- * 
+ *
  * A visualization is a visual representation of an extent. Subclasses
  * of `VisualizationLayerView2D` need to specify how individual visualizations
  * are attached, rendered and detached. They do so by overriding method
  * `VisualizationLayerView2D.createVisualizationStyle()`.
- * 
+ *
  * `VisualizationLayerView2D` will swap visualizations in and out as needed,
  * according to an internal strategy, so that the current view extent is
  * always covered.
- * 
+ *
  * The only strategy implemented so far is such that visualizations cover the
  * entire view, and only the visualization corresponding to the most recent
  * view state is rendered.
- * 
+ *
  * In the future maybe more strategies will be implemented, such as a "patchwork"
  * strategy, in which some visualizations only cover part of the screen, but when
  * stiched together they form a full coverage. There could even be a "tiled"
@@ -107,21 +107,21 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
 
   /**
    * Creates the visualization style for the layer view.
-   * 
+   *
    * Derived classes must implement this method. `VisualizationLayerView2D`
    * will invoke it only once, when the layer view is first attached.
-   * 
+   *
    * @returns The visualization style which will be adopted by this layer view.
    */
   protected abstract createVisualizationStyle(): VisualizationStyle<GR, LR>;
 
   /**
    * Attach the layer view.
-   * 
+   *
    * This method is invoked by `MapView` when the layer view is created
    * and added to the `MapView`. This method is akin to a constructor as
    * it initializes the newly created layer view.
-   * 
+   *
    * See [BaseLayerViewGL2D.attach()](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html#attach).
    */
   override attach(): void {
@@ -206,7 +206,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     this._localResources.push(entry);
     defined(this.visualizationStyle);
     this.visualizationStyle
-      .loadLocalResources(expandedExtent, resolution, size, pixelRatio, abortController.signal)
+      .loadLocalResources(expandedExtent, size, pixelRatio, abortController.signal)
       .then((resources) => {
         // Once loaded, store the loaded resource object in the local resource entry.
         entry.state = { name: "loaded", resources };
@@ -215,11 +215,11 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
 
   /**
    * Render the layer view.
-   * 
+   *
    * This method is invoked by `MapView` when the layer view must be rendered.
-   * 
+   *
    * See [BaseLayerViewGL2D.render()](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html#render).
-   * 
+   *
    * @param renderParams The render parameters.
    */
   override render(renderParams: any): void {
@@ -275,18 +275,24 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
       }
     }
 
-    if (this._globalResources.state.name === "attached" && mostRecentRenderableLocalResources && mostRecentRenderableLocalResources.state.name === "attached") {
+    if (
+      this._globalResources.state.name === "attached" &&
+      mostRecentRenderableLocalResources &&
+      mostRecentRenderableLocalResources.state.name === "attached"
+    ) {
       const xMap = mostRecentRenderableLocalResources.extent.xmin;
       const yMap = mostRecentRenderableLocalResources.extent.ymax;
       const translation: [Pixels, Pixels] = [0, 0];
       renderParams.state.toScreen(translation, xMap, yMap);
+      translation[0] /= devicePixelRatio;
+      translation[1] /= devicePixelRatio;
 
       const visualizationRenderParams: VisualizationRenderParams = {
         size: renderParams.state.size,
         translation,
         rotation: degreesToRadians(renderParams.state.rotation),
         scale: mostRecentRenderableLocalResources.resolution / renderParams.state.resolution,
-        opacity: 1,
+        opacity: this.layer.opacity,
         pixelRatio: devicePixelRatio
       };
 
@@ -306,11 +312,11 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
 
   /**
    * Detach the layer view.
-   * 
+   *
    * This method is invoked by `MapView` when the layer view is removed
    * to the `MapView`. This method is akin to a destructor and is
    * responsible for cleaning up used resources.
-   * 
+   *
    * See [BaseLayerViewGL2D.detach()](https://developers.arcgis.com/javascript/latest/api-reference/esri-views-2d-layers-BaseLayerViewGL2D.html#detach).
    */
   override detach(): void {

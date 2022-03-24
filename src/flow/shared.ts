@@ -24,7 +24,7 @@ import { Field, StreamLinesMesh, StreamLineVertex, FlowData, Cells, CellsPerSeco
 
 /**
  * Smooths a discretized UV velocity field  with a Gaussain kernel.
- * 
+ *
  * @param data The data to smooth as a 2-channel, interleaved, row-major table.
  * @param columns The number of columns.
  * @param rows The number of rows.
@@ -89,9 +89,9 @@ function smooth(data: Float32Array, columns: Cells, rows: Cells, sigma: Cells): 
 
 /**
  * Wrap a tabulated velocity field into a function.
- * 
+ *
  * This function simply returns the value of the correct cell,
- * but a better approach would be to use bilinear interpolation. 
+ * but a better approach would be to use bilinear interpolation.
  *
  * @param flowData The input velocity field data.
  * @returns A function that maps (x, y) to the correct cell.
@@ -101,7 +101,7 @@ function createFlowFieldFromData(flowData: FlowData): Field {
 
   const field = (x: Cells, y: Cells): [CellsPerSecond, CellsPerSecond] => {
     const X: Cells = Math.round(x);
-    let Y: Cells = Math.round(y);
+    const Y: Cells = Math.round(y);
 
     if (X < 0 || X >= flowData.columns) {
       return [0, 0];
@@ -119,7 +119,7 @@ function createFlowFieldFromData(flowData: FlowData): Field {
 
 /**
  * Simulates a particle through a velocity field.
- * 
+ *
  * @param f The velocity field as a function.
  * @param x0 The starting x coordinate of the particle.
  * @param y0  The starting y coordinate of the particle.
@@ -173,7 +173,7 @@ function trace(f: Field, x0: Cells, y0: Cells, cellSize: PixelsPerCell): StreamL
  */
 function getStreamLines(f: Field, columns: Cells, rows: Cells, cellSize: PixelsPerCell): StreamLineVertex[][] {
   const lines: StreamLineVertex[][] = [];
-  
+
   const rand = createRand();
 
   for (let i = 0; i < settings.linesPerVisualization; i++) {
@@ -186,15 +186,12 @@ function getStreamLines(f: Field, columns: Cells, rows: Cells, cellSize: PixelsP
 
 /**
  * Create a triangle mesh that encodes the streamlines for a given velocity field.
- * 
+ *
  * @param flowData The velocity field.
  * @param signal The abort signal.
  * @returns A promise to a triangle mesh.
  */
-export async function createStreamLinesMesh(
-  flowData: FlowData,
-  signal: AbortSignal
-): Promise<StreamLinesMesh> {
+export async function createStreamLinesMesh(flowData: FlowData, signal: AbortSignal): Promise<StreamLinesMesh> {
   let vertexCount = 0;
   const vertexData: number[] = [];
   const indexData: number[] = [];
@@ -220,11 +217,11 @@ export async function createStreamLinesMesh(
     const totalTime = lastVertex.time;
 
     for (let i = 1; i < line.length; i++) {
-      let {
+      const {
         position: [x0, y0],
         time: t0
       } = line[i - 1]!;
-      let {
+      const {
         position: [x1, y1],
         time: t1
       } = line[i]!;

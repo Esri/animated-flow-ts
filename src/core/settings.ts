@@ -13,7 +13,7 @@
 
 /**
  * @module animated-flow-ts/core/settings
- * 
+ *
  * This module contains parameters used by the `core` package.
  */
 
