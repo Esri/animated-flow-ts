@@ -103,7 +103,7 @@ export abstract class VisualizationStyle<GR extends Resources, LR extends Resour
 
   /**
    * Render a visualization into a HTML canvas.
-   * 
+   *
    * Useful for generating thumbnails and screenshots.
    *
    * @param gl The WebGL context to use. It must have been created with the `preserveDrawingBuffer` attribute.

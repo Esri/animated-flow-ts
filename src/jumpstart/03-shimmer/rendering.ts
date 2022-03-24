@@ -12,7 +12,9 @@ export class GlobalResources implements Resources {
   attach(gl: WebGLRenderingContext): void {
     // Compile the shaders.
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-    gl.shaderSource(vertexShader, `
+    gl.shaderSource(
+      vertexShader,
+      `
       attribute vec2 a_Position;
       attribute vec2 a_Offset;
       attribute float a_Random;
@@ -32,10 +34,13 @@ export class GlobalResources implements Resources {
         v_Offset = a_Offset;
         v_Random = a_Random;
         v_Color = a_Color;
-      }`);
+      }`
+    );
     gl.compileShader(vertexShader);
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(fragmentShader, `
+    gl.shaderSource(
+      fragmentShader,
+      `
       precision mediump float;
       uniform float u_Time;
       varying vec2 v_Offset;
@@ -45,7 +50,8 @@ export class GlobalResources implements Resources {
         float intensity = exp(-(16.0 + 8.0 * sin(u_Time + 6.2830 * v_Random)) * length(v_Offset));
         gl_FragColor = vec4(v_Color.rgb, v_Color.a * intensity);
         gl_FragColor.rgb *= gl_FragColor.a;
-      }`);
+      }`
+    );
     gl.compileShader(fragmentShader);
 
     // Link the program.
@@ -113,12 +119,17 @@ export class LocalResources implements Resources {
 export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResources, LocalResources> {
   private _featureLayer: FeatureLayer;
 
-  constructor(url: string, private _fieldName: string, private _colorMap: HashMap<[number, number, number, number]>, private _defaultColor: [number, number, number, number]) {
+  constructor(
+    url: string,
+    private _fieldName: string,
+    private _colorMap: HashMap<[number, number, number, number]>,
+    private _defaultColor: [number, number, number, number]
+  ) {
     super();
-    
+
     this._featureLayer = new FeatureLayer({ url });
   }
-  
+
   override async loadGlobalResources(): Promise<GlobalResources> {
     return new GlobalResources();
   }
@@ -147,22 +158,47 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
       const [r, g, b, a] = color;
 
       const point = feature.geometry as Point;
-      const x = size[0] * (point.x - extent.xmin) / (extent.xmax - extent.xmin);
+      const x = (size[0] * (point.x - extent.xmin)) / (extent.xmax - extent.xmin);
       const y = size[1] * (1 - (point.y - extent.ymin) / (extent.ymax - extent.ymin));
       vertexData.push(
-        x, y, -0.5, -0.5, rnd, r, g, b, a,
-        x, y,  0.5, -0.5, rnd, r, g, b, a,
-        x, y, -0.5,  0.5, rnd, r, g, b, a,
-        x, y,  0.5,  0.5, rnd, r, g, b, a
+        x,
+        y,
+        -0.5,
+        -0.5,
+        rnd,
+        r,
+        g,
+        b,
+        a,
+        x,
+        y,
+        0.5,
+        -0.5,
+        rnd,
+        r,
+        g,
+        b,
+        a,
+        x,
+        y,
+        -0.5,
+        0.5,
+        rnd,
+        r,
+        g,
+        b,
+        a,
+        x,
+        y,
+        0.5,
+        0.5,
+        rnd,
+        r,
+        g,
+        b,
+        a
       );
-      indexData.push(
-        count * 4 + 0,
-        count * 4 + 1,
-        count * 4 + 2,
-        count * 4 + 1,
-        count * 4 + 3,
-        count * 4 + 2
-      );
+      indexData.push(count * 4 + 0, count * 4 + 1, count * 4 + 2, count * 4 + 1, count * 4 + 3, count * 4 + 2);
       count++;
     }
 
@@ -203,24 +239,10 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
 
     // Bind the shader program and updates the uniforms.
     gl.useProgram(globalResources.program);
-    gl.uniformMatrix4fv(
-      globalResources.uniforms["u_ScreenFromLocal"]!,
-      false,
-      localResources.u_ScreenFromLocal
-    );
-    gl.uniformMatrix4fv(
-      globalResources.uniforms["u_ClipFromScreen"]!,
-      false,
-      localResources.u_ClipFromScreen
-    );
-    gl.uniform1f(
-      globalResources.uniforms["u_Time"]!,
-      performance.now() / 1000
-    );
-    gl.uniform1f(
-      globalResources.uniforms["u_Size"]!,
-      40 * renderParams.pixelRatio
-    );
+    gl.uniformMatrix4fv(globalResources.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
+    gl.uniformMatrix4fv(globalResources.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
+    gl.uniform1f(globalResources.uniforms["u_Time"]!, performance.now() / 1000);
+    gl.uniform1f(globalResources.uniforms["u_Size"]!, 40 * renderParams.pixelRatio);
 
     // Enable additive blending.
     gl.enable(gl.BLEND);

@@ -29,7 +29,7 @@ import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
 
 /**
  * These are the WebGL resources that are independent on the extent.
- * 
+ *
  * Currently, this is simply the shader program.
  */
 export class FlowGlobalResources implements Resources {
@@ -61,7 +61,9 @@ export class FlowGlobalResources implements Resources {
       
       void main(void) {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
-        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${formatGLSLConstant(settings.lineWidth / 2)} * u_PixelRatio;
+        screenPosition += u_Rotation * vec4(a_Extrude, 0.0, 0.0) * ${formatGLSLConstant(
+          settings.lineWidth / 2
+        )} * u_PixelRatio;
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Side = a_Side;
         v_Time = a_Time;
@@ -147,7 +149,7 @@ export class FlowGlobalResources implements Resources {
 
 /**
  * These are the WebGL resources that are dependent on the extent.
- * 
+ *
  * Currently, this is simply the triangle mesh with all the streamlines.
  */
 export class FlowLocalResources implements Resources {
@@ -197,22 +199,26 @@ export class FlowLocalResources implements Resources {
 }
 
 /**
- * 
+ *
  */
 export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResources, FlowLocalResources> {
-  constructor(private source: Awaitable<FlowSource>, private processor: Awaitable<FlowProcessor>, private color: Color) {
+  constructor(
+    private source: Awaitable<FlowSource>,
+    private processor: Awaitable<FlowProcessor>,
+    private color: Color
+  ) {
     super();
   }
 
   /**
    * Loads the global resources.
-   * 
+   *
    * Note that this function only loads the required data, if any;
    * the actual WebGL resources are created when `FlowGlobalResources.attach()`
    * is called.
-   * 
+   *
    * This function is called only once in the lifetime of `FlowLayer`.
-   * 
+   *
    * @returns A promise to the global resources.
    */
   override async loadGlobalResources(): Promise<FlowGlobalResources> {
@@ -221,13 +227,13 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
 
   /**
    * Loads the local resources.
-   * 
+   *
    * Note that this function only loads the required data, if any;
    * the actual WebGL resources are created when `FlowLocalResources.attach()`
    * is called.
-   * 
+   *
    * This function is called every time that the current extent changes.
-   * 
+   *
    * @returns A promise to the global resources.
    */
   override async loadLocalResources(
@@ -248,7 +254,7 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
 
   /**
    * Render the flow streamlines visualization.
-   * 
+   *
    * @param gl The target WebGL context.
    * @param renderParams The render parameters that specify the size and scale of the visualization.
    * If the current extent has not changed after the last time that the local resource were reloaded,

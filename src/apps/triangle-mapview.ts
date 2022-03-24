@@ -18,7 +18,9 @@ export class MyGlobalResources implements Resources {
   attach(gl: WebGLRenderingContext): void {
     // Compile the shaders.
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-    gl.shaderSource(vertexShader, `
+    gl.shaderSource(
+      vertexShader,
+      `
       attribute vec2 a_Position;
       attribute vec3 a_Color;
       uniform mat4 u_ScreenFromLocal;
@@ -28,15 +30,19 @@ export class MyGlobalResources implements Resources {
         vec4 screenPosition = u_ScreenFromLocal * vec4(a_Position, 0.0, 1.0);
         gl_Position = u_ClipFromScreen * screenPosition;
         v_Color = a_Color;
-      }`);
+      }`
+    );
     gl.compileShader(vertexShader);
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(fragmentShader, `
+    gl.shaderSource(
+      fragmentShader,
+      `
       precision mediump float;
       varying vec3 v_Color;
       void main(void) {
         gl_FragColor = vec4(v_Color, 1.0);
-      }`);
+      }`
+    );
     gl.compileShader(fragmentShader);
 
     // Link the program.
@@ -63,17 +69,36 @@ export class MyLocalResources implements Resources {
   u_ScreenFromLocal = mat4.create();
   u_ClipFromScreen = mat4.create();
 
-  constructor(private _point1: [number, number], private _point2: [number, number], private _point3: [number, number]) {
-  }
+  constructor(
+    private _point1: [number, number],
+    private _point2: [number, number],
+    private _point3: [number, number]
+  ) {}
 
   attach(gl: WebGLRenderingContext): void {
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      this._point1[0], this._point1[1], 1, 0, 0,
-      this._point2[0], this._point2[1], 0, 1, 0,
-      this._point3[0], this._point3[1], 0, 0, 1
-    ]), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        this._point1[0],
+        this._point1[1],
+        1,
+        0,
+        0,
+        this._point2[0],
+        this._point2[1],
+        0,
+        1,
+        0,
+        this._point3[0],
+        this._point3[1],
+        0,
+        0,
+        1
+      ]),
+      gl.STATIC_DRAW
+    );
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     this.vertexBuffer = vertexBuffer;
   }
@@ -95,13 +120,13 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
   override async loadLocalResources(
     extent: Extent,
     _: MapUnitsPerPixel,
-    size: [Pixels, Pixels],
+    size: [Pixels, Pixels]
   ): Promise<MyLocalResources> {
     await projection.load();
 
     function toLocal(point: Point): [number, number] {
       const projectedPoint = projection.project(point, extent.spatialReference) as Point;
-      const x = size[0] * (projectedPoint.x - extent.xmin) / (extent.xmax - extent.xmin);
+      const x = (size[0] * (projectedPoint.x - extent.xmin)) / (extent.xmax - extent.xmin);
       const y = size[1] * (1 - (projectedPoint.y - extent.ymin) / (extent.ymax - extent.ymin));
       return [x, y];
     }
@@ -147,16 +172,8 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
 
     // Bind the shader program and updates the uniforms.
     gl.useProgram(globalResources.program);
-    gl.uniformMatrix4fv(
-      globalResources.loc_ScreenFromLocal,
-      false,
-      localResources.u_ScreenFromLocal
-    );
-    gl.uniformMatrix4fv(
-      globalResources.loc_ClipFromScreen,
-      false,
-      localResources.u_ClipFromScreen
-    );
+    gl.uniformMatrix4fv(globalResources.loc_ScreenFromLocal, false, localResources.u_ScreenFromLocal);
+    gl.uniformMatrix4fv(globalResources.loc_ClipFromScreen, false, localResources.u_ClipFromScreen);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, localResources.vertexBuffer);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 20, 0);
@@ -164,7 +181,7 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.enableVertexAttribArray(0);
     gl.enableVertexAttribArray(1);
-  
+
     // Draw the triangle.
     gl.drawArrays(gl.TRIANGLES, 0, 3);
   }
@@ -176,7 +193,7 @@ export class MyCustomLayerView2D extends VisualizationLayerView2D<MyGlobalResour
 
   createVisualizationStyle(): VisualizationStyle<MyGlobalResources, MyLocalResources> {
     const layer = this.layer as MyCustomLayer;
-    
+
     return new MyVisualizationStyle(layer.point1, layer.point2, layer.point3);
   }
 }
@@ -186,7 +203,7 @@ export class MyCustomLayer extends Layer {
   // First point defaults to El Paso.
   @property()
   point1 = new Point({
-    x: -106.4850,
+    x: -106.485,
     y: 31.7619,
     spatialReference: { wkid: 4326 }
   });
@@ -194,7 +211,7 @@ export class MyCustomLayer extends Layer {
   // Second point defaults to Memphis.
   @property()
   point2 = new Point({
-    x: -90.0490,
+    x: -90.049,
     y: 35.1495,
     spatialReference: { wkid: 4326 }
   });

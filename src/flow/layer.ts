@@ -33,7 +33,7 @@ import { FlowSource, FlowProcessor } from "./types";
 export class FlowLayer extends Layer {
   /**
    * A promise to a flow source.
-   * 
+   *
    * This is used by `FlowLayerView2D` to retrieve flow data
    * for a given extent.
    */
@@ -42,7 +42,7 @@ export class FlowLayer extends Layer {
   /**
    * Whether the flow source is owned by the layer or
    * was passed from outside.
-   * 
+   *
    * This determines whether the layer will try to destroy the
    * source once it is not needed anymore or not.
    */
@@ -50,7 +50,7 @@ export class FlowLayer extends Layer {
 
   /**
    * A promise to a flow processor.
-   * 
+   *
    * This is used by `FlowLayerView2D` to convert the retrieved
    * flow data to a mesh of triangles renderable with WebGL.
    */
@@ -59,9 +59,9 @@ export class FlowLayer extends Layer {
   /**
    * The [blend mode](https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-FeatureLayer.html#blendMode)
    * in use on this layer.
-   * 
+   *
    * This property must be explicitly declared by a custom layer in order for it to support blend modes.
-   * 
+   *
    * See the **Important** remark in [the official docs](https://developers.arcgis.com/javascript/latest/sample-code/custom-gl-visuals/)
    * for more info.
    */
@@ -73,9 +73,9 @@ export class FlowLayer extends Layer {
   /**
    * The [layer effect](https://developers.arcgis.com/javascript/latest/api-reference/esri-layers-FeatureLayer.html#effect)
    * in use on this layer.
-   * 
+   *
    * This property must be explicitly declared by a custom layer in order for it to support layer effects.
-   * 
+   *
    * See the **Important** remark in [the official docs](https://developers.arcgis.com/javascript/latest/sample-code/custom-gl-visuals/)
    * for more info.
    */
@@ -94,7 +94,7 @@ export class FlowLayer extends Layer {
 
   /**
    * Constructs a new `FlowLayer`.
-   * 
+   *
    * It supports both UV and MagDir imagery tile layers, and client-side
    * flow sources such as `VectorFieldFlowSource`.
    *
@@ -107,7 +107,7 @@ export class FlowLayer extends Layer {
     if (params.url && params.source) {
       throw new Error("Only one of 'url' or 'source' parameters can be specified when creating a FlowLayer.");
     }
-    
+
     if (params.url) {
       this.source = Promise.resolve(new ImageryTileLayerFlowSource(params.url));
       this.ownSource = true;
@@ -115,7 +115,7 @@ export class FlowLayer extends Layer {
       this.source = Promise.resolve(params.source);
       this.ownSource = false;
     }
-    
+
     const useWebWorkers = "useWebWorkers" in params ? params.useWebWorkers : true;
     this.processor = Promise.resolve(useWebWorkers ? new WorkerFlowProcessor() : new MainFlowProcessor());
   }
@@ -148,7 +148,7 @@ export class FlowLayer extends Layer {
     this.processor.then((processor) => {
       processor.destroy();
     });
-    
+
     super.destroy();
   }
 }

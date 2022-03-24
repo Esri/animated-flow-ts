@@ -11,7 +11,9 @@ export class GlobalResources implements Resources {
   attach(gl: WebGLRenderingContext): void {
     // Compile the shaders.
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-    gl.shaderSource(vertexShader, `
+    gl.shaderSource(
+      vertexShader,
+      `
       attribute vec2 a_Position;
       uniform mat4 u_ScreenFromLocal;
       uniform mat4 u_ClipFromScreen;
@@ -23,10 +25,13 @@ export class GlobalResources implements Resources {
         vec4 clip = u_ClipFromScreen * screen;
         gl_Position = clip;
         v_Texcoord = vec2(a_Position.x, 1.0 - a_Position.y);
-      }`);
+      }`
+    );
     gl.compileShader(vertexShader);
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(fragmentShader, `
+    gl.shaderSource(
+      fragmentShader,
+      `
       precision mediump float;
       varying vec2 v_Texcoord;
       uniform sampler2D u_Texture;
@@ -34,7 +39,8 @@ export class GlobalResources implements Resources {
         gl_FragColor = vec4(v_Texcoord, 0.0, 1.0);
         gl_FragColor = texture2D(u_Texture, v_Texcoord);
         gl_FragColor.rgb *= gl_FragColor.a;
-      }`);
+      }`
+    );
     gl.compileShader(fragmentShader);
 
     // Link the program.
@@ -70,8 +76,7 @@ export class LocalResources implements Resources {
   u_ClipFromScreen = mat4.create();
   texture: WebGLTexture | null = null;
 
-  constructor(private _extent: Extent, public size: [number, number]) {
-  }
+  constructor(private _extent: Extent, public size: [number, number]) {}
 
   attach(gl: WebGLRenderingContext): void {
     // Create test image using Canvas2D. This is inefficient, you should use
@@ -94,7 +99,7 @@ export class LocalResources implements Resources {
     ctx.fillText(`xmax: ${this._extent.xmax}`, image.width / 2, image.height / 2 - 20);
     ctx.fillText(`ymin: ${this._extent.ymin}`, image.width / 2, image.height / 2 + 20);
     ctx.fillText(`ymax: ${this._extent.ymax}`, image.width / 2, image.height / 2 + 60);
-    
+
     // Upload the test image to a texture.
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -121,7 +126,7 @@ export class TestPatternVisualizationStyle extends VisualizationStyle<GlobalReso
   override async loadLocalResources(
     extent: Extent,
     _: MapUnitsPerPixel,
-    size: [Pixels, Pixels],
+    size: [Pixels, Pixels]
   ): Promise<LocalResources> {
     return new LocalResources(extent, size);
   }
@@ -160,24 +165,13 @@ export class TestPatternVisualizationStyle extends VisualizationStyle<GlobalReso
 
     // Bind the shader program and updates the uniforms.
     gl.useProgram(globalResources.program);
-    gl.uniformMatrix4fv(
-      globalResources.uniforms["u_ScreenFromLocal"]!,
-      false,
-      localResources.u_ScreenFromLocal
-    );
-    gl.uniformMatrix4fv(
-      globalResources.uniforms["u_ClipFromScreen"]!,
-      false,
-      localResources.u_ClipFromScreen
-    );
-    gl.uniform2fv(
-      globalResources.uniforms["u_Size"]!,
-      localResources.size
-    );
+    gl.uniformMatrix4fv(globalResources.uniforms["u_ScreenFromLocal"]!, false, localResources.u_ScreenFromLocal);
+    gl.uniformMatrix4fv(globalResources.uniforms["u_ClipFromScreen"]!, false, localResources.u_ClipFromScreen);
+    gl.uniform2fv(globalResources.uniforms["u_Size"]!, localResources.size);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, localResources.texture);
     gl.uniform1i(globalResources.uniforms["u_Texture"]!, 0);
-    
+
     // Enable premultiplied alpha blending.
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

@@ -31,7 +31,7 @@ export class FlowLayerView2D extends VisualizationLayerView2D<FlowGlobalResource
    * Creates the visualization style that drives the resource loading and rendering
    * process for this layer view.
    *
-   * This method is only called once in the lifetime of the layer view. 
+   * This method is only called once in the lifetime of the layer view.
    *
    * @returns The `flow` visualization style.
    */

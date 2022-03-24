@@ -11,32 +11,30 @@ const testPatternLayer = new TestPatternLayer({
 } as any);
 
 const fancyRasterLayer = new FancyRasterLayer({
-  title: "02 - Fancy raster", effect: "bloom(1.0, 1px, 0)",
+  title: "02 - Fancy raster",
+  effect: "bloom(1.0, 1px, 0)",
   imageryUrl: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
 } as any);
 
 const shimmerLayer = new ShimmerLayer({
   title: "03 - Shimmering power plants",
-  featureUrl: "https://services.arcgis.com/AgwDJMQH12AGieWa/arcgis/rest/services/global_power_plant_database_June_2018/FeatureServer",
+  featureUrl:
+    "https://services.arcgis.com/AgwDJMQH12AGieWa/arcgis/rest/services/global_power_plant_database_June_2018/FeatureServer",
   fieldName: "fuel1",
   colorMap: {
-    "Wind": Color.fromString("red"),
-    "Solar": Color.fromString("orange"),
-    "Hydro": Color.fromString("yellow"),
-    "Gas": Color.fromString("green"),
-    "Oil": Color.fromString("blue"),
-    "Coal": Color.fromString("purple"),
-    "Storage": Color.fromString("pink")
+    Wind: Color.fromString("red"),
+    Solar: Color.fromString("orange"),
+    Hydro: Color.fromString("yellow"),
+    Gas: Color.fromString("green"),
+    Oil: Color.fromString("blue"),
+    Coal: Color.fromString("purple"),
+    Storage: Color.fromString("pink")
   }
 } as any);
 
 const map = new EsriMap({
   basemap: "dark-gray",
-  layers: [
-    fancyRasterLayer,
-    shimmerLayer,
-    testPatternLayer
-  ]
+  layers: [fancyRasterLayer, shimmerLayer, testPatternLayer]
 });
 
 const view = new MapView({

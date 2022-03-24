@@ -86,7 +86,7 @@ export type VisualizationRenderParams = {
 
   /**
    * The pixel ratio of the rendering device.
-   * 
+   *
    * For retina displays it is going to be larger than 1.
    *
    * It is possible that `Resource.pixelRatio` is different from
@@ -162,7 +162,7 @@ export interface ResourcesEntry<R extends Resources> {
 
 /**
  * Global resouce entries do not extent the base interface.
- * 
+ *
  * This interface is defined for simmetry.
  */
 export interface GlobalResourcesEntry<R extends Resources> extends ResourcesEntry<R> {}
