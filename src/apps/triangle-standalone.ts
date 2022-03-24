@@ -57,9 +57,9 @@ const u_ScreenFromLocal = mat4.create();
 const u_ClipFromScreen = mat4.create();
 
 // View state.
-const translation: [number, number] = [0, 0];
-const scale = 1;
-const rotation = 0;
+const translation: [number, number] = [150, 50];
+const scale = 1.5;
+const rotation = 0.4;
 
 function render(): void {
   // Compute the `u_ScreenFromLocal` matrix. This matrix converts from local
