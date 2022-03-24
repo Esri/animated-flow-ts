@@ -97,19 +97,24 @@ async function main(): Promise<void> {
       localResources.attach(gl);
       attached = true;
     }
-    
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.viewport(0, 0, FBO_SIZE[0], FBO_SIZE[1]);
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
-    style.renderVisualization(gl, {
-      size: FBO_SIZE,
-      translation: [0, 0],
-      rotation: 0,
-      scale: 1,
-      opacity: 1,
-      pixelRatio: 1
-    }, globalResources, localResources);
+    style.renderVisualization(
+      gl,
+      {
+        size: FBO_SIZE,
+        translation: [0, 0],
+        rotation: 0,
+        scale: 1,
+        opacity: 1,
+        pixelRatio: 1
+      },
+      globalResources,
+      localResources
+    );
 
     gl.disableVertexAttribArray(2);
     gl.disableVertexAttribArray(3);
@@ -124,22 +129,22 @@ async function main(): Promise<void> {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(loc_Texture, 0);
-  
+
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.vertexAttribPointer(0, 2, gl.BYTE, false, 4, 0);
     gl.vertexAttribPointer(1, 2, gl.BYTE, false, 4, 2);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.enableVertexAttribArray(0);
     gl.enableVertexAttribArray(1);
-  
+
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
-  
+
   function frame(): void {
     render();
     requestAnimationFrame(frame);
   }
-  
+
   requestAnimationFrame(frame);
 }
 

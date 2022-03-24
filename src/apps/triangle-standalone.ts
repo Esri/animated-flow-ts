@@ -3,7 +3,7 @@
  * on WebGL rendering and graphic programming. There is nothing
  * "geographical" about it, and instead its focus is on explaining
  * how to rendered a colored triangle using WebGL.
- * 
+ *
  * The rendering techniques used in this file are also used in
  * another app, named `triangle-mapview.ts`, which focuses on
  * their integration with `MapView` using custom WebGL layer.
@@ -15,7 +15,7 @@
  * in WebGL apps. A single 4x4 matrix, a.k.a. `mat4` can encode any
  * number of 3D translations, rotations and scale operations, in any
  * order, without ambiguities.
- * 
+ *
  * For 2D rendering, a `mat3` would be enough but in this codebase
  * we decided to stick with `mat4` because it is more generic, way
  * more popular, and a better starting point shall we decide to add
@@ -27,7 +27,7 @@ import { mat4 } from "gl-matrix";
  * In this tutorial we will initialize the WebGL rendering context
  * ourselves. A rendering context is an object, customarily named
  * `gl`, that maintains the WebGL state and implements the WebGL API.
- * 
+ *
  * We start by creating a HTML <canvas> element.
  */
 const canvas = document.createElement("canvas");
@@ -41,14 +41,14 @@ document.body.appendChild(canvas);
  * using the `getContext()` function, by passing in the
  * "webgl" string. We could create a WebGL 2 context by
  * passing "webgl2" instead.
- * 
+ *
  * There are chiefly 3 kinds of methods that can be
  * invoked on a WebGL context:
- * 
+ *
  * 1) methods that configure the WebGL state;
  * 2) methods that create and modify WebGL resources;
  * 3) methods that render visuals.
- * 
+ *
  * Most methods in the second and third category depend
  * on the WebGL state that is configured by the methods
  * in the first category. So, usually, before creating,
@@ -71,10 +71,10 @@ const gl = canvas.getContext("webgl")!;
  * for compile errors using methods `gl.getShaderParameter()`
  * and `gl.getShaderInfoLog()` but in this sample we are doing
  * without it.
- * 
+ *
  * Vertex shaders take inputs in the form of `attribute` and
  * `uniform` variables.
- * 
+ *
  * Vertex shaders must output a position in the `gl_Position` implicit
  * variable, and can also output additional per-vertex values, such as colors,
  * by declaring and setting `varying` variables.
@@ -102,11 +102,11 @@ gl.compileShader(vertexShader);
  * rendered fragment. A fragment is a "pixel-like piece" of rendered
  * geometry.  The main responsibility of the fragment shader
  * is to compute the color of a fragment.
- * 
+ *
  * Fragment shaders take inputs in the form of `varying` variables; these
  * are the same `varying` that the vertex shader computed, but interpolated
  * for each fragment across the entire rendered mesh.
- * 
+ *
  * As an example, a square whose size in pixels is 100x100, has 4 vertices and
  * could have about 10,000 fragments (the exact number depends on many factors).
  * Each vertex may have its own color as output by the vertex shader; each fragment
@@ -114,7 +114,7 @@ gl.compileShader(vertexShader);
  * that are close to a red vertex will be a shade of red, while fragment that are
  * close to a green vertex will be a shade of green; pixels that are midway between
  * a red vertex and a green vertex will be a dull/dirty yellow.
- * 
+ *
  * Anything else that was said about vertex shaders also applies to vertex shaders.
  */
 const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
@@ -134,20 +134,20 @@ gl.compileShader(fragmentShader);
  * a vertex shader needs a fragment shader, and vice versa. This is the reason
  * why shaders need to be linked together into another WebGL resource, called
  * a shader program.
- * 
+ *
  * A program is created by calling `gl.createProgram()`. After that, individual shaders
  * are added to it by calling `attachShader()`. Then, for each attribute in the
  * attached vertex shader, a call to `gl.bindAttribLocation()` is needed to
  * assign it to a numeric index, called an attribute location. The attribute location
  * is important when the shader program executes, because it drives how attribute
  * values are delivered to the GLSL attribute variables.
- * 
+ *
  * Next step is to call `gl.linkProgram()` that actually links the shaders together
  * and makes the program ready to be used. At this point, the actual shader objects
  * can, and should, be deleted by calling `gl.deleteShader()`. Just like shader compilation,
  * also program linking can fail and in a real-world appliation you should use `gl.getProgramParameter()`
  * and `gl.getProgramInfoLog()` to check for errors.
- * 
+ *
  * Once the program is linked, it is necessary to retrieve the uniform locations;
  * these are WebGL objects that are used to represent uniform variables in Javascript.
  * They are used to deliver data to GLSL uniform variables.
@@ -174,14 +174,14 @@ const loc_ClipFromScreen = gl.getUniformLocation(program, "u_ClipFromScreen")!;
  * informs WebGL that we do not intend to modify the data very often, or at all.
  * After uploading the data, it is a good practice to unbind the buffer by calling
  * `gl.bindBuffer()` and passing `null`.
- * 
+ *
  * For this demo, we are passing the following floating point values, which can be intepreted
  * as 3 distincts 5-uple containing a `(x, y)` position and a `(r, g, b)` normalized color.
- * 
+ *
  *  0    0    1    0    0  320    0    0    1    0    0  180    0    0    1
- * 
+ *
  * x1   y1   r1   g1   b1   x2   y2   r2   g2   b2   x3   y3   r3   g3   b3
- * 
+ *
  * We are going to use them to render a multicolored triangle.
  */
 const vertexBuffer = gl.createBuffer();
@@ -200,7 +200,7 @@ let rotation: number;
 
 function render(): void {
   const frequency = 1;
-  rotation = 0.4 + 0.1 * Math.sin(2 * Math.PI * frequency * performance.now() / 1000);
+  rotation = 0.4 + 0.1 * Math.sin((2 * Math.PI * frequency * performance.now()) / 1000);
 
   // Compute the `u_ScreenFromLocal` matrix. This matrix converts from local
   // pixel-like coordinates to actual screen positions. It scales, rotates and

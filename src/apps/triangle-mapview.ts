@@ -4,7 +4,7 @@
  * with the `MapView`, accurate geographic positioning, and LOD support.
  * It displays a colored triangle with vertices in Memohis, Denver and
  * El Paso.
- * 
+ *
  * The rendering techniques used in this file are the same introduced
  * in another app, named `triangle-standalone.ts`, which also includes
  * detailed comments about all the invoked WebGL functions and serves
@@ -130,10 +130,7 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
     return new MyGlobalResources();
   }
 
-  override async loadLocalResources(
-    extent: Extent,
-    size: [Pixels, Pixels]
-  ): Promise<MyLocalResources> {
+  override async loadLocalResources(extent: Extent, size: [Pixels, Pixels]): Promise<MyLocalResources> {
     await projection.load();
 
     function toLocal(point: Point): [number, number] {

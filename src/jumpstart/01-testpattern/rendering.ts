@@ -123,10 +123,7 @@ export class TestPatternVisualizationStyle extends VisualizationStyle<GlobalReso
     return new GlobalResources();
   }
 
-  override async loadLocalResources(
-    extent: Extent,
-    size: [Pixels, Pixels]
-  ): Promise<LocalResources> {
+  override async loadLocalResources(extent: Extent, size: [Pixels, Pixels]): Promise<LocalResources> {
     return new LocalResources(extent, size);
   }
 
