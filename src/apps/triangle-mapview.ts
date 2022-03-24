@@ -1,3 +1,16 @@
+/**
+ * This app is a self-contained custom WebGL layer sample, intended
+ * to show how this repository handles integration of WebGL rendering
+ * with the `MapView`, accurate geographic positioning, and LOD support.
+ * It displays a colored triangle with vertices in Memohis, Denver and
+ * El Paso.
+ * 
+ * The rendering techniques used in this file are the same introduced
+ * in another app, named `triangle-standalone.ts`, which also includes
+ * detailed comments about all the invoked WebGL functions and serves
+ * as a WebGL tutorial.
+ */
+
 import MapView from "esri/views/MapView";
 import { mat4 } from "gl-matrix";
 import EsriMap from "esri/Map";
