@@ -206,7 +206,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
     this._localResources.push(entry);
     defined(this.visualizationStyle);
     this.visualizationStyle
-      .loadLocalResources(expandedExtent, resolution, size, pixelRatio, abortController.signal)
+      .loadLocalResources(expandedExtent, size, pixelRatio, abortController.signal)
       .then((resources) => {
         // Once loaded, store the loaded resource object in the local resource entry.
         entry.state = { name: "loaded", resources };

@@ -1,7 +1,7 @@
 import { Extent } from "esri/geometry";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../../core/rendering";
-import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
+import { Pixels, Resources, VisualizationRenderParams } from "../../core/types";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -125,7 +125,6 @@ export class TestPatternVisualizationStyle extends VisualizationStyle<GlobalReso
 
   override async loadLocalResources(
     extent: Extent,
-    _: MapUnitsPerPixel,
     size: [Pixels, Pixels]
   ): Promise<LocalResources> {
     return new LocalResources(extent, size);

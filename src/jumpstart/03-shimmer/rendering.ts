@@ -3,7 +3,7 @@ import Point from "esri/geometry/Point";
 import FeatureLayer from "esri/layers/FeatureLayer";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../../core/rendering";
-import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
+import { Pixels, Resources, VisualizationRenderParams } from "../../core/types";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -136,7 +136,6 @@ export class ShimmerVisualizationStyle extends VisualizationStyle<GlobalResource
 
   override async loadLocalResources(
     extent: Extent,
-    _resolution: MapUnitsPerPixel,
     size: [Pixels, Pixels],
     _pixelRatio: number,
     signal: AbortSignal

@@ -22,7 +22,7 @@ import Color from "esri/Color";
 import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../core/rendering";
-import { Awaitable, MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
+import { Awaitable, Pixels, Resources, VisualizationRenderParams } from "../core/types";
 import { defined, formatGLSLConstant, throwIfAborted } from "../core/util";
 import settings from "./settings";
 import { FlowSource, FlowProcessor, PixelsPerCell } from "./types";
@@ -238,7 +238,6 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
    */
   override async loadLocalResources(
     extent: Extent,
-    _resolution: MapUnitsPerPixel,
     size: [Pixels, Pixels],
     _pixelRatio: number,
     signal: AbortSignal

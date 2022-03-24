@@ -18,7 +18,7 @@ import { property, subclass } from "esri/core/accessorSupport/decorators";
 import { VisualizationLayerView2D } from "../core/view";
 import { VisualizationStyle } from "../core/rendering";
 import Layer from "esri/layers/Layer";
-import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../core/types";
+import { Pixels, Resources, VisualizationRenderParams } from "../core/types";
 import { Extent } from "esri/geometry";
 import Point from "esri/geometry/Point";
 import * as projection from "esri/geometry/projection";
@@ -132,7 +132,6 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
 
   override async loadLocalResources(
     extent: Extent,
-    _: MapUnitsPerPixel,
     size: [Pixels, Pixels]
   ): Promise<MyLocalResources> {
     await projection.load();

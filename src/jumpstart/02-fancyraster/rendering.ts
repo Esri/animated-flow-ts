@@ -2,7 +2,7 @@ import { Extent } from "esri/geometry";
 import ImageryTileLayer from "esri/layers/ImageryTileLayer";
 import { mat4 } from "gl-matrix";
 import { VisualizationStyle } from "../../core/rendering";
-import { MapUnitsPerPixel, Pixels, Resources, VisualizationRenderParams } from "../../core/types";
+import { Pixels, Resources, VisualizationRenderParams } from "../../core/types";
 
 export class GlobalResources implements Resources {
   program: WebGLProgram | null = null;
@@ -122,7 +122,6 @@ export class FancyRasterVisualizationStyle extends VisualizationStyle<GlobalReso
 
   override async loadLocalResources(
     extent: Extent,
-    _: MapUnitsPerPixel,
     size: [Pixels, Pixels],
     __: number,
     signal: AbortSignal
