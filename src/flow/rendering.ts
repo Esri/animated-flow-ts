@@ -292,8 +292,8 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     mat4.identity(localResources.u_ClipFromScreen);
     mat4.translate(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [-1, 1, 0]);
     mat4.scale(localResources.u_ClipFromScreen, localResources.u_ClipFromScreen, [
-      2 / (renderParams.size[0] * renderParams.pixelRatio),
-      -2 / (renderParams.size[1] * renderParams.pixelRatio),
+      2 / renderParams.size[0],
+      -2 / renderParams.size[1],
       1
     ]);
 
@@ -304,12 +304,12 @@ export class FlowVisualizationStyle extends VisualizationStyle<FlowGlobalResourc
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
       renderParams.translation[0],
       renderParams.translation[1],
-      1
+      0
     ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
     mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
-      renderParams.scale * renderParams.pixelRatio,
-      renderParams.scale * renderParams.pixelRatio,
+      renderParams.scale,
+      renderParams.scale,
       1
     ]);
 

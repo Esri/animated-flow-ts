@@ -163,7 +163,7 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
       renderParams.translation[0],
       renderParams.translation[1],
-      1
+      0
     ]);
     mat4.rotateZ(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, renderParams.rotation);
     mat4.scale(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [

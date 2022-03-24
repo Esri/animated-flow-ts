@@ -206,7 +206,7 @@ function render(): void {
   // pixel-like coordinates to actual screen positions. It scales, rotates and
   // translates by the amounts dictated by the render parameters.
   mat4.identity(u_ScreenFromLocal);
-  mat4.translate(u_ScreenFromLocal, u_ScreenFromLocal, [translation[0], translation[1], 1]);
+  mat4.translate(u_ScreenFromLocal, u_ScreenFromLocal, [translation[0], translation[1], 0]);
   mat4.rotateZ(u_ScreenFromLocal, u_ScreenFromLocal, rotation);
   mat4.scale(u_ScreenFromLocal, u_ScreenFromLocal, [scale, scale, 1]);
 

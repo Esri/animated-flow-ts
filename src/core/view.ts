@@ -284,13 +284,15 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
       const yMap = mostRecentRenderableLocalResources.extent.ymax;
       const translation: [Pixels, Pixels] = [0, 0];
       renderParams.state.toScreen(translation, xMap, yMap);
+      translation[0] /= devicePixelRatio;
+      translation[1] /= devicePixelRatio;
 
       const visualizationRenderParams: VisualizationRenderParams = {
         size: renderParams.state.size,
         translation,
         rotation: degreesToRadians(renderParams.state.rotation),
         scale: mostRecentRenderableLocalResources.resolution / renderParams.state.resolution,
-        opacity: 1,
+        opacity: this.layer.opacity,
         pixelRatio: devicePixelRatio
       };
 
