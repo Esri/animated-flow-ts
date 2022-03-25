@@ -2,11 +2,11 @@
  * This app is a self-contained WebGL sample, intended as a primer
  * on WebGL rendering and graphic programming. There is nothing
  * "geographical" about it, and instead its focus is on explaining
- * how to rendered a colored triangle using WebGL.
+ * how to render a colored triangle using WebGL.
  *
  * The rendering techniques used in this file are also used in
  * another app, named `triangle-mapview.ts`, which focuses on
- * their integration with `MapView` using custom WebGL layer.
+ * their integration with `MapView` using a custom WebGL layer.
  */
 
 /**
@@ -18,8 +18,8 @@
  *
  * For 2D rendering, a `mat3` would be enough but in this codebase
  * we decided to stick with `mat4` because it is more generic, way
- * more popular, and a better starting point shall we decide to add
- * 3D effects to any of the samples in this repo.
+ * more popular in samples online, and a better starting point shall
+ * we decide to add 3D effects to any of the samples in this repo.
  */
 import { mat4 } from "gl-matrix";
 
@@ -62,15 +62,15 @@ const gl = canvas.getContext("webgl")!;
  * is a function that runs of the GPU and is invoked for each
  * vertex in the mesh. The main responsibility of the vertex shader
  * is to compute the position of a vertex, together with additional
- * vertex properties that may be needed for the next rendering stages.
+ * vertex properties that may be needed by subsequent stages.
  * Vertex shaders are created by calling `gl.createShader()` and passing in the `gl.VERTEX_SHADER`
  * constant. The source code for the function is specified in
- * a language called GLSL and then uploaded using `gl.shaderSource()`.
+ * a language called GLSL and uploaded using `gl.shaderSource()`.
  * Finally, the shader is compiled using `gl.compileShader()`.
  * In a real-world application it may be necessary to check
  * for compile errors using methods `gl.getShaderParameter()`
- * and `gl.getShaderInfoLog()` but in this sample we are doing
- * without it.
+ * and `gl.getShaderInfoLog()` but in this sample we skipping
+ * this step.
  *
  * Vertex shaders take inputs in the form of `attribute` and
  * `uniform` variables.
@@ -101,7 +101,8 @@ gl.compileShader(vertexShader);
  * is a function that runs of the GPU and is invoked for each
  * rendered fragment. A fragment is a "pixel-like piece" of rendered
  * geometry.  The main responsibility of the fragment shader
- * is to compute the color of a fragment.
+ * is to compute the color of a fragment, and store it in the `gl_FragColor`
+ * implicit variable.
  *
  * Fragment shaders take inputs in the form of `varying` variables; these
  * are the same `varying` that the vertex shader computed, but interpolated
@@ -145,18 +146,21 @@ gl.compileShader(fragmentShader);
  * Next step is to call `gl.linkProgram()` that actually links the shaders together
  * and makes the program ready to be used. At this point, the actual shader objects
  * can, and should, be deleted by calling `gl.deleteShader()`. Just like shader compilation,
- * also program linking can fail and in a real-world appliation you should use `gl.getProgramParameter()`
+ * also program linking can fail and in a real-world application you should use `gl.getProgramParameter()`
  * and `gl.getProgramInfoLog()` to check for errors.
  *
  * Once the program is linked, it is necessary to retrieve the uniform locations;
  * these are WebGL objects that are used to represent uniform variables in Javascript.
- * They are used to deliver data to GLSL uniform variables.
+ * They are used to deliver data to GLSL uniform variables. They are retrieved from
+ * the linked program by calling `gl.getUniformLocation()`.
  */
 const program = gl.createProgram()!;
 gl.attachShader(program, vertexShader);
 gl.attachShader(program, fragmentShader);
-gl.bindAttribLocation(program, 0, "a_Position");
-gl.bindAttribLocation(program, 1, "a_Color");
+const a_Position = 0;
+const a_Color = 1;
+gl.bindAttribLocation(program, a_Position, "a_Position");
+gl.bindAttribLocation(program, a_Color, "a_Color");
 gl.linkProgram(program);
 gl.deleteShader(vertexShader);
 gl.deleteShader(fragmentShader);
@@ -167,7 +171,7 @@ const loc_ClipFromScreen = gl.getUniformLocation(program, "u_ClipFromScreen")!;
  * The other WebGL resource that we need is a buffer. Buffers hold data that
  * can be consumed by shader programs. Specifically, we need a vertex buffer.
  * To create a vertex buffer, call `gl.createBuffer()`. In order to do anything
- * with a buffer, we need to modify the WebGL state so that the buffer becomes bound
+ * with a vertex buffer, we need to modify the WebGL state so that the buffer becomes bound
  * to the `gl.ARRAY_BUFFER` binding point. To do so, we use the `gl.bindBuffer()` method.
  * Next, we invoke `gl.bufferData()` on the same binding point, and we pass a
  * typed array of floating point values and the `gl.STATIC_DRAW` flag, which
@@ -189,45 +193,110 @@ gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 0, 320, 0, 0, 1, 0, 0, 180, 0, 0, 1]), gl.STATIC_DRAW);
 gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
-// Transform matrices.
+/**
+ * These are the transform matrices. We will compute them using `gl-matrix`
+ * and upload them to the shader program by referencing the uniform locations
+ * that we retrieved after linking the program.
+ */
 const u_ScreenFromLocal = mat4.create();
 const u_ClipFromScreen = mat4.create();
 
-// View state.
+/**
+ * The view state. This is simply a set of variables that we will be using to
+ * compute the `u_ScreenFromLocal` every frame. Translation and scale are constants;
+ * the rotation will be animated by changing its value slightly every frame.
+ */
 const translation: [number, number] = [150, 50];
 const scale = 1.5;
 let rotation: number;
 
 function render(): void {
-  const frequency = 1;
+  /**
+   * Animate the rotation. We are going to rock the triangle by animating the
+   * rotation periodically between 0.3 and 0.5 radians, with a frequency of 1 hertz (Hz).
+   */
+  const frequency = 1; /* hertz (Hz) */
   rotation = 0.4 + 0.1 * Math.sin((2 * Math.PI * frequency * performance.now()) / 1000);
 
-  // Compute the `u_ScreenFromLocal` matrix. This matrix converts from local
-  // pixel-like coordinates to actual screen positions. It scales, rotates and
-  // translates by the amounts dictated by the render parameters.
+  /**
+   * Compute the `u_ScreenFromLocal` matrix. This matrix converts from local
+   * pixel-like coordinates to actual screen positions. It scales, rotates and
+   * translates, in this order, by the amounts dictated by the render parameters.
+   * Note that `gl-matrix` works by post-multiplying matrices, so in order to scale,
+   * rotate and translate, you need to write the function calls in reverse order.
+   *
+   * The code below is equivalent to the following.
+   *
+   *   u_ScreenFromLocal := Identity(4)
+   *   u_ScreenFromLocal := u_ScreenFromLocal * Translate
+   *   u_ScreenFromLocal := u_ScreenFromLocal * RotateZ
+   *   u_ScreenFromLocal := u_ScreenFromLocal * Scale
+   *
+   * Which is equivalent to:
+   *
+   *   u_ScreenFromLocal := Translate * RotateZ * Scale
+   *
+   * If you were to take a point and multiply it by that matrix, you would put the
+   * matrix to the left and the point to the right.
+   *
+   *   TransformedPoint := u_ScreenFromLocal * Point
+   *
+   * Which is the same as:
+   *
+   *   TransformedPoint := Translate * RotateZ * Scale * Point
+   *
+   * As you can see, the scale acts first, then the rotation, then the translation.
+   */
   mat4.identity(u_ScreenFromLocal);
   mat4.translate(u_ScreenFromLocal, u_ScreenFromLocal, [translation[0], translation[1], 0]);
   mat4.rotateZ(u_ScreenFromLocal, u_ScreenFromLocal, rotation);
   mat4.scale(u_ScreenFromLocal, u_ScreenFromLocal, [scale, scale, 1]);
 
-  // Compute the `u_ClipFromScreen` matrix. This matrix converts from screen
-  // coordinates in pixels to clip coordinates in the range [-1, +1].
+  /**
+   * Compute the `u_ClipFromScreen` matrix. This matrix converts from screen
+   * coordinates in pixels to clip coordinates in the range [-1, +1].
+   */
   mat4.identity(u_ClipFromScreen);
   mat4.translate(u_ClipFromScreen, u_ClipFromScreen, [-1, 1, 0]);
   mat4.scale(u_ClipFromScreen, u_ClipFromScreen, [2 / canvas.width, -2 / canvas.height, 1]);
 
+  /**
+   * Bind the program and update the uniform matrices in the shader program.
+   */
   gl.useProgram(program);
   gl.uniformMatrix4fv(loc_ScreenFromLocal, false, u_ScreenFromLocal);
   gl.uniformMatrix4fv(loc_ClipFromScreen, false, u_ClipFromScreen);
 
+  /**
+   * Bind the buffer and configure the vertex state. This is where
+   * we need to tell WebGL how to read the data from the buffer.
+   * We need to call `gl.vertexAttribPointer()` once for each
+   * attribute location.
+   *
+   * Here, `a_Position` consists of 2 floats, while `a_Color` consists
+   * of 3 floats. The `false` constant is the `normalized` flag, which
+   * is ignored for floating point types. 20 is the stride, i.e., how many
+   * bytes stand between the beginning of a vertex and the beginning
+   * of the next vertex. 0 and 8 are offsets; the offset is 0 for
+   * `a_Position` because it comes first in the buffer; 2 floats, or
+   * 8 bytes after the position, is the color.
+   *
+   * We also need to enable the locations, i.e., tell WebGL to actually
+   * read from the buffer and deliver data to them; this is done by
+   * calling `gl.enableVertexAttribArray()`.
+   */
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 20, 0);
-  gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 20, 8);
+  gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 20, 0);
+  gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 20, 8);
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
-  gl.enableVertexAttribArray(0);
-  gl.enableVertexAttribArray(1);
+  gl.enableVertexAttribArray(a_Position);
+  gl.enableVertexAttribArray(a_Color);
 
-  // Draw the triangle.
+  /**
+   * Draw the triangle. This is done by calling `gl.drawArrays()` and passing
+   * the `gl.TRIANGLES` flag, the index of the first vertex to render, and the
+   * total number of consecutive vertices to read from the buffer.
+   */
   gl.drawArrays(gl.TRIANGLES, 0, 3);
 }
 

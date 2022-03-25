@@ -3,14 +3,14 @@ import Extent from "esri/geometry/Extent";
 import { mat4 } from "gl-matrix";
 import { ShimmerVisualizationStyle } from "../jumpstart/03-shimmer/rendering";
 
-// Create canvas.
+// Create the canvas.
 const canvas = document.createElement("canvas");
 canvas.width = 1280;
 canvas.height = 720;
 canvas.style.border = "1px solid black";
 document.body.appendChild(canvas);
 
-// Get context. The visual style that we instantiate in this app
+// Get the context. The visual style that we instantiate in this app
 // requires 32 bit indices.
 const gl = canvas.getContext("webgl")!;
 gl.getExtension("OES_element_index_uint");
@@ -46,7 +46,7 @@ gl.shaderSource(
 );
 gl.compileShader(fragmentShader);
 
-// Link program.
+// Link the program.
 const program = gl.createProgram()!;
 gl.attachShader(program, vertexShader);
 gl.attachShader(program, fragmentShader);
@@ -84,7 +84,7 @@ gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
 gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-// This is a texture quad. We are going to spin it around the y-axis
+// This is a texture quad. We are going to spin it around the y-axis,
 // turntable style.
 const vertexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -157,9 +157,8 @@ async function main(): Promise<void> {
       localResources
     );
 
-    // Ugh, the WebGL state machine yuck! Internally, the visual style
-    // object did some stuff that we need to undo here. We need a better
-    // solution for this.
+    // Internally, the visual style object did some stuff that we
+    // need to undo here. We need a better solution for this.
     gl.disableVertexAttribArray(2);
     gl.disableVertexAttribArray(3);
     gl.disable(gl.BLEND);
@@ -210,5 +209,5 @@ async function main(): Promise<void> {
   requestAnimationFrame(frame);
 }
 
-// Let's do it!
+// Showtime!
 main();

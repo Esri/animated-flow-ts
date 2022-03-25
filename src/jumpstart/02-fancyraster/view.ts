@@ -8,7 +8,7 @@ import { FancyRasterLayer } from "./layer";
 export class FancyRasterLayerView2D extends VisualizationLayerView2D<GlobalResources, LocalResources> {
   override animate = true;
 
-  createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
+  protected createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
     const layer = this.layer as FancyRasterLayer;
 
     return new FancyRasterVisualizationStyle(layer.imageryUrl);
