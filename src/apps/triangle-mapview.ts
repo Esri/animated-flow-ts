@@ -114,7 +114,7 @@ export class MyLocalResources implements Resources {
    * Constructs a local resource objects.
    *
    * @param _point1 The first point in pixels.
-   * @param _point2 The second point in pixels. 
+   * @param _point2 The second point in pixels.
    * @param _point3 The third point in pixels.
    */
   constructor(
@@ -173,14 +173,25 @@ export class MyLocalResources implements Resources {
 /**
  * The visualization style fully implements resource loading
  * and rendering for the visualization.
+ *
+ * This is a sample visualization style that displays a colored
+ * triangle.
  */
 export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, MyLocalResources> {
+  /**
+   * Construct a new instance of the visualization style.
+   *
+   * @param _point1 The first point.
+   * @param _point2 The second point.
+   * @param _point3 The third point.
+   */
   constructor(private _point1: Point, private _point2: Point, private _point3: Point) {
     super();
   }
 
   /**
-   * 
+   * Load the global resources.
+   *
    * @returns A promise to the global resources.
    */
   override async loadGlobalResources(): Promise<MyGlobalResources> {
@@ -189,11 +200,11 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
 
   /**
    * Load the local resources.
-   * 
-   * This is a mesh with a single triangle. Each vertex has a position `(x, y)`
-   * and a color `(r, g, b)`. The coordinates are expressed in pixels, and are
-   * the positions that the vertices are going
-   * 
+   *
+   * The local resources consist of a mesh with a single triangle. Each
+   * vertex has a position `(x, y)` and a color `(r, g, b)`. The
+   * coordinates are expressed in pixels.
+   *
    * @param extent The extent to load.
    * @param size The size in pixels of the desired visualization. It must
    * have the same aspect ratio as the extent.
@@ -216,6 +227,14 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
     return new MyLocalResources(local1, local2, local3);
   }
 
+  /**
+   *
+   * @param gl The shared WebGL rendering context.
+   * @param renderParams The render parameters. They include `translation`,
+   * `rotation`, `scale` and the `size` of the view.
+   * @param globalResources The loaded and attached global resources.
+   * @param localResources  The loaded and attached local resources.
+   */
   override renderVisualization(
     gl: WebGLRenderingContext,
     renderParams: VisualizationRenderParams,
@@ -265,17 +284,31 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
   }
 }
 
+/**
+ * The custom layer view is inherited from `VisualizationLayerView2D`.
+ */
 @subclass("my.stuff.MyCustomLayerView2D")
 export class MyCustomLayerView2D extends VisualizationLayerView2D<MyGlobalResources, MyLocalResources> {
+  /**
+   * This is not an animated visualization; the triangle does not move.
+   */
   override animate = false;
 
-  createVisualizationStyle(): VisualizationStyle<MyGlobalResources, MyLocalResources> {
+  /**
+   * The only method that we need to override is `createVisualizationStyle()`.
+   *
+   * @returns The visualization style of the layer view.
+   */
+  protected createVisualizationStyle(): VisualizationStyle<MyGlobalResources, MyLocalResources> {
     const layer = this.layer as MyCustomLayer;
 
     return new MyVisualizationStyle(layer.point1, layer.point2, layer.point3);
   }
 }
 
+/**
+ * The custom layer is inherited from `esri/Layer`, as usual.
+ */
 @subclass("my.stuff.MyCustomLayer")
 export class MyCustomLayer extends Layer {
   // First point defaults to El Paso.
@@ -302,6 +335,13 @@ export class MyCustomLayer extends Layer {
     spatialReference: { wkid: 4326 }
   });
 
+  /**
+   * This method is called by the `MapView` when the
+   * layer is added to the map.
+   *
+   * @param view The `MapView`.
+   * @returns The created layer view.
+   */
   override createLayerView(view: any): any {
     if (view.type === "2d") {
       return new MyCustomLayerView2D({

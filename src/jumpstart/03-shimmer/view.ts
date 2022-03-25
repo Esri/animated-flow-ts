@@ -8,7 +8,7 @@ import { ShimmerLayer } from "./layer";
 export class ShimmerLayerView2D extends VisualizationLayerView2D<GlobalResources, LocalResources> {
   override animate = true;
 
-  createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
+  protected createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
     const layer = this.layer as ShimmerLayer;
 
     // The feature URL and the field name are passed to the style as they are.

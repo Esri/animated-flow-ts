@@ -7,7 +7,7 @@ import { VisualizationStyle } from "../../core/rendering";
 export class TestPatternLayerView2D extends VisualizationLayerView2D<GlobalResources, LocalResources> {
   override animate = false;
 
-  createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
+  protected createVisualizationStyle(): VisualizationStyle<GlobalResources, LocalResources> {
     return new TestPatternVisualizationStyle();
   }
 }
