@@ -40,7 +40,8 @@ export class MyGlobalResources implements Resources {
    * This method is called automatically before the resources are needed
    * for rendering.
    *
-   * @param gl The shared WebGL rendering context.
+   * @param gl The shared WebGL rendering context. This context is owned
+   * by the `MapView` and shared by all layers, predefined and custom.
    */
   attach(gl: WebGLRenderingContext): void {
     // Create and compile the vertex shader.
@@ -103,7 +104,8 @@ export class MyGlobalResources implements Resources {
 
 /**
  * The vertex buffer and the matrices that contain the uniform values
- * are going to live in the `MyLocalResources` class.
+ * are going to live in the `MyLocalResources` class. An instance of this
+ * class will be created every time that the view becomes stationary.
  */
 export class MyLocalResources implements Resources {
   vertexBuffer: WebGLBuffer | null = null;
@@ -111,11 +113,15 @@ export class MyLocalResources implements Resources {
   u_ClipFromScreen = mat4.create();
 
   /**
-   * Constructs a local resource objects.
+   * Construct a local resource objects.
    *
-   * @param _point1 The first point in pixels.
-   * @param _point2 The second point in pixels.
-   * @param _point3 The third point in pixels.
+   * The local resources consist of a mesh with a single triangle. Each
+   * vertex has a position `(x, y)` and a color `(r, g, b)`. The
+   * coordinates are expressed in pixels.
+   *
+   * @param _point1 The first point of the triangle, in pixels.
+   * @param _point2 The second point of the triangle, in pixels.
+   * @param _point3 The third point of the triangle, in pixels.
    */
   constructor(
     private _point1: [number, number],
@@ -181,9 +187,9 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
   /**
    * Construct a new instance of the visualization style.
    *
-   * @param _point1 The first point.
-   * @param _point2 The second point.
-   * @param _point3 The third point.
+   * @param _point1 The first point of the triangle.
+   * @param _point2 The second point of the triangle.
+   * @param _point3 The third point of the triangle.
    */
   constructor(private _point1: Point, private _point2: Point, private _point3: Point) {
     super();
@@ -200,10 +206,6 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
 
   /**
    * Load the local resources.
-   *
-   * The local resources consist of a mesh with a single triangle. Each
-   * vertex has a position `(x, y)` and a color `(r, g, b)`. The
-   * coordinates are expressed in pixels.
    *
    * @param extent The extent to load.
    * @param size The size in pixels of the desired visualization. It must
@@ -228,6 +230,7 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
   }
 
   /**
+   * Render the visualization.
    *
    * @param gl The shared WebGL rendering context.
    * @param renderParams The render parameters. They include `translation`,
@@ -297,6 +300,8 @@ export class MyCustomLayerView2D extends VisualizationLayerView2D<MyGlobalResour
   /**
    * The only method that we need to override is `createVisualizationStyle()`.
    *
+   * The returned visualization style determines how this layer view will look like.
+   *
    * @returns The visualization style of the layer view.
    */
   protected createVisualizationStyle(): VisualizationStyle<MyGlobalResources, MyLocalResources> {
@@ -352,9 +357,12 @@ export class MyCustomLayer extends Layer {
   }
 }
 
+// Create an instance of the custom layer.
+// Internally, the layer will create the layer view when needed.
+// In turn, the layer view will create the visualization style.
 const myCustomLayer = new MyCustomLayer();
 
-// Create the map with the three layers defined above.
+// Create a map with the basemap and the custom layer.
 const map = new EsriMap({
   basemap: "dark-gray-vector",
   layers: [myCustomLayer]
