@@ -39,7 +39,7 @@ export class GlobalResources implements Resources {
       uniform float u_Time;
       void main(void) {
         float h = texture2D(u_Texture, v_Texcoord).r;
-        float intensity = 0.5 + 0.5 * sin(h * 20.0 + u_Time);;
+        float intensity = 0.5 + 0.5 * sin(h * 20.0 + u_Time);
         gl_FragColor = vec4(0.2, 0.4, 1.0, intensity * h);
         gl_FragColor.rgb *= gl_FragColor.a;
       }`
