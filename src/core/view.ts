@@ -292,7 +292,7 @@ export abstract class VisualizationLayerView2D<GR extends Resources, LR extends 
         translation,
         rotation: degreesToRadians(renderParams.state.rotation),
         scale: mostRecentRenderableLocalResources.resolution / renderParams.state.resolution,
-        opacity: this.layer.opacity,
+        opacity: 1,
         pixelRatio: devicePixelRatio
       };
 
