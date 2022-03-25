@@ -2,8 +2,8 @@
  * This app is a self-contained custom WebGL layer sample, intended
  * to show how this repository handles integration of WebGL rendering
  * with the `MapView`, accurate geographic positioning, and LOD support.
- * It displays a colored triangle with vertices in Memohis, Denver and
- * El Paso.
+ * It implements a custom WebGL layer that displays a colored triangle
+ * with vertices in Memphis, Denver and El Paso.
  *
  * The rendering techniques used in this file are the same introduced
  * in another app, named `triangle-standalone.ts`, which also includes
@@ -23,13 +23,27 @@ import { Extent } from "esri/geometry";
 import Point from "esri/geometry/Point";
 import * as projection from "esri/geometry/projection";
 
+/**
+ * In the standalone app, we had two WebGL resources, the shader program
+ * and the vertex buffer, with the same lifecycle; they were created at
+ * startup, and never destroyed. In this app, we are doing things
+ * differently. We are putting the program and the uniform locations in
+ * a class `MyGlobalResources`. An instance of this class will be
+ * created automatically when the layer is added to the map.
+ */
 export class MyGlobalResources implements Resources {
   program: WebGLProgram | null = null;
   loc_ScreenFromLocal: WebGLUniformLocation | null = null;
   loc_ClipFromScreen: WebGLUniformLocation | null = null;
 
+  /**
+   * This method is called automatically before the resources are needed
+   * for rendering.
+   *
+   * @param gl The shared WebGL rendering context.
+   */
   attach(gl: WebGLRenderingContext): void {
-    // Compile the shaders.
+    // Create and compile the vertex shader.
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
     gl.shaderSource(
       vertexShader,
@@ -46,6 +60,8 @@ export class MyGlobalResources implements Resources {
       }`
     );
     gl.compileShader(vertexShader);
+
+    // Create and compile the fragment shader.
     const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
     gl.shaderSource(
       fragmentShader,
@@ -58,7 +74,8 @@ export class MyGlobalResources implements Resources {
     );
     gl.compileShader(fragmentShader);
 
-    // Link the program.
+    // Create the program, attach the shaders, configure attribute
+    // locations, link the program, and delete the shaders.
     const program = gl.createProgram()!;
     gl.attachShader(program, vertexShader);
     gl.attachShader(program, fragmentShader);
@@ -68,27 +85,54 @@ export class MyGlobalResources implements Resources {
     gl.deleteShader(vertexShader);
     gl.deleteShader(fragmentShader);
     this.program = program;
+
+    // Retrieve uniform locations.
     this.loc_ScreenFromLocal = gl.getUniformLocation(program, "u_ScreenFromLocal")!;
     this.loc_ClipFromScreen = gl.getUniformLocation(program, "u_ClipFromScreen")!;
   }
 
+  /**
+   * This method is called automatically when the resources are not needed anymore.
+   *
+   * @param gl The shared WebGL rendering context.
+   */
   detach(gl: WebGLRenderingContext): void {
     gl.deleteProgram(this.program);
   }
 }
 
+/**
+ * The vertex buffer and the matrices that contain the uniform values
+ * are going to live in the `MyLocalResources` class.
+ */
 export class MyLocalResources implements Resources {
   vertexBuffer: WebGLBuffer | null = null;
   u_ScreenFromLocal = mat4.create();
   u_ClipFromScreen = mat4.create();
 
+  /**
+   * Constructs a local resource objects.
+   *
+   * @param _point1 The first point in pixels.
+   * @param _point2 The second point in pixels. 
+   * @param _point3 The third point in pixels.
+   */
   constructor(
     private _point1: [number, number],
     private _point2: [number, number],
     private _point3: [number, number]
   ) {}
 
+  /**
+   * This method is called automatically before the resources are needed
+   * for rendering.
+   *
+   * @param gl The shared WebGL rendering context.
+   */
   attach(gl: WebGLRenderingContext): void {
+    // Create the vertex buffer and upload the data. The data
+    // consists of 3 vertices containing 5 floating points values
+    // in the format `x y r g b`.
     const vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(
@@ -116,20 +160,45 @@ export class MyLocalResources implements Resources {
     this.vertexBuffer = vertexBuffer;
   }
 
+  /**
+   * This method is called automatically when the resources are not needed anymore.
+   *
+   * @param gl The shared WebGL rendering context.
+   */
   detach(gl: WebGLRenderingContext): void {
     gl.deleteBuffer(this.vertexBuffer);
   }
 }
 
+/**
+ * The visualization style fully implements resource loading
+ * and rendering for the visualization.
+ */
 export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, MyLocalResources> {
   constructor(private _point1: Point, private _point2: Point, private _point3: Point) {
     super();
   }
 
+  /**
+   * 
+   * @returns A promise to the global resources.
+   */
   override async loadGlobalResources(): Promise<MyGlobalResources> {
     return new MyGlobalResources();
   }
 
+  /**
+   * Load the local resources.
+   * 
+   * This is a mesh with a single triangle. Each vertex has a position `(x, y)`
+   * and a color `(r, g, b)`. The coordinates are expressed in pixels, and are
+   * the positions that the vertices are going
+   * 
+   * @param extent The extent to load.
+   * @param size The size in pixels of the desired visualization. It must
+   * have the same aspect ratio as the extent.
+   * @returns A promise to the local resources.
+   */
   override async loadLocalResources(extent: Extent, size: [Pixels, Pixels]): Promise<MyLocalResources> {
     await projection.load();
 
@@ -154,7 +223,7 @@ export class MyVisualizationStyle extends VisualizationStyle<MyGlobalResources, 
     localResources: MyLocalResources
   ): void {
     // Compute the `u_ScreenFromLocal` matrix. This matrix converts from local
-    // pixel-like coordinates to actual screen positions. It scales, rotates and
+    // pixel coordinates to actual screen positions. It scales, rotates and
     // translates by the amounts dictated by the render parameters.
     mat4.identity(localResources.u_ScreenFromLocal);
     mat4.translate(localResources.u_ScreenFromLocal, localResources.u_ScreenFromLocal, [
